@@ -4,7 +4,7 @@ import fs from "fs";
 import path from "path";
 import { 
   User, Profile, Investment, Deposit, Withdrawal, 
-  MyTransaction, Notification, Referral, ChatMessage, Agreement, AppSettings, Loan 
+  MyTransaction, Notification, Referral, ChatMessage, Agreement, AppSettings, Loan, EligibilityCheck
 } from "./src/types";
 
 // Initialize Firebase Admin SDK
@@ -74,6 +74,7 @@ interface LumoraDB {
   agreements: Agreement[];
   settings: AppSettings;
   loans: Loan[];
+  eligibilityChecks?: EligibilityCheck[];
 }
 
 // Global default settings
@@ -112,6 +113,9 @@ function loadDB(): LumoraDB {
       const db = JSON.parse(data) as LumoraDB;
       if (!db.loans) {
         db.loans = [];
+      }
+      if (!db.eligibilityChecks) {
+        db.eligibilityChecks = [];
       }
       let dbUpdated = false;
       if (db.users) {
@@ -422,7 +426,8 @@ We connect local commerce and infrastructure project liquidity pools directly to
       }
     ],
     settings: DEFAULT_SETTINGS,
-    loans: []
+    loans: [],
+    eligibilityChecks: []
   };
 
   saveDB(initialDB);
@@ -456,6 +461,7 @@ const lastSynced: Record<string, Record<string, string>> = {
   agreements: {},
   settings: {},
   loans: {},
+  eligibilityChecks: {},
   chatHistory: {}
 };
 
@@ -477,6 +483,7 @@ async function syncToFirestore(latestDb: LumoraDB) {
     { name: "referrals", array: latestDb.referrals, key: "id" },
     { name: "agreements", array: latestDb.agreements, key: "id" },
     { name: "loans", array: latestDb.loans, key: "id" },
+    { name: "eligibilityChecks", array: latestDb.eligibilityChecks, key: "id" },
   ];
 
   for (const spec of collectionSpecs) {
@@ -612,6 +619,7 @@ const db: LumoraDB = {
     referralBonusPercentage: 10,
   },
   loans: [],
+  eligibilityChecks: [],
 };
 
 function setupFirebaseSync() {
@@ -632,6 +640,7 @@ function setupFirebaseSync() {
     { name: "referrals", array: db.referrals, key: "id" },
     { name: "agreements", array: db.agreements, key: "id" },
     { name: "loans", array: db.loans, key: "id" },
+    { name: "eligibilityChecks", array: db.eligibilityChecks, key: "id" },
   ];
 
   for (const col of collectionsToListen) {
@@ -821,6 +830,9 @@ async function startServer() {
   db.referrals.push(...initialData.referrals);
   db.agreements.push(...initialData.agreements);
   db.loans.push(...initialData.loans);
+  if (initialData.eligibilityChecks) {
+    db.eligibilityChecks.push(...initialData.eligibilityChecks);
+  }
   db.settings = initialData.settings;
   db.chatHistory = initialData.chatHistory;
 
@@ -1283,6 +1295,30 @@ async function startServer() {
       return res.status(400).json({ error: "Insufficient wallet balance. Please deposit funds first." });
     }
 
+    // Level 5 Activation Constraint Guard
+    if (plan.level >= 5) {
+      const regDate = profile.registrationDate ? new Date(profile.registrationDate) : new Date();
+      const now = new Date();
+      const diffTime = Math.abs(now.getTime() - regDate.getTime());
+      const hasDuration = (diffTime / (1000 * 60 * 60 * 24 * 30.4375)) >= 5;
+
+      const userReferrals = db.referrals.filter(r => r.referrerId === userId);
+      const verifiedReferrals = userReferrals.filter(ref => {
+        const rp = db.profiles.find(p => p.userId === ref.referredId);
+        return rp && rp.idVerificationStatus === 'verified';
+      });
+      const hasInvites = verifiedReferrals.length >= 25;
+      const isCompliant = profile.idVerificationStatus === 'verified';
+
+      if (!hasDuration || !hasInvites || !isCompliant) {
+        let reqText = "Level 5 Requirements:\n";
+        reqText += hasDuration ? "✓ Membership active for 5 months\n" : "✗ Membership active for 5 months\n";
+        reqText += hasInvites ? "✓ Invite at least 25 verified members\n" : "✗ Invite at least 25 verified members\n";
+        reqText += isCompliant ? "✓ Account is active and compliant with platform rules" : "✗ Account is active and compliant with platform rules";
+        return res.status(400).json({ error: reqText });
+      }
+    }
+
     const finalDurationDays = durationDays ? parseInt(durationDays.toString()) : plan.durationDays;
 
     // Process Purchase
@@ -1540,7 +1576,14 @@ async function startServer() {
   app.get("/api/referrals/:userId", (req, res) => {
     const { userId } = req.params;
     const team = db.referrals.filter(r => r.referrerId === userId);
-    res.json(team);
+    const mappedTeam = team.map(ref => {
+      const rp = db.profiles.find(p => p.userId === ref.referredId);
+      return {
+        ...ref,
+        isVerified: rp ? (rp.idVerificationStatus === 'verified') : false
+      };
+    });
+    res.json(mappedTeam);
   });
 
   // Get User Investments
@@ -2084,7 +2127,7 @@ Instruct the user precisely on which page, component, or element to use to accom
     res.json({ success: true, withdrawal: wit });
   });
 
-  // Submit loan request (Requires VIP Level 2+)
+  // Submit loan request (Requires VIP Level 3+)
   app.post("/api/loans/submit", (req, res) => {
     const { userId, amount, nationalId, tenureMonths } = req.body;
     if (!userId || !amount || !nationalId) {
@@ -2103,8 +2146,46 @@ Instruct the user precisely on which page, component, or element to use to accom
       return res.status(400).json({ error: "The provided FAN number does not match your verified National ID registration details. Please enter the same FAN number associated with your verified National ID." });
     }
 
-    if (p.vipLevel < 2) {
-      return res.status(400).json({ error: "Loan feature is only available for accounts with VIP Level 2 Investment Plan or higher." });
+    // Dynamic calculations for audit log entry
+    const regDate = p.registrationDate ? new Date(p.registrationDate) : new Date();
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - regDate.getTime());
+    const membershipDurationMonths = diffTime / (1000 * 60 * 60 * 24 * 30.4375);
+
+    const userReferrals = db.referrals.filter(r => r.referrerId === userId);
+    const verifiedReferrals = userReferrals.filter(ref => {
+      const rp = db.profiles.find(prof => prof.userId === ref.referredId);
+      return rp && rp.idVerificationStatus === 'verified';
+    });
+    const verifiedReferralCount = verifiedReferrals.length;
+
+    const belongsToEligibilityTiers = p.vipLevel >= 3;
+
+    // Build the eligibility log document
+    const checkId = "check-" + Math.random().toString(36).substr(2, 9);
+    const checkLog = {
+      id: checkId,
+      userId,
+      userName: p.fullName,
+      userPhone: p.phone,
+      vipLevel: p.vipLevel,
+      timestamp: new Date().toISOString(),
+      passed: belongsToEligibilityTiers,
+      remarks: belongsToEligibilityTiers 
+        ? "Passed: Member VIP Level is " + p.vipLevel
+        : "Failed: Loan services are available only for members who have reached Level 3 or higher. Current level: " + p.vipLevel,
+      membershipDurationMonths: Math.round(membershipDurationMonths * 10) / 10,
+      verifiedReferralCount
+    };
+
+    if (!db.eligibilityChecks) {
+      db.eligibilityChecks = [];
+    }
+    db.eligibilityChecks.push(checkLog);
+
+    if (p.vipLevel < 3) {
+      saveDB(db);
+      return res.status(400).json({ error: "Loan services are available only for members who have reached Level 3 or higher." });
     }
     
     const allowedAmounts = [30000, 50000, 100000, 150000, 200000, 250000, 500000, 1000000];

@@ -504,6 +504,30 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       return respondJSON(400, { error: `Insufficient available funds. Required: ${plan.requiredInvestment} ETB.` });
     }
 
+    // Level 5 Activation Constraint Guard
+    if (plan.level >= 5) {
+      const regDate = profile.registrationDate ? new Date(profile.registrationDate) : new Date();
+      const now = new Date();
+      const diffTime = Math.abs(now.getTime() - regDate.getTime());
+      const hasDuration = (diffTime / (1000 * 60 * 60 * 24 * 30.4375)) >= 5;
+
+      const userReferrals = db.referrals.filter(r => r.referrerId === userId);
+      const verifiedReferrals = userReferrals.filter(ref => {
+        const rp = db.profiles.find(p => p.userId === ref.referredId);
+        return rp && rp.idVerificationStatus === 'verified';
+      });
+      const hasInvites = verifiedReferrals.length >= 25;
+      const isCompliant = profile.idVerificationStatus === 'verified';
+
+      if (!hasDuration || !hasInvites || !isCompliant) {
+        let reqText = "Level 5 Requirements:\n";
+        reqText += hasDuration ? "✓ Membership active for 5 months\n" : "✗ Membership active for 5 months\n";
+        reqText += hasInvites ? "✓ Invite at least 25 verified members\n" : "✗ Invite at least 25 verified members\n";
+        reqText += isCompliant ? "✓ Account is active and compliant with platform rules" : "✗ Account is active and compliant with platform rules";
+        return respondJSON(400, { error: reqText });
+      }
+    }
+
     const finalDurationDays = durationDays ? Number(durationDays) : plan.durationDays;
 
     profile.walletBalance -= plan.requiredInvestment;
@@ -623,8 +647,8 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     const profile = db.profiles.find(p => p.userId === userId);
     if (!profile) return respondJSON(404, { error: "Profile not found" });
 
-    if (profile.vipLevel < 2) {
-      return respondJSON(400, { error: "Minimum VIP level 2 required for commercial line-of-credit loans." });
+    if (profile.vipLevel < 3) {
+      return respondJSON(400, { error: "Loan services are available only for members who have reached Level 3 or higher." });
     }
 
     const loan: Loan = {

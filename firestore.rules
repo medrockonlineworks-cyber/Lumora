@@ -95,6 +95,12 @@ service cloud.firestore {
       allow write: if isSignedIn();
     }
 
+    // Eligibility Checks Collection
+    match /eligibilityChecks/{checkId} {
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true));
+      allow write: if isSignedIn();
+    }
+
     // Chat History Collection
     match /chatHistory/{userId} {
       allow read, write: if isSignedIn() && (isOwner(userId) || (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true));

@@ -199,6 +199,24 @@
         "tenureMonths": { "type": "integer" }
       },
       "required": ["id", "userId", "userName", "userPhone", "vipLevel", "amount", "nationalId", "status", "submittedAt"]
+    },
+    "EligibilityCheck": {
+      "title": "EligibilityCheck",
+      "description": "Historical log of user loan eligibility audits",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userPhone": { "type": "string" },
+        "vipLevel": { "type": "integer" },
+        "timestamp": { "type": "string" },
+        "passed": { "type": "boolean" },
+        "remarks": { "type": "string" },
+        "membershipDurationMonths": { "type": "number" },
+        "verifiedReferralCount": { "type": "integer" }
+      },
+      "required": ["id", "userId", "userName", "userPhone", "vipLevel", "timestamp", "passed", "remarks", "membershipDurationMonths", "verifiedReferralCount"]
     }
   },
   "firestore": {
@@ -245,6 +263,10 @@
     "/loans/{loanId}": {
       "schema": "Loan",
       "description": "Lending requests queue"
+    },
+    "/eligibilityChecks/{checkId}": {
+      "schema": "EligibilityCheck",
+      "description": "Historical log of user loan eligibility checks"
     }
   }
 }

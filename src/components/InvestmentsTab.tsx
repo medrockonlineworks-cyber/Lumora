@@ -1034,7 +1034,7 @@ export default function InvestmentsTab({ plans, profile, onBuyPlan }: Investment
             {message && (
               <div className={`mt-4 p-3 rounded-xl text-xs text-center font-bold border-2 ${
                 message.isError 
-                  ? 'bg-rose-50 border-rose-400 text-rose-950 font-mono' 
+                  ? 'bg-rose-50 border-rose-400 text-rose-950 font-mono whitespace-pre-line text-left pl-6' 
                   : 'bg-emerald-50 border-emerald-400 text-emerald-950'
               }`}>
                 {message.text}

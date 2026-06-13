@@ -135,6 +135,7 @@ export interface Referral {
   referredVipLevel: number;
   registrationDate: string;
   rewardEarned: number;
+  isVerified?: boolean;
 }
 
 export interface ChatMessage {
@@ -190,5 +191,18 @@ export interface Loan {
   reviewedAt?: string;
   rejectionReason?: string;
   tenureMonths?: number;
+}
+
+export interface EligibilityCheck {
+  id: string;
+  userId: string;
+  userName: string;
+  userPhone: string;
+  vipLevel: number;
+  timestamp: string;
+  passed: boolean;
+  remarks: string;
+  membershipDurationMonths: number;
+  verifiedReferralCount: number;
 }
 

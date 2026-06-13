@@ -361,8 +361,8 @@ export default function ProfileTab({
     setLoanError('');
     setLoanSuccess('');
     
-    if (profile.vipLevel < 2) {
-      setLoanError('Loan feature requires VIP Level 2 Investment Plan or higher.');
+    if (profile.vipLevel < 3) {
+      setLoanError('Loan services are available only for members who have reached Level 3 or higher.');
       return;
     }
     
@@ -616,6 +616,71 @@ export default function ProfileTab({
 
         </div>
 
+      </div>
+
+      {/* CARD: Level 5 Eligibility Status */}
+      <div className="p-5 rounded-[2.2rem] bg-gradient-to-b from-[#0A3D91]/5 to-transparent border border-[#0A3D91]/15 shadow-2xs space-y-4">
+        <div className="flex items-center space-x-2">
+          <Sparkles className="w-5 h-5 text-amber-500 animate-bounce" />
+          <h3 className="font-display font-black text-xs text-[#0A3D91] uppercase tracking-wider">
+            Premium VIP Level 5 Unlock Tracker
+          </h3>
+        </div>
+        <p className="text-[10px] text-slate-800 font-bold leading-normal">
+          Check qualification milestones for VIP Level 5 activation. All conditions must be fully met to acquire custom structural level upgrades.
+        </p>
+        <div className="space-y-2.5 font-sans">
+          {/* Milestone 1 */}
+          <div className="flex items-center justify-between p-3 bg-white/70 border border-slate-100 rounded-2xl">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm">
+                {(() => {
+                  const regDate = profile.registrationDate ? new Date(profile.registrationDate) : new Date();
+                  const now = new Date();
+                  const diffTime = Math.abs(now.getTime() - regDate.getTime());
+                  const durationMonths = diffTime / (1000 * 60 * 60 * 24 * 30.4375);
+                  return durationMonths >= 5 ? "✓" : "✗";
+                })()}
+              </span>
+              <span className="text-[10.5px] font-bold text-slate-900">Active Membership (At least 5 Months)</span>
+            </div>
+            <span className="text-[10px] font-mono font-black text-slate-700 bg-slate-50 border px-2 py-0.5 rounded-lg">
+              {(() => {
+                const regDate = profile.registrationDate ? new Date(profile.registrationDate) : new Date();
+                const now = new Date();
+                const diffTime = Math.abs(now.getTime() - regDate.getTime());
+                const durationMonths = diffTime / (1000 * 60 * 60 * 24 * 30.4375);
+                return (Math.round(durationMonths * 10) / 10).toFixed(1);
+              })()} / 5.0m
+            </span>
+          </div>
+
+          {/* Milestone 2 */}
+          <div className="flex items-center justify-between p-3 bg-white/70 border border-slate-100 rounded-2xl">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm">
+                {referrals.filter(r => r.isVerified || r.referredVipLevel >= 1).length >= 25 ? "✓" : "✗"}
+              </span>
+              <span className="text-[10.5px] font-bold text-slate-900">Verified Direct Referrals (25+ Members)</span>
+            </div>
+            <span className="text-[10px] font-mono font-black text-slate-700 bg-slate-50 border px-2 py-0.5 rounded-lg">
+              {referrals.filter(r => r.isVerified || r.referredVipLevel >= 1).length} / 25
+            </span>
+          </div>
+
+          {/* Milestone 3 */}
+          <div className="flex items-center justify-between p-3 bg-white/70 border border-slate-100 rounded-2xl">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm">{profile.idVerificationStatus === 'verified' ? "✓" : "✗"}</span>
+              <span className="text-[10.5px] font-bold text-slate-900">Account Compliant & Verified ID Status</span>
+            </div>
+            <span className={`text-[9.5px] font-mono font-black px-2 py-0.5 rounded-lg uppercase tracking-wide border ${
+              profile.idVerificationStatus === 'verified' ? 'bg-emerald-50 text-emerald-700 border-emerald-250' : 'bg-amber-50 text-amber-700 border-amber-250'
+            }`}>
+              {profile.idVerificationStatus || 'Unsubmitted'}
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* CARD 2: Referrals Invite System Panel (Bento Layout) */}
@@ -981,17 +1046,17 @@ export default function ProfileTab({
         </div>
  
         <p className="text-[11.5px] text-slate-900 leading-relaxed font-bold">
-          {language === 'am' ? 'በLUMORA ሊኩይዲቲ አካውንቶች የተደገፈ ተቋማዊ ካፒታልን ይክፈቱ። ክፍያዎች በ24 ሰዓታት ውስጥ በቀጥታ ወደተረጋገጠው የCBE አካውንትዎ ይላካሉ። ብቁ ደረጃ፡ ቪአይፒ 2።' :
-           language === 'om' ? 'Wabii herrega Lumoratiin kaffaltii liqii baankii argadhaa. Sa\'aa 24 keessatti herrega CBE keessanitti ergama. Sadarkaa dandeettii: VIP 2.' :
-           language === 'ti' ? 'ብLUMORA ናይ እቶት ሒሳብ ዝተደገፈ ተቋማዊ ርእሰ-ማል ይኽፈቱ። ክፍሊታት ኣብ ውሽጢ 24 ሰዓታት ቀጥታ ናብ ዝተረጋገጸ ናይ CBE ኣካውንትኩም ይለኣኽ። ብቑዕ ደረጃ፡ ቪአይፒ 2።' :
-           language === 'so' ? 'Furi hantida hay\'adaha ee ay taageerayaan xisaabaadka dareeraha ah ee LUMORA. Bixinta waxaa si toos ah loogu dhigaa akoonkaaga CBE ee la xaqiijiyay 24 saacodood gudahood. Heerka u qalmida: VIP 2.' :
-           'Unlock institutional capital backed by LUMORA’s liquidity accounts. Disbursements are swept directly to your verified CBE account within 24 hours. Eligible tier: VIP 2.'}
+          {language === 'am' ? 'በLUMORA ሊኩይዲቲ አካውንቶች የተደገፈ ተቋማዊ ካፒታልን ይክፈቱ። ክፍያዎች በ24 ሰዓታት ውስጥ በቀጥታ ወደተረጋገጠው የCBE አካውንትዎ ይላካሉ። ብቁ ደረጃ፡ ቪአይፒ 3።' :
+           language === 'om' ? 'Wabii herrega Lumoratiin kaffaltii liqii baankii argadhaa. Sa\'aa 24 keessatti herrega CBE keessanitti ergama. Sadarkaa dandeettii: VIP 3.' :
+           language === 'ti' ? 'ብLUMORA ናይ እቶት ሒሳብ ዝተደገፈ ተቋማዊ ርእሰ-ማል ይኽፈቱ። ክፍሊታት ኣብ ውሽጢ 24 ሰዓታት ቀጥታ ናብ ዝተረጋገጸ ናይ CBE ኣካውንትኩም ይለኣኽ። ብቑዕ ደረጃ፡ ቪአይፒ 3።' :
+           language === 'so' ? 'Furi hantida hay\'adaha ee ay taageerayaan xisaabaadka dareeraha ah ee LUMORA. Bixinta waxaa si toos ah loogu dhigaa akoonkaaga CBE ee la xaqiijiyay 24 saacodood gudahood. Heerka u qalmida: VIP 3.' :
+           'Unlock institutional capital backed by LUMORA’s liquidity accounts. Disbursements are swept directly to your verified CBE account within 24 hours. Eligible tier: VIP 3.'}
         </p>
 
         {/* Calculation details simulator */}
         <div className="bg-slate-50/55 p-4 rounded-2xl border border-slate-100 font-sans">
           <LoanCalculator
-            isEligible={profile.vipLevel >= 2 && profile.idVerificationStatus === 'verified'}
+            isEligible={profile.vipLevel >= 3 && profile.idVerificationStatus === 'verified'}
             onApplySettings={(amount, tenure) => {
               setLoanAmount(amount.toString());
               setLoanTenure(tenure);
@@ -1000,13 +1065,13 @@ export default function ProfileTab({
         </div>
 
         {/* Verification / Level Locks Checking */}
-        {profile.vipLevel < 2 ? (
+        {profile.vipLevel < 3 ? (
           <div className="p-4 bg-amber-50 rounded-[1.50rem] border border-amber-100 text-center space-y-2">
-            <span className="text-[8.5px] bg-amber-200/60 text-amber-900 font-extrabold uppercase py-1 px-3 rounded-xl border border-amber-200">
+            <span className="text-[8.5px] bg-amber-200/60 text-[#a37010] font-extrabold uppercase py-1 px-3 rounded-xl border border-amber-200">
               Feature Locked
             </span>
-            <p className="text-[10.5px] text-amber-800 leading-normal font-semibold max-w-xs mx-auto">
-              Current level is VIP {profile.vipLevel || 0}. Please purchase a <strong>VIP 2 Plan</strong> or higher in the Investments screen to acquire structural eligibility.
+            <p className="text-[10.5px] text-amber-800 leading-normal font-bold max-w-xs mx-auto">
+              Loan services are available only for members who have reached Level 3 or higher.
             </p>
           </div>
         ) : profile.idVerificationStatus !== 'verified' ? (
