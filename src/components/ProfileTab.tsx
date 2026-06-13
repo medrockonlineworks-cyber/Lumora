@@ -355,6 +355,7 @@ export default function ProfileTab({
   const [loanSuccess, setLoanSuccess] = useState('');
   const [submitLoading, setSubmitLoading] = useState(false);
   const [expandedScheduleId, setExpandedScheduleId] = useState<string | null>(null);
+  const [showLoanInfo, setShowLoanInfo] = useState(false);
 
   const handleLoanRequest = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1010,13 +1011,23 @@ export default function ProfileTab({
               <Coins className="w-4.5 h-4.5" />
             </div>
             <div>
-              <h4 className="font-display font-black text-xs text-[#0A3D91] uppercase tracking-wider leading-none border-0 p-0 shadow-none">
-                {language === 'am' ? 'የሊኩይዲቲ ብድሮች' :
-                 language === 'om' ? 'Liqii Maallaqaa' :
-                 language === 'ti' ? 'ናይ እቶት ልቓሕ' :
-                 language === 'so' ? "Amaahda Faa'idada" :
-                 'Liquidity Loans'}
-              </h4>
+              <div className="flex items-center space-x-1.5">
+                <h4 className="font-display font-black text-xs text-[#0A3D91] uppercase tracking-wider leading-none border-0 p-0 shadow-none">
+                  {language === 'am' ? 'የሊኩይዲቲ ብድሮች' :
+                   language === 'om' ? 'Liqii Maallaqaa' :
+                   language === 'ti' ? 'ናይ እቶት ልቓሕ' :
+                   language === 'so' ? "Amaahda Faa'idada" :
+                   'Liquidity Loans'}
+                </h4>
+                <button
+                  type="button"
+                  onClick={() => setShowLoanInfo(true)}
+                  className="p-1 text-[#0A3D91] hover:bg-slate-100 rounded-full cursor-pointer transition-all active:scale-90 inline-flex items-center justify-center border-0"
+                  title="Loan Requirements Info"
+                >
+                  <Info className="w-3.5 h-3.5" />
+                </button>
+              </div>
               <p className="text-[8.5px] text-slate-700 font-black uppercase tracking-widest mt-1">
                 {language === 'am' ? 'የኢትዮጵያ ንግድ ባንክ ቀጥተኛ የብድር አገልግሎት' :
                  language === 'om' ? 'Kireeditii Baankii CBE kallatti' :
@@ -1053,7 +1064,8 @@ export default function ProfileTab({
            'Unlock institutional capital backed by LUMORA’s liquidity accounts. Disbursements are swept directly to your verified CBE account within 24 hours. Eligible tier: VIP 3.'}
         </p>
 
-        {/* Calculation details simulator */}
+        {/* Verification / Level Locks Checking */}
+        {/* Calculation details simulator is open to EVERYONE, as requested */}
         <div className="bg-slate-50/55 p-4 rounded-2xl border border-slate-100 font-sans">
           <LoanCalculator
             isEligible={profile.vipLevel >= 3 && profile.idVerificationStatus === 'verified'}
@@ -1064,18 +1076,20 @@ export default function ProfileTab({
           />
         </div>
 
-        {/* Verification / Level Locks Checking */}
         {profile.vipLevel < 3 ? (
-          <div className="p-4 bg-amber-50 rounded-[1.50rem] border border-amber-100 text-center space-y-2">
-            <span className="text-[8.5px] bg-amber-200/60 text-[#a37010] font-extrabold uppercase py-1 px-3 rounded-xl border border-amber-200">
-              Feature Locked
+          <div className="p-5 bg-amber-50/75 rounded-[1.80rem] border border-amber-200 text-center space-y-3 font-sans">
+            <span className="text-[9px] bg-amber-200/70 text-[#925c0e] font-extrabold uppercase py-1 px-4 rounded-xl border border-amber-300">
+              Loan Feature Locked
             </span>
-            <p className="text-[10.5px] text-amber-800 leading-normal font-bold max-w-xs mx-auto">
-              Loan services are available only for members who have reached Level 3 or higher.
+            <p className="text-[11px] text-amber-900 leading-relaxed font-bold max-w-sm mx-auto">
+              Sovereign loan request portal is closed. Loan services are available only for members who have reached VIP Level 3 or higher. Current level: <strong>VIP {profile.vipLevel || 0}</strong>.
+            </p>
+            <p className="text-[10px] text-slate-600 leading-normal max-w-xs mx-auto">
+              Please visit the <strong>Investments Screen</strong> to upgrade your plan to VIP Level 3 or higher to acquire full eligibility.
             </p>
           </div>
         ) : profile.idVerificationStatus !== 'verified' ? (
-          <div className="p-4 bg-rose-55 rounded-[1.50rem] border border-rose-200 text-center space-y-2">
+          <div className="p-4 bg-rose-50 rounded-[1.50rem] border border-rose-200 text-center space-y-2">
             <span className="text-[8.5px] bg-rose-700 text-white font-black uppercase py-1 px-3 rounded-xl shadow-xs">
               Compliance Lock
             </span>
@@ -1147,7 +1161,7 @@ export default function ProfileTab({
                 value={nationalId}
                 onChange={(e) => setNationalId(e.target.value)}
                 placeholder="e.g. FAN-84950392"
-                className="w-full bg-slate-50 border border-slate-205 rounded-xl px-3.5 py-3 text-xs text-slate-800 focus:outline-none focus:border-[#0A3D91] focus:bg-white font-mono font-black uppercase transition-colors"
+                className="w-full bg-slate-50 border border-slate-205 rounded-xl px-3.5 py-3 text-xs text-slate-805 focus:outline-none focus:border-[#0A3D91] focus:bg-white font-mono font-black uppercase transition-colors"
                 required
               />
             </div>
@@ -1178,77 +1192,158 @@ export default function ProfileTab({
           </form>
         )}
 
-        {/* User's past loan histories list */}
-        {loans && loans.length > 0 && (
-          <div className="space-y-3.5 pt-4 border-t border-slate-50 text-left">
-            <h5 className="text-[8.5px] font-black text-slate-700 uppercase tracking-widest font-mono">
-              Sovereign Credit Ledger ({loans.length})
-            </h5>
-            <div className="space-y-2.5 max-h-[250px] overflow-y-auto scrollbar-none">
-              {loans.map((l) => (
-                <div key={l.id} className="p-3.5 bg-slate-55 border border-slate-200 rounded-2xl flex flex-col space-y-2 font-sans">
-                  <div className="flex justify-between items-center text-xs">
+      </div>
+
+      {/* CARD 4b: Loan History Section */}
+      <div className="p-6 rounded-[2.2rem] bg-white border border-slate-100 shadow-sm space-y-4 text-left">
+        <div className="flex items-center justify-between border-b border-slate-50 pb-3">
+          <div className="flex items-center space-x-2.5">
+            <div className="p-2 bg-slate-100 text-[#0A3D91] rounded-2xl">
+              <FileText className="w-4.5 h-4.5" />
+            </div>
+            <div>
+              <h4 className="font-display font-black text-xs text-slate-900 uppercase tracking-wider leading-none">
+                {language === 'am' ? 'የብድር ታሪክ መዝገብ' : 'Loan History Ledger'}
+              </h4>
+              <p className="text-[8.5px] text-slate-500 font-black uppercase tracking-widest mt-1">
+                {language === 'am' ? 'የእርስዎ ያለፉ እና በመጠባበቅ ላይ ያሉ የብድር ጥያቄዎች ዝርዝር' : 'Track and audit your sovereign credit records'}
+              </p>
+            </div>
+          </div>
+          <span className="text-[9.5px] font-mono font-black bg-slate-100 text-slate-600 px-2.5 py-1 rounded-xl border border-slate-150">
+            {loans ? loans.length : 0} {language === 'am' ? 'ጥያቄዎች' : 'records'}
+          </span>
+        </div>
+
+        {!loans || loans.length === 0 ? (
+          <div className="p-6 text-center bg-slate-50/55 rounded-2xl border border-dashed border-slate-200 space-y-2">
+            <p className="text-[11px] font-black text-slate-500 uppercase tracking-wide">
+              {language === 'am' ? 'ምንም የብድር ታሪክ የለም' : 'No Loan History Found'}
+            </p>
+            <p className="text-[10px] text-slate-400 font-bold leading-normal max-w-[280px] mx-auto">
+              {language === 'am' ? 'እስካሁን ምንም የብድር ጥያቄ አላስገቡም። ብቁ ሲሆኑ የመጀመሪያውን ጥያቄ ከላይ ማቅረብ ይችላሉ።' :
+               'You have not submitted any loan applications yet. All future status-tracked requests and repayment logs will be documented here.'}
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
+            {loans.map((l) => {
+              // Calculate dynamic remaining repayment balance
+              let remainingRepaymentBalance = 0;
+              const tenure = l.tenureMonths || 6;
+              const flatMonthlyRate = 0.015;
+              const totalRepayable = l.amount + (l.amount * flatMonthlyRate * tenure);
+
+              if (l.status === 'approved') {
+                const startDate = new Date(l.reviewedAt || l.submittedAt);
+                const now = new Date();
+                const diffTime = Math.abs(now.getTime() - startDate.getTime());
+                const monthsElapsed = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 30.4375));
+                const monthlyInstallment = totalRepayable / tenure;
+                remainingRepaymentBalance = monthsElapsed >= tenure ? 0 : (totalRepayable - (monthsElapsed * monthlyInstallment));
+              } else if (l.status === 'pending') {
+                // For pending loans, the remaining repayment is the expected total repayment upon approval
+                remainingRepaymentBalance = totalRepayable;
+              } else {
+                // Rejected loans have 0 remaining balance
+                remainingRepaymentBalance = 0;
+              }
+
+              return (
+                <div key={l.id} className="p-4 bg-gradient-to-b from-slate-50 to-white border border-slate-150 rounded-2xl flex flex-col space-y-3 font-sans transition-all hover:border-slate-305">
+                  
+                  {/* Row 1: Amount & Status Badge */}
+                  <div className="flex justify-between items-center">
                     <div>
-                      <span className="font-extrabold text-[#0D2B60] font-mono block text-xs">{(l.amount ?? 0).toLocaleString()} ETB</span>
-                      <span className="text-[8px] text-slate-800 font-mono font-bold block mt-0.5">
-                        Submitted: {new Date(l.submittedAt).toLocaleDateString()}
-                        {l.tenureMonths && ` | ${l.tenureMonths} Months`}
+                      <span className="font-display font-black text-sm text-[#0D2B60] font-mono">
+                        {(l.amount ?? 0).toLocaleString()} <span className="text-[10px]">ETB</span>
+                      </span>
+                      <span className="text-[8px] text-slate-400 font-mono font-bold block mt-0.5">
+                        ID: {l.id} | {tenure} Months Tenure
                       </span>
                     </div>
-                    <span className={`text-[8px] font-black px-2 py-0.5 rounded border uppercase tracking-widest font-sans ${
-                      l.status === 'approved' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
-                      l.status === 'rejected' ? 'bg-rose-100 text-rose-800 border-rose-300' :
-                      'bg-amber-100 text-amber-800 border-amber-300'
+                    <span className={`text-[8.5px] font-black px-2.5 py-1 rounded-xl border uppercase tracking-wider font-sans ${
+                      l.status === 'approved' ? 'bg-emerald-50 text-emerald-800 border-emerald-250' :
+                      l.status === 'rejected' ? 'bg-rose-50 text-rose-800 border-rose-250' :
+                      'bg-amber-50 text-amber-800 border-amber-250 animate-pulse'
                     }`}>
-                      {l.status}
+                      {l.status === 'approved' ? '✓ Approved' : l.status === 'rejected' ? '✗ Rejected' : '⟳ Pending'}
                     </span>
                   </div>
-                  
-                  <div className="text-[9.5px] bg-white p-2.5 rounded-xl border border-slate-150 space-y-1">
+
+                  {/* Row 2: Status-Tracked Detailed Information Cards */}
+                  <div className="bg-slate-55/70 p-3 rounded-xl border border-slate-100 grid grid-cols-2 gap-3 text-[10px] leading-normal">
                     <div>
-                      <span className="text-slate-800 font-extrabold">National ID:</span>{' '}
-                      <strong className="text-slate-950 font-mono text-[9px]">{l.nationalId}</strong>
+                      <span className="text-slate-500 font-bold block mb-0.5">Application Date:</span>
+                      <strong className="text-slate-900 font-mono font-bold">
+                        {new Date(l.submittedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </strong>
                     </div>
-                    {l.status === 'rejected' && l.rejectionReason && (
-                      <div className="text-rose-800 font-sans mt-1.5 leading-relaxed font-black border-t border-rose-100 pt-1.5">
-                        Audit notes: {l.rejectionReason}
-                      </div>
-                    )}
-                    {l.status === 'approved' && l.reviewedAt && (
-                      <div className="text-emerald-800 font-black mt-1 leading-normal text-[9.5px]">
-                        Disbursed on {new Date(l.reviewedAt).toLocaleDateString()}
-                      </div>
-                    )}
+                    <div>
+                      <span className="text-slate-500 font-bold block mb-0.5">National ID Check:</span>
+                      <strong className="text-slate-900 font-mono font-bold truncate block">{l.nationalId}</strong>
+                    </div>
                   </div>
-                  
+
+                  {/* Row 3: Remaining Repayment Balance Display */}
+                  <div className={`p-3 rounded-xl border flex justify-between items-center ${
+                    l.status === 'approved' ? 'bg-emerald-500/5 border-emerald-300/30' :
+                    l.status === 'rejected' ? 'bg-slate-105 border-slate-205' :
+                    'bg-amber-505 border-amber-305'
+                  }`}>
+                    <div>
+                      <span className="text-[9.5px] font-bold text-slate-600 uppercase tracking-wide block">
+                        Remaining Repayment Balance:
+                      </span>
+                      <span className={`text-xs font-mono font-black ${
+                        l.status === 'approved' ? 'text-emerald-700' :
+                        l.status === 'rejected' ? 'text-slate-500' :
+                        'text-amber-700'
+                      }`}>
+                        {Math.round(remainingRepaymentBalance).toLocaleString()} ETB
+                      </span>
+                    </div>
+                    <span className="text-[8.5px] font-black text-slate-400 font-mono">
+                      {l.status === 'approved' ? 'Interest Included' : l.status === 'rejected' ? 'No Balance' : 'Est. Upon Approval'}
+                    </span>
+                  </div>
+
+                  {/* Rejection / Approval Audit Note */}
+                  {l.status === 'rejected' && l.rejectionReason && (
+                    <div className="text-[10px] text-rose-800 font-sans leading-relaxed font-bold bg-rose-50/40 p-2.5 rounded-xl border border-rose-100">
+                      Audit Notes: {l.rejectionReason}
+                    </div>
+                  )}
+
+                  {/* Collapsible structured schedule for approved loans */}
                   {l.status === 'approved' && (
-                    <div className="pt-2 border-t border-slate-100 flex flex-col space-y-2">
+                    <div className="pt-1.5 flex flex-col space-y-2">
                       <button
                         type="button"
                         onClick={() => setExpandedScheduleId(expandedScheduleId === l.id ? null : l.id)}
-                        className="text-[#0A3D91] hover:text-[#072A66] text-[9px] font-black uppercase tracking-wider font-mono flex items-center space-x-1 hover:underline cursor-pointer"
+                        className="text-[#0A3D91] hover:text-[#072A66] text-[9.5px] font-black uppercase tracking-wider font-mono flex items-center space-x-1 hover:underline cursor-pointer"
                       >
                         <FileText className="w-3.5 h-3.5" />
-                        <span>{expandedScheduleId === l.id ? "Minimize repayments" : "Show Structured schedule ↗"}</span>
+                        <span>{expandedScheduleId === l.id ? "Hide Repayments Schedule" : "Show Repayments Schedule ↗"}</span>
                       </button>
 
                       {expandedScheduleId === l.id && (
-                        <div className="bg-slate-100 p-3 rounded-xl border border-slate-200 mt-1 space-y-2 animate-in slide-in-from-top-1">
-                          <div className="flex justify-between items-center text-[7.5px] font-black text-slate-400 font-mono pb-1 border-b border-slate-200 uppercase tracking-widest">
-                            <span>Installment / Due date</span>
-                            <span className="text-right">Structured payment</span>
+                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 mt-1 space-y-2 animate-in slide-in-from-top-1">
+                          <div className="flex justify-between items-center text-[8px] font-black text-slate-450 font-mono pb-1 border-b border-slate-200 uppercase tracking-widest">
+                            <span>Installment / Due-Date</span>
+                            <span className="text-right">Structured Instalment</span>
                           </div>
                           
                           <div className="space-y-1.5 max-h-[160px] overflow-y-auto scrollbar-none pr-0.5">
                             {getRepaymentSchedule(l.amount ?? 0, l.tenureMonths || 6, l.reviewedAt || l.submittedAt).map((inst) => (
-                              <div key={inst.installmentNumber} className="flex justify-between items-center text-[9px] leading-normal font-sans p-2 bg-white rounded-lg border border-slate-150">
+                              <div key={inst.installmentNumber} className="flex justify-between items-center text-[9.5px] leading-normal font-sans p-2 bg-white rounded-lg border border-slate-150">
                                 <div className="flex flex-col">
                                   <span className="font-extrabold text-[#0D2B60]">Installment {inst.installmentNumber}</span>
                                   <span className="text-[8px] text-slate-400 font-mono font-bold uppercase">{inst.dueDate}</span>
                                 </div>
                                 <div className="text-right flex flex-col">
                                   <span className="font-black text-[#0A3D91] font-mono">{Math.round(inst.installment).toLocaleString()} ETB</span>
-                                  <span className="text-[7.5px] text-slate-400 font-mono font-medium">
+                                  <span className="text-[7.5px] text-slate-450 font-mono font-medium">
                                     P: {Math.round(inst.principal).toLocaleString()} | I: {Math.round(inst.interest).toLocaleString()}
                                   </span>
                                 </div>
@@ -1259,9 +1354,10 @@ export default function ProfileTab({
                       )}
                     </div>
                   )}
+                  
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
         )}
 
@@ -1645,6 +1741,117 @@ export default function ProfileTab({
                 </span>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Floating Loan Information Modal Overlay */}
+      {showLoanInfo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs font-sans animate-fade-in">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 border-2 border-[#0A3D91]/20 shadow-2xl relative space-y-4">
+            <button
+              onClick={() => setShowLoanInfo(false)}
+              className="absolute top-4 right-4 p-2.5 bg-slate-100 hover:bg-slate-205 text-slate-500 hover:text-slate-900 rounded-full cursor-pointer transition-all active:scale-95 border border-slate-200"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="text-center space-y-3 pt-2">
+              <div className="w-12 h-12 rounded-full bg-blue-50 text-[#0A3D91] flex items-center justify-center mx-auto border-2 border-blue-100">
+                <Info className="w-5 h-5" />
+              </div>
+
+              <div className="space-y-1">
+                <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest leading-none">
+                  {language === 'am' ? 'የብድር መስፈርቶች መረጃ' :
+                   language === 'om' ? 'Odeeffannoo Liqii' :
+                   language === 'ti' ? 'ሓበሬታ ልቓሕ' :
+                   language === 'so' ? 'Macluumaadka Amaahda' :
+                   'Loan Authorization Guide'}
+                </h3>
+                <p className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider mt-1">
+                  {language === 'am' ? 'የLUMORA የብድር ማረጋገጫ መስፈርቶች' : 'LUMORA Institutional Credit Terms'}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3 text-left">
+              <p className="text-[11px] text-slate-600 leading-relaxed font-semibold">
+                {language === 'am' ? 'የLUMORA የብድር አገልግሎቶች ለሁሉም ተጠቃሚዎች የብድር ማስያዣ ሳይጠይቁ በኩባንያው ፈሰስ የሚሰጡ የፋይናንስ ድጋፎች ናቸው። እነዚህን ድጋፎች በተገቢው ሁኔታ ለማቅረብና ለማስተዳደር የሚከተሉት ዋና ዋና መሥፈርቶች በጥብቅ ተፈጻሚ ይሆናሉ፡' :
+                 language === 'om' ? 'Kaffaltiin liqii Lumora wabii malee dhihaata. Maamiltoonni hundi liqii herrega kana irraa argachuuf ulaagaalee armaan gadii guutuu qabu:' :
+                 'LUMORA credit resources are backed by corporate liquidity reserve funds and deployed without requiring physical collateral. To safeguard secondary vaults and sustain micro-lending capabilities, the following parameters are strictly enforced:'}
+              </p>
+
+              {/* Requirement 1 */}
+              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-start space-x-3">
+                <div className="p-2 bg-indigo-50 text-indigo-700 rounded-xl shrink-0 mt-0.5 font-bold text-xs uppercase font-mono">
+                  VIP 3
+                </div>
+                <div className="space-y-0.5">
+                  <h4 className="text-[11px] font-black text-slate-950 uppercase tracking-wide leading-snug">
+                    {language === 'am' ? 'የቪአይፒ ደረጃ 3 ወይም ከዚያ በላይ' : 'VIP Level 3 Upgrade'}
+                  </h4>
+                  <p className="text-[10px] text-slate-500 leading-normal font-medium">
+                    {language === 'am' ? 'ብድር ለመጠየቅ የቪአይፒ 3 ወይም ከዚያ በላይ ዕቅድ ሊኖርዎት ይገባል። ይህም ለትርፍ ማከፋፈያና ብድር አሰጣጥ ፈሰስ የሚሆን የገንዘብ መጠን ለመመደብ ይረዳል።' :
+                     language === 'om' ? 'Sadarkaa VIP Level 3 ykn isaa ol qabaachuu qabdu.' :
+                     'Applicants must hold an active VIP Level 3 or higher subscription plan. Upgrading to this plan allocates sufficient dynamic treasury collateral required to back the direct-wire disbursement.'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Requirement 2 */}
+              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-start space-x-3">
+                <div className="p-2 bg-emerald-50 text-emerald-700 rounded-xl shrink-0 mt-0.5">
+                  <Shield className="w-4 h-4" />
+                </div>
+                <div className="space-y-0.5">
+                  <h4 className="text-[11px] font-black text-slate-950 uppercase tracking-wide leading-snug">
+                    {language === 'am' ? 'የማንነት ማረጋገጫ (ID Verified)' : 'National ID Auditing & KYC'}
+                  </h4>
+                  <p className="text-[10px] text-slate-500 leading-normal font-medium">
+                    {language === 'am' ? 'የእርስዎ ብሔራዊ መታወቂያ መረጃ ደህንነት ኦዲት ተደርጎ "የተረጋገጠ" (Verified) መሆን አለበት። ይህም የፋይናንስ ተገዢነት ደንቦችን ለማሟላት ወሳኝ ነው።' :
+                     language === 'om' ? 'Waraqaan eenyummaa keessan mirkanaa\'uu qaba.' :
+                     'Your profile status must carry the verified ID badge. Security agents and automated ledger audits check valid National ID indices to ensure strict regulatory compliance before release.'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Status Display Info */}
+              <div className="p-3 bg-blue-50/40 rounded-2xl border border-blue-105 flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] text-slate-550 font-extrabold uppercase tracking-wide block">
+                    {language === 'am' ? 'የእርስዎ አሁን ያለው ሁኔታ ፡' : 'Your Eligibility Status:'}
+                  </span>
+                  <div className="flex items-center space-x-1.5 mt-0.5">
+                    <span className="text-[10.5px] font-bold text-slate-900 font-mono">
+                      VIP {profile.vipLevel}
+                    </span>
+                    <span className="text-[10px] text-slate-350">•</span>
+                    <span className={`text-[10px] font-extrabold uppercase font-mono ${
+                      profile.idVerificationStatus === 'verified' ? 'text-emerald-600' : 'text-rose-600'
+                    }`}>
+                      {profile.idVerificationStatus || 'Unsubmitted'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className={`px-2.5 py-1.5 rounded-xl border text-[9.5px] font-black uppercase tracking-wider ${
+                  profile.vipLevel >= 3 && profile.idVerificationStatus === 'verified' 
+                    ? 'bg-emerald-100 border-emerald-200 text-emerald-800' 
+                    : 'bg-amber-100 border-amber-200 text-amber-800'
+                }`}>
+                  {profile.vipLevel >= 3 && profile.idVerificationStatus === 'verified' ? '✓ Eligible' : '✗ Locked'}
+                </div>
+              </div>
+
+            </div>
+
+            <button
+              onClick={() => setShowLoanInfo(false)}
+              className="w-full py-3 bg-[#0A3D91] hover:bg-[#06245c] text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all cursor-pointer border-2 border-[#0A3D91]"
+            >
+              {language === 'am' ? 'እሺ ገብቶኛል' : 'Acknowledge Guide'}
+            </button>
           </div>
         </div>
       )}

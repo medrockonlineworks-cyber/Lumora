@@ -287,6 +287,7 @@ export default function AdminPanel({
       });
       if (res.ok) {
         fetchUsers();
+        onRefreshDashboard();
         setActionMsg(`User status changed successfully to ${nextStatus}.`);
         setTimeout(() => setActionMsg(""), 3000);
       }
@@ -305,6 +306,7 @@ export default function AdminPanel({
       });
       if (res.ok) {
         fetchUsers();
+        onRefreshDashboard();
         setActionMsg(`Elevated VIP level to Level ${level}.`);
         setTimeout(() => setActionMsg(""), 3000);
       }
@@ -471,6 +473,7 @@ export default function AdminPanel({
         }),
       });
       if (res.ok) {
+        onRefreshDashboard();
         setActionMsg("Operational configuration values saved successfully.");
         setTimeout(() => setActionMsg(""), 3000);
       }
@@ -520,6 +523,7 @@ export default function AdminPanel({
       });
       if (res.ok) {
         const data = await res.json();
+        onRefreshDashboard();
         setActionMsg(
           `Broadcast of notice successfully published to ${data.count} active investors.`,
         );
@@ -1669,7 +1673,7 @@ export default function AdminPanel({
             <p className="text-[10px] text-slate-805 leading-normal mt-1.5 font-bold">
               Review, approve, and disburse platform backed loyalty microloans.
               Inspecting state registered National IDs is critical to verify
-              risk boundaries. Only VIP 2+ active members qualify for disbursal.
+              risk boundaries. Only VIP 3+ active members qualify for disbursal.
             </p>
 
             {/* Filter buttons */}

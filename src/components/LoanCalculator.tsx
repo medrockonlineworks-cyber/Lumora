@@ -217,7 +217,7 @@ export default function LoanCalculator({ onApplySettings, isEligible }: LoanCalc
             <div className="flex items-start space-x-1.5 p-2 bg-amber-50 rounded-xl border border-amber-100 text-[8.5px] text-amber-850 font-semibold leading-normal">
               <Info className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
               <span>
-                Repayments calculated here can be applied to the form once you satisfy the eligibility requirements (VIP Level 2+ Plan & ID verified status).
+                Repayments calculated here can be applied to the form once you satisfy the eligibility requirements (VIP Level 3+ Plan & ID verified status).
               </span>
             </div>
           )}
