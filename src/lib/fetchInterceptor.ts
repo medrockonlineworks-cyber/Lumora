@@ -193,6 +193,57 @@ function saveLocalDB(db: LumoraDB) {
   localStorage.setItem('lumora_local_db', JSON.stringify(db));
 }
 
+function autoAllocateLocalDailyEarnings(db: LumoraDB) {
+  let dbUpdated = false;
+  const now = new Date();
+
+  db.investments.forEach(inv => {
+    if (inv.status === 'active' && inv.remainingDays > 0) {
+      const baseDateStr = inv.lastPayoutDate || inv.startDate;
+      const lastPayout = new Date(baseDateStr);
+      const diffMs = now.getTime() - lastPayout.getTime();
+      const oneDayMs = 24 * 60 * 60 * 1000;
+      
+      const periods = Math.floor(diffMs / oneDayMs);
+      if (periods > 0) {
+        const actualPeriodsToPay = Math.min(periods, inv.remainingDays);
+        if (actualPeriodsToPay > 0) {
+          for (let i = 0; i < actualPeriodsToPay; i++) {
+            inv.remainingDays = Math.max(0, inv.remainingDays - 1);
+            inv.totalEarned += inv.dailyReturn;
+
+            const profile = db.profiles.find(p => p.userId === inv.userId);
+            if (profile) {
+              profile.walletBalance += inv.dailyReturn;
+              profile.totalEarnings += inv.dailyReturn;
+
+              db.transactions.push({
+                id: "tx-" + Math.random().toString(36).substr(2, 9),
+                userId: inv.userId,
+                type: "daily_earnings",
+                amount: inv.dailyReturn,
+                description: `Accrued guaranteed daily interest on VIP level ${inv.planLevel} active asset portfolio`,
+                date: new Date().toISOString()
+              });
+            }
+
+            if (inv.remainingDays <= 0) {
+              inv.status = 'matured';
+              break;
+            }
+          }
+          inv.lastPayoutDate = new Date(lastPayout.getTime() + actualPeriodsToPay * oneDayMs).toISOString();
+          dbUpdated = true;
+        }
+      }
+    }
+  });
+
+  if (dbUpdated) {
+    saveLocalDB(db);
+  }
+}
+
 // Function to handle the intercepted local storage operations
 async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response> {
   const pathname = url.split('?')[0];
@@ -200,6 +251,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
   const body = init?.body ? JSON.parse(init.body as string) : undefined;
   
   const db = loadLocalDB();
+  autoAllocateLocalDailyEarnings(db);
 
   const respondJSON = (status: number, data: any) => {
     return new Response(JSON.stringify(data), {
@@ -439,6 +491,9 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     }
 
     const withdrawAmount = Number(amount);
+    if (isNaN(withdrawAmount) || withdrawAmount < 600) {
+      return respondJSON(400, { error: "Minimum withdrawal limit is 600 ETB" });
+    }
     if (profile.walletBalance < withdrawAmount) {
       return respondJSON(400, { error: "Insufficient available balance key in your wallet." });
     }
@@ -549,7 +604,8 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       maturityDate: new Date(Date.now() + 3600 * 24 * finalDurationDays * 1000).toISOString(),
       remainingDays: finalDurationDays,
       status: "active",
-      totalEarned: 0
+      totalEarned: 0,
+      lastPayoutDate: new Date().toISOString()
     };
 
     db.investments.push(newInvestment);

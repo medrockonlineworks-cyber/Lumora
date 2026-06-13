@@ -67,6 +67,7 @@ export interface Investment {
   remainingDays: number;
   status: 'active' | 'matured' | 'cancelled';
   totalEarned: number;
+  lastPayoutDate?: string;
 }
 
 export interface DailyEarning {

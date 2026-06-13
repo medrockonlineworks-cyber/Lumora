@@ -893,6 +893,96 @@ async function startServer() {
     console.log("Firestore cloud sync is disabled. Fallback to local high-performance file-based storage 'lumora_db.json' which is fully active and persistent.");
   }
 
+  // Automatic Daily Earnings Allocation Engine
+  function autoAllocateDailyEarnings() {
+    let dbUpdated = false;
+    const now = new Date();
+
+    db.investments.forEach(inv => {
+      if (inv.status === "active" && inv.remainingDays > 0) {
+        const baseDateStr = inv.lastPayoutDate || inv.startDate;
+        const lastPayout = new Date(baseDateStr);
+        const diffMs = now.getTime() - lastPayout.getTime();
+        const oneDayMs = 24 * 60 * 60 * 1000;
+        
+        const periods = Math.floor(diffMs / oneDayMs);
+        if (periods > 0) {
+          const actualPeriodsToPay = Math.min(periods, inv.remainingDays);
+          if (actualPeriodsToPay > 0) {
+            for (let i = 0; i < actualPeriodsToPay; i++) {
+              inv.remainingDays -= 1;
+              inv.totalEarned += inv.dailyReturn;
+
+              const p = db.profiles.find(profile => profile.userId === inv.userId);
+              if (p) {
+                p.walletBalance += inv.dailyReturn;
+                p.totalEarnings += inv.dailyReturn;
+
+                // Create transaction
+                db.transactions.push({
+                  id: "tx-" + Math.random().toString(36).substr(2, 9),
+                  userId: inv.userId,
+                  type: "daily_earnings",
+                  amount: inv.dailyReturn,
+                  description: `Accrued guaranteed daily interest on VIP level ${inv.planLevel} active asset portfolio`,
+                  date: new Date().toISOString()
+                });
+
+                // Create notification
+                db.notifications.push({
+                  id: "not-" + Math.random().toString(36).substr(2, 9),
+                  userId: inv.userId,
+                  title: "Daily Return Credited",
+                  message: `Congratulations! ${inv.dailyReturn} ETB was credited to your wallet from plan "${inv.planName}". Remaining: ${inv.remainingDays} days.`,
+                  read: false,
+                  date: new Date().toISOString()
+                });
+              }
+
+              if (inv.remainingDays <= 0) {
+                inv.status = "matured";
+                break;
+              }
+            }
+            inv.lastPayoutDate = new Date(lastPayout.getTime() + actualPeriodsToPay * oneDayMs).toISOString();
+            dbUpdated = true;
+          }
+        }
+      }
+    });
+
+    if (dbUpdated) {
+      console.log(`[Automatic Yield Tracker] Credited scheduled daily payouts for database accounts.`);
+      saveDB(db);
+    }
+  }
+
+  // Initial check on boot
+  try {
+    autoAllocateDailyEarnings();
+  } catch (error) {
+    console.error("Initial daily earnings check failed:", error);
+  }
+
+  // Trigger auto-credits periodically every 60 seconds
+  setInterval(() => {
+    try {
+      autoAllocateDailyEarnings();
+    } catch (e) {
+      console.error("[Automatic Yield Tracker Check Failed]:", e);
+    }
+  }, 60000);
+
+  // Trigger on every API request to guarantee immediate credit upon user loading or performing any operations
+  app.use((req, res, next) => {
+    try {
+      autoAllocateDailyEarnings();
+    } catch (e) {
+      console.error("[Automatic Yield Tracker Middleware Check Failed]:", e);
+    }
+    next();
+  });
+
   // Lazy initialize Gemini AI with process.env.GEMINI_API_KEY
   let ai: GoogleGenAI | null = null;
   function getGeminiClient() {
@@ -1348,7 +1438,8 @@ async function startServer() {
       maturityDate: maturityDate.toISOString(),
       remainingDays: finalDurationDays,
       status: "active",
-      totalEarned: 0
+      totalEarned: 0,
+      lastPayoutDate: startDate.toISOString()
     };
 
     db.investments.push(newInvestment);
