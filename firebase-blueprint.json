@@ -1,0 +1,250 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "LUMORA registered user accounts",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "fullName": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "isAdmin": { "type": "boolean" },
+        "status": { "type": "string", "enum": ["active", "suspended"] },
+        "registrationDate": { "type": "string" },
+        "referralCode": { "type": "string" },
+        "referredBy": { "type": "string" },
+        "password": { "type": "string" }
+      },
+      "required": ["id", "fullName", "phone", "isAdmin", "status", "registrationDate", "referralCode"]
+    },
+    "Profile": {
+      "title": "Profile",
+      "description": "LUMORA user profile details and ledger wallets",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "fullName": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "profilePicture": { "type": "string" },
+        "vipLevel": { "type": "integer" },
+        "walletBalance": { "type": "number" },
+        "totalDeposits": { "type": "number" },
+        "totalWithdrawals": { "type": "number" },
+        "totalInvestments": { "type": "number" },
+        "totalEarnings": { "type": "number" },
+        "referralCode": { "type": "string" },
+        "teamSize": { "type": "integer" },
+        "registrationDate": { "type": "string" },
+        "transactionPin": { "type": "string" },
+        "idCardFront": { "type": "string" },
+        "idCardBack": { "type": "string" },
+        "idSelfie": { "type": "string" },
+        "fanNumber": { "type": "string" },
+        "idVerificationStatus": { "type": "string", "enum": ["unsubmitted", "pending", "verified", "rejected"] },
+        "idRejectionReason": { "type": "string" },
+        "bankName": { "type": "string" },
+        "accountNumber": { "type": "string" },
+        "accountHolderName": { "type": "string" }
+      },
+      "required": ["userId", "fullName", "phone", "vipLevel", "walletBalance", "totalDeposits", "totalWithdrawals", "totalInvestments", "totalEarnings", "referralCode", "teamSize", "registrationDate"]
+    },
+    "Investment": {
+      "title": "Investment",
+      "description": "Active or completed investment plans",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "planId": { "type": "string" },
+        "planName": { "type": "string" },
+        "planLevel": { "type": "integer" },
+        "amount": { "type": "number" },
+        "dailyRate": { "type": "number" },
+        "dailyReturn": { "type": "number" },
+        "startDate": { "type": "string" },
+        "maturityDate": { "type": "string" },
+        "remainingDays": { "type": "integer" },
+        "status": { "type": "string", "enum": ["active", "matured", "cancelled"] },
+        "totalEarned": { "type": "number" }
+      },
+      "required": ["id", "userId", "planId", "planName", "planLevel", "amount", "dailyRate", "dailyReturn", "startDate", "maturityDate", "remainingDays", "status", "totalEarned"]
+    },
+    "Deposit": {
+      "title": "Deposit",
+      "description": "User submit deposit files and statuses",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userPhone": { "type": "string" },
+        "amount": { "type": "number" },
+        "bankAccount": { "type": "string" },
+        "receiptImage": { "type": "string" },
+        "submittedAt": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "rejectionReason": { "type": "string" },
+        "reviewedAt": { "type": "string" },
+        "bankReference": { "type": "string" }
+      },
+      "required": ["id", "userId", "userName", "userPhone", "amount", "bankAccount", "receiptImage", "submittedAt", "status"]
+    },
+    "Withdrawal": {
+      "title": "Withdrawal",
+      "description": "User cashout request logs",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userPhone": { "type": "string" },
+        "amount": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "submittedAt": { "type": "string" },
+        "reviewedAt": { "type": "string" },
+        "rejectionReason": { "type": "string" },
+        "bankName": { "type": "string" },
+        "accountNumber": { "type": "string" },
+        "accountHolderName": { "type": "string" }
+      },
+      "required": ["id", "userId", "userName", "userPhone", "amount", "status", "submittedAt"]
+    },
+    "MyTransaction": {
+      "title": "MyTransaction",
+      "description": "User historical account transactional entries",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "type": { "type": "string", "enum": ["deposit", "withdrawal", "investment", "daily_earnings", "referral_reward", "payout"] },
+        "amount": { "type": "number" },
+        "description": { "type": "string" },
+        "date": { "type": "string" }
+      },
+      "required": ["id", "userId", "type", "amount", "description", "date"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "User alerts and systems update logging",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "read": { "type": "boolean" },
+        "date": { "type": "string" }
+      },
+      "required": ["id", "userId", "title", "message", "read", "date"]
+    },
+    "Referral": {
+      "title": "Referral",
+      "description": "Team referrals lists details",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "referrerId": { "type": "string" },
+        "referredId": { "type": "string" },
+        "referredName": { "type": "string" },
+        "referredPhone": { "type": "string" },
+        "referredVipLevel": { "type": "integer" },
+        "registrationDate": { "type": "string" },
+        "rewardEarned": { "type": "number" }
+      },
+      "required": ["id", "referrerId", "referredId", "referredName", "referredPhone", "referredVipLevel", "registrationDate", "rewardEarned"]
+    },
+    "Agreement": {
+      "title": "Agreement",
+      "description": "Sovereign capital protection act legal agreements documents",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "category": { "type": "string", "enum": ["terms", "policies", "agreements", "compliance"] },
+        "uploadedAt": { "type": "string" },
+        "content": { "type": "string" }
+      },
+      "required": ["id", "title", "category", "uploadedAt", "content"]
+    },
+    "AppSettings": {
+      "title": "AppSettings",
+      "description": "Global parameters for CBE processing admin desks",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "cbeAccountName": { "type": "string" },
+        "cbeAccountNumber": { "type": "string" },
+        "referralBonusPercentage": { "type": "number" }
+      },
+      "required": ["id", "cbeAccountName", "cbeAccountNumber", "referralBonusPercentage"]
+    },
+    "Loan": {
+      "title": "Loan",
+      "description": "VIP micro loans requests",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userPhone": { "type": "string" },
+        "vipLevel": { "type": "integer" },
+        "amount": { "type": "number" },
+        "nationalId": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "submittedAt": { "type": "string" },
+        "reviewedAt": { "type": "string" },
+        "rejectionReason": { "type": "string" },
+        "tenureMonths": { "type": "integer" }
+      },
+      "required": ["id", "userId", "userName", "userPhone", "vipLevel", "amount", "nationalId", "status", "submittedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "LUMORA registered user authentication details"
+    },
+    "/profiles/{userId}": {
+      "schema": "Profile",
+      "description": "User ledger and KYC verification data"
+    },
+    "/investments/{investmentId}": {
+      "schema": "Investment",
+      "description": "VIP portfolios of yielding deposits"
+    },
+    "/deposits/{depositId}": {
+      "schema": "Deposit",
+      "description": "Bank transfer review receipts"
+    },
+    "/withdrawals/{withdrawalId}": {
+      "schema": "Withdrawal",
+      "description": "Pending and cleared cashout flows"
+    },
+    "/transactions/{transactionId}": {
+      "schema": "MyTransaction",
+      "description": "Double-entry verified audit trails"
+    },
+    "/notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "Alert signals or updates"
+    },
+    "/referrals/{referralId}": {
+      "schema": "Referral",
+      "description": "Referral tree records"
+    },
+    "/agreements/{agreementId}": {
+      "schema": "Agreement",
+      "description": "Terms and capital protection acts"
+    },
+    "/settings/{settingsId}": {
+      "schema": "AppSettings",
+      "description": "CBE routing settings"
+    },
+    "/loans/{loanId}": {
+      "schema": "Loan",
+      "description": "Lending requests queue"
+    }
+  }
+}

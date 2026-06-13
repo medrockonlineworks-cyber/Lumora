@@ -1,0 +1,10 @@
+{
+  "name": "LUMORA",
+  "description": "Smart Investing. Secure Growth. A premium investment platform with multi-language support, VIP plans, CBE bank receipt deposits, and a Gemini AI financial assistant.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
