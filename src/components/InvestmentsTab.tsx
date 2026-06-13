@@ -500,7 +500,7 @@ export default function InvestmentsTab({ plans, profile, onBuyPlan }: Investment
   const [message, setMessage] = useState<{ text: string; isError: boolean } | null>(null);
 
   const [referrals, setReferrals] = useState<any[]>([]);
-  const [hiddenTrackers, setHiddenTrackers] = useState<Record<number, boolean>>({});
+  const [showTrackers, setShowTrackers] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     let active = true;
@@ -994,41 +994,45 @@ export default function InvestmentsTab({ plans, profile, onBuyPlan }: Investment
 
                 {/* VIP 5+ Milestone Tracker with Hide/Show mechanisms, as requested */}
                 {p.level >= 5 && (
-                  <div className="mt-3.5 pt-3.5 border-t border-slate-200">
+                  <div className="mt-3.5 pt-3.5 border-t border-slate-205">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-[10px] font-black text-[#0A3D91] uppercase tracking-wide flex items-center space-x-1">
                         <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
-                        <span>VIP {p.level} Milestone Requirements</span>
+                        <span>VIP {p.level} Tracker</span>
                       </span>
                       <button
                         type="button"
-                        onClick={() => setHiddenTrackers(prev => ({ ...prev, [p.level]: !prev[p.level] }))}
-                        className="text-[9px] font-black uppercase text-[#0A3D91] hover:text-[#062452] bg-slate-100 hover:bg-slate-200/80 px-2.5 py-1 rounded transition-colors border border-slate-200 cursor-pointer active:scale-95"
-                        title={hiddenTrackers[p.level] ? "Show tracker details" : "Hide tracker details"}
+                        onClick={() => setShowTrackers(prev => ({ ...prev, [p.level]: !prev[p.level] }))}
+                        className={`text-[9.5px] font-black uppercase px-2.5 py-1 rounded transition-all border cursor-pointer active:scale-95 ${
+                          showTrackers[p.level]
+                            ? "bg-[#0A3D91] text-white border-[#0A3D91]"
+                            : "bg-slate-50 text-[#0A3D91] border-slate-200 hover:bg-slate-100"
+                        }`}
+                        title={showTrackers[p.level] ? "Hide milestone checks" : "Show milestone checks"}
                       >
-                        {hiddenTrackers[p.level] ? "✦ Show" : "✕ Hide"}
+                        {showTrackers[p.level] ? "✕ Hide" : "✦ Show Tracker"}
                       </button>
                     </div>
 
-                    {!hiddenTrackers[p.level] && (
-                      <div className="space-y-2 p-2.5 rounded-xl bg-slate-50 border border-slate-150 text-[10.5px]">
+                    {showTrackers[p.level] && (
+                      <div className="space-y-2.5 p-3 rounded-2xl bg-slate-50 border border-slate-150 text-[10.5px] font-sans antialiased animate-in fade-in slide-in-from-top-1 duration-200">
                         {/* Milestone 1: Duration >= 5 months */}
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-1.5">
+                        <div className="flex items-center justify-between p-1">
+                          <div className="flex items-center space-x-2">
                             {(() => {
                               const regDate = profile.registrationDate ? new Date(profile.registrationDate) : new Date();
                               const now = new Date();
                               const diffTime = Math.abs(now.getTime() - regDate.getTime());
                               const durationMonths = diffTime / (1000 * 60 * 60 * 24 * 30.4375);
                               return durationMonths >= 5 ? (
-                                <span className="text-emerald-750 font-black text-xs">✓</span>
+                                <span className="text-emerald-600 font-extrabold text-[13px]">✓</span>
                               ) : (
-                                <span className="text-rose-650 font-black text-xs">✗</span>
+                                <span className="text-rose-500 font-bold text-[13px]">✗</span>
                               );
                             })()}
                             <span className="text-[9.5px] font-bold text-slate-800">Membership at least 5 Months</span>
                           </div>
-                          <span className="font-mono text-[9px] font-bold text-slate-755 bg-white border px-1.5 py-0.5 rounded">
+                          <span className="font-mono text-[9px] font-black text-slate-700 bg-white border px-2 py-0.5 rounded-lg shadow-4xs">
                             {(() => {
                               const regDate = profile.registrationDate ? new Date(profile.registrationDate) : new Date();
                               const now = new Date();
@@ -1040,32 +1044,34 @@ export default function InvestmentsTab({ plans, profile, onBuyPlan }: Investment
                         </div>
 
                         {/* Milestone 2: 25+ verified direct invites */}
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-1.5">
+                        <div className="flex items-center justify-between p-1 border-t border-slate-100 pt-1.5">
+                          <div className="flex items-center space-x-2">
                             {referrals.filter(r => r.isVerified || r.referredVipLevel >= 1).length >= 25 ? (
-                              <span className="text-emerald-755 font-black text-xs">✓</span>
+                              <span className="text-emerald-600 font-extrabold text-[13px]">✓</span>
                             ) : (
-                              <span className="text-rose-655 font-black text-xs">✗</span>
+                              <span className="text-rose-500 font-bold text-[13px]">✗</span>
                             )}
                             <span className="text-[9.5px] font-bold text-slate-800">25+ Verified Direct Invites</span>
                           </div>
-                          <span className="font-mono text-[9px] font-bold text-slate-755 bg-white border px-1.5 py-0.5 rounded">
+                          <span className="font-mono text-[9px] font-black text-slate-700 bg-white border px-2 py-0.5 rounded-lg shadow-4xs">
                             {referrals.filter(r => r.isVerified || r.referredVipLevel >= 1).length} / 25
                           </span>
                         </div>
 
                         {/* Milestone 3: ID compliant */}
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-1.5">
+                        <div className="flex items-center justify-between p-1 border-t border-slate-100 pt-1.5">
+                          <div className="flex items-center space-x-2">
                             {profile.idVerificationStatus === 'verified' ? (
-                              <span className="text-emerald-755 font-black text-xs">✓</span>
+                              <span className="text-emerald-600 font-extrabold text-[13px]">✓</span>
                             ) : (
-                              <span className="text-rose-655 font-black text-xs">✗</span>
+                              <span className="text-rose-500 font-bold text-[13px]">✗</span>
                             )}
-                            <span className="text-[9.5px] font-bold text-slate-800">Verified National ID status</span>
+                            <span className="text-[9.5px] font-bold text-slate-800">Verified National ID Status</span>
                           </div>
-                          <span className={`text-[8.5px] font-mono font-black px-1.5 py-0.5 rounded uppercase ${
-                            profile.idVerificationStatus === 'verified' ? 'bg-emerald-50/70 text-emerald-700 border border-emerald-200' : 'bg-amber-50/70 text-amber-705 border border-amber-200'
+                          <span className={`text-[8.5px] font-mono font-black px-2 py-0.5 rounded-lg uppercase tracking-wider border ${
+                            profile.idVerificationStatus === 'verified'
+                              ? "bg-emerald-50 text-emerald-850 border-emerald-200"
+                              : "bg-amber-50 text-amber-850 border-amber-200"
                           }`}>
                             {profile.idVerificationStatus || 'Unsubmitted'}
                           </span>
