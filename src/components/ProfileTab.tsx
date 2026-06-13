@@ -619,70 +619,7 @@ export default function ProfileTab({
 
       </div>
 
-      {/* CARD: Level 5 Eligibility Status */}
-      <div className="p-5 rounded-[2.2rem] bg-gradient-to-b from-[#0A3D91]/5 to-transparent border border-[#0A3D91]/15 shadow-2xs space-y-4">
-        <div className="flex items-center space-x-2">
-          <Sparkles className="w-5 h-5 text-amber-500 animate-bounce" />
-          <h3 className="font-display font-black text-xs text-[#0A3D91] uppercase tracking-wider">
-            Premium VIP Level 5 Unlock Tracker
-          </h3>
-        </div>
-        <p className="text-[10px] text-slate-800 font-bold leading-normal">
-          Check qualification milestones for VIP Level 5 activation. All conditions must be fully met to acquire custom structural level upgrades.
-        </p>
-        <div className="space-y-2.5 font-sans">
-          {/* Milestone 1 */}
-          <div className="flex items-center justify-between p-3 bg-white/70 border border-slate-100 rounded-2xl">
-            <div className="flex items-center space-x-2">
-              <span className="text-sm">
-                {(() => {
-                  const regDate = profile.registrationDate ? new Date(profile.registrationDate) : new Date();
-                  const now = new Date();
-                  const diffTime = Math.abs(now.getTime() - regDate.getTime());
-                  const durationMonths = diffTime / (1000 * 60 * 60 * 24 * 30.4375);
-                  return durationMonths >= 5 ? "✓" : "✗";
-                })()}
-              </span>
-              <span className="text-[10.5px] font-bold text-slate-900">Active Membership (At least 5 Months)</span>
-            </div>
-            <span className="text-[10px] font-mono font-black text-slate-700 bg-slate-50 border px-2 py-0.5 rounded-lg">
-              {(() => {
-                const regDate = profile.registrationDate ? new Date(profile.registrationDate) : new Date();
-                const now = new Date();
-                const diffTime = Math.abs(now.getTime() - regDate.getTime());
-                const durationMonths = diffTime / (1000 * 60 * 60 * 24 * 30.4375);
-                return (Math.round(durationMonths * 10) / 10).toFixed(1);
-              })()} / 5.0m
-            </span>
-          </div>
 
-          {/* Milestone 2 */}
-          <div className="flex items-center justify-between p-3 bg-white/70 border border-slate-100 rounded-2xl">
-            <div className="flex items-center space-x-2">
-              <span className="text-sm">
-                {referrals.filter(r => r.isVerified || r.referredVipLevel >= 1).length >= 25 ? "✓" : "✗"}
-              </span>
-              <span className="text-[10.5px] font-bold text-slate-900">Verified Direct Referrals (25+ Members)</span>
-            </div>
-            <span className="text-[10px] font-mono font-black text-slate-700 bg-slate-50 border px-2 py-0.5 rounded-lg">
-              {referrals.filter(r => r.isVerified || r.referredVipLevel >= 1).length} / 25
-            </span>
-          </div>
-
-          {/* Milestone 3 */}
-          <div className="flex items-center justify-between p-3 bg-white/70 border border-slate-100 rounded-2xl">
-            <div className="flex items-center space-x-2">
-              <span className="text-sm">{profile.idVerificationStatus === 'verified' ? "✓" : "✗"}</span>
-              <span className="text-[10.5px] font-bold text-slate-900">Account Compliant & Verified ID Status</span>
-            </div>
-            <span className={`text-[9.5px] font-mono font-black px-2 py-0.5 rounded-lg uppercase tracking-wide border ${
-              profile.idVerificationStatus === 'verified' ? 'bg-emerald-50 text-emerald-700 border-emerald-250' : 'bg-amber-50 text-amber-700 border-amber-250'
-            }`}>
-              {profile.idVerificationStatus || 'Unsubmitted'}
-            </span>
-          </div>
-        </div>
-      </div>
 
       {/* CARD 2: Referrals Invite System Panel (Bento Layout) */}
       <div className="p-6 rounded-[2.2rem] bg-white border border-slate-100 shadow-sm space-y-5">
@@ -1074,6 +1011,75 @@ export default function ProfileTab({
               setLoanTenure(tenure);
             }}
           />
+        </div>
+
+        {/* Loan Unlock Tracker Track */}
+        <div className="p-4.5 rounded-2xl bg-blue-50/30 border-2 border-dashed border-[#0A3D91]/20 font-sans space-y-3">
+          <div className="flex items-center space-x-2 pb-1.5 border-b border-[#0A3D91]/10">
+            <Shield className="w-4 h-4 text-[#0A3D91]" />
+            <h4 className="text-[11px] font-black text-[#0A3D91] uppercase tracking-wider">
+              {language === 'am' ? 'የብድር አገልግሎት ማግኛ ደረጃ' : 'Sovereign Loan Unlock Tracker'}
+            </h4>
+          </div>
+
+          <div className="grid grid-cols-1 gap-2.5">
+            {/* Condition 1: VIP 3+ */}
+            <div className={`p-3 rounded-xl border flex items-center justify-between transition-all ${
+              profile.vipLevel >= 3 
+                ? 'bg-emerald-50/60 border-emerald-200 text-emerald-950' 
+                : 'bg-amber-50/60 border-amber-200 text-amber-950'
+            }`}>
+              <div className="flex items-center space-x-2">
+                <span className={`text-base font-black ${profile.vipLevel >= 3 ? 'text-emerald-600' : 'text-amber-600 animate-pulse'}`}>
+                  {profile.vipLevel >= 3 ? "✓" : "✗"}
+                </span>
+                <span className="text-[10.5px] font-bold">
+                  {language === 'am' ? 'ቪአይፒ ደረጃ 3 ወይም ከዚያ በላይ መሆን' : 'Active Plan Level: VIP Level 3+'}
+                </span>
+              </div>
+              <span className="text-[10px] font-mono font-black px-2 py-0.5 rounded bg-white border">
+                VIP {profile.vipLevel || 0} / 3
+              </span>
+            </div>
+
+            {/* Condition 2: ID Verified */}
+            <div className={`p-3 rounded-xl border flex items-center justify-between transition-all ${
+              profile.idVerificationStatus === 'verified' 
+                ? 'bg-emerald-50/60 border-emerald-200 text-emerald-950' 
+                : 'bg-rose-50/60 border-rose-200 text-rose-950'
+            }`}>
+              <div className="flex items-center space-x-2">
+                <span className={`text-base font-black ${profile.idVerificationStatus === 'verified' ? 'text-emerald-600' : 'text-rose-500 animate-pulse'}`}>
+                  {profile.idVerificationStatus === 'verified' ? "✓" : "✗"}
+                </span>
+                <span className="text-[10.5px] font-bold">
+                  {language === 'am' ? 'የብሔራዊ መታወቂያ መረጋገጥ (ID Verified)' : 'National ID Auditing & Compliance'}
+                </span>
+              </div>
+              <span className={`text-[9px] font-mono font-black px-2 py-0.5 rounded uppercase ${
+                profile.idVerificationStatus === 'verified' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+              }`}>
+                {profile.idVerificationStatus || 'Unsubmitted'}
+              </span>
+            </div>
+          </div>
+
+          {/* Overall status badge */}
+          <div className="flex items-center justify-between pt-1">
+            <span className="text-[9px] text-slate-500 font-extrabold uppercase tracking-wide">
+              {language === 'am' ? 'አጠቃላይ የብቁነት ሁኔታ፡' : 'Access Authorization:'}
+            </span>
+            <span className={`px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider border ${
+              profile.vipLevel >= 3 && profile.idVerificationStatus === 'verified'
+                ? 'bg-emerald-500 border-emerald-600 text-white shadow-xs'
+                : 'bg-amber-100 border-amber-200 text-amber-800'
+            }`}>
+              {profile.vipLevel >= 3 && profile.idVerificationStatus === 'verified' 
+                ? (language === 'am' ? '✓ ብቁ ነዎት' : '✓ Fully Eligible') 
+                : (language === 'am' ? '✗ የታገደ' : '✗ Authorization Pending')
+              }
+            </span>
+          </div>
         </div>
 
         {profile.vipLevel < 3 ? (
