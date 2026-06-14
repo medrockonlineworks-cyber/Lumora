@@ -78,6 +78,37 @@ export default function HomeTab({
             </div>
           </div>
 
+          {/* Dual Balance Pools Display */}
+          <div className="grid grid-cols-2 gap-3 pb-1 pt-1 border-t border-white/10">
+            {/* Deposit Balance */}
+            <div className="rounded-2xl bg-white/5 border border-white/10 p-3 flex flex-col justify-between items-start">
+              <div className="flex items-center space-x-1.5 text-blue-200/90">
+                <div className="w-1.5 h-1.5 rounded-full bg-blue-400"></div>
+                <span className="text-[8px] font-extrabold uppercase tracking-widest font-mono">
+                  {language === 'am' ? 'የተቀመጠ ሂሳብ (Deposit)' : 'Deposit Pool'}
+                </span>
+              </div>
+              <p className="text-xs font-black font-mono text-white mt-1">
+                {(profile?.depositBalance !== undefined ? profile.depositBalance : (profile?.walletBalance ?? 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                <span className="text-[8px] font-bold text-slate-300 ml-1">ETB</span>
+              </p>
+            </div>
+
+            {/* Income Balance */}
+            <div className="rounded-2xl bg-white/5 border border-white/10 p-3 flex flex-col justify-between items-start">
+              <div className="flex items-center space-x-1.5 text-[#2ebd85]">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#2ebd85] animate-pulse"></div>
+                <span className="text-[8px] font-extrabold uppercase tracking-widest font-mono">
+                  {language === 'am' ? 'የትርፍ ሂሳብ (Income)' : 'Income Pool'}
+                </span>
+              </div>
+              <p className="text-xs font-black font-mono text-[#2ebd85] mt-1">
+                {(profile?.incomeBalance !== undefined ? profile.incomeBalance : 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                <span className="text-[8px] font-bold text-slate-350 ml-1">ETB</span>
+              </p>
+            </div>
+          </div>
+
           {/* CBE Guaranteed Growth Badge */}
           <div className="flex items-center space-x-1.5 px-3 py-1.5 text-[9px] font-extrabold rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/20 w-fit backdrop-blur-xs">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-450 shrink-0" />
@@ -108,7 +139,7 @@ export default function HomeTab({
                 {t.totalEarnings || 'Yields Disbursed'}
               </p>
               <p className="text-sm font-extrabold text-white mt-1 font-mono">
-                {(profile?.totalEarnings ?? 0).toLocaleString()} <span className="text-[9px] text-blue-200 font-medium">ETB</span>
+                {(profile?.totalEarnings || todayEarnings || 0).toLocaleString()} <span className="text-[9px] text-blue-200 font-medium">ETB</span>
               </p>
             </div>
             <div>
@@ -248,37 +279,7 @@ export default function HomeTab({
         )}
       </div>
 
-      <div className="pt-8 pb-3 border-t border-slate-200/20 mt-8 text-center bg-[#8a158f]/10 p-4 rounded-3xl" id="stewardship-section">
-        <p className="text-[9px] font-mono font-bold tracking-[0.2em] text-[#ECC56C] uppercase">
-          {et('officialBankingPartner') || 'Trusted Private Investment Stewardship'}
-        </p>
 
-        <div className="mt-4 flex flex-col items-center justify-center p-6 rounded-3xl bg-[#8a158f] border border-[#ECC56C]/45 shadow-2xl relative overflow-hidden">
-          {/* Gold Accent Ribbon at the top */}
-          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-[#ECC56C] via-amber-300 to-[#ECC56C]"></div>
-          
-          {/* Logo of CBE is only the word CBE in bold */}
-          <div className="mb-3.5 w-14 h-14 rounded-full border-2 border-[#ECC56C] bg-[#530258] flex items-center justify-center text-[#ECC56C] font-sans font-black text-base tracking-widest shadow-lg">
-            CBE
-          </div>
-          
-          <h4 className="font-display font-black text-xs text-[#ECC56C] tracking-wide uppercase">
-             COMMERCIAL BANK OF ETHIOPIA
-          </h4>
-          <p className="text-[10px] font-bold text-amber-200/95 mt-2 leading-relaxed max-w-[280px]">
-            {et('cbePartnershipDesc') || 'Lumora is verified by international partners and guarantees swift local payout settle processes via the Commercial Bank of Ethiopia.'}
-          </p>
-
-          <div className="mt-4 inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#530258] text-[#ECC56C] border border-[#ECC56C]/30 text-[8px] font-black tracking-wider uppercase font-mono">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#ECC56C] animate-pulse"></span>
-            <span>{et('cbeSecuredPartner') || 'Secured Escrow Account'}</span>
-          </div>
-        </div>
-
-        <p className="text-[9px] text-[#ECC56C]/85 mt-5 font-bold leading-relaxed max-w-[290px] mx-auto">
-          © {new Date().getFullYear()} Lumora Financial. {et('securedWithAuditing') || 'All deposits locked under institutional security frameworks.'}
-        </p>
-      </div>
 
     </div>
   );

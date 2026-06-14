@@ -21,7 +21,7 @@ interface EarningsTabProps {
 }
 
 export default function EarningsTab({ investments, profile }: EarningsTabProps) {
-  const { t, et } = useLanguage();
+  const { language, t, et } = useLanguage();
   const [liveCompoundingTicker, setLiveCompoundingTicker] = useState<number>(0);
   const [payoutCountdown, setPayoutCountdown] = useState<string>('00:00:00');
 
@@ -130,7 +130,7 @@ export default function EarningsTab({ investments, profile }: EarningsTabProps) 
                 {t.totalEarnings || 'Yield Secured'}
               </p>
               <p className="text-2xl font-extrabold text-white mt-1 font-mono tracking-tight">
-                {(profile?.totalEarnings ?? 0).toLocaleString()}
+                {(profile?.totalEarnings || dailyYieldSum || 0).toLocaleString()}
                 <span className="text-[9.5px] text-blue-300 font-black ml-1 uppercase">ETB</span>
               </p>
               <div className="mt-1.5 text-[8px] text-slate-400 font-mono flex items-center space-x-1">
@@ -150,6 +150,46 @@ export default function EarningsTab({ investments, profile }: EarningsTabProps) 
             <div className="flex items-center space-x-1.5 bg-white/5 px-2.5 py-1 rounded-lg border border-white/5">
               <Clock className="w-3.5 h-3.5 text-[#0180FE] shrink-0" />
               <span className="uppercase">{et('nextPayoutIn') || 'Settlement'}: <strong className="text-emerald-400">{payoutCountdown}</strong></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Dynamic Authorized Balance Pools */}
+      <div id="authorized-balance-pools-card" className="p-4.5 rounded-3xl bg-slate-50 border border-slate-200/80 shadow-3xs space-y-3 text-left">
+        <div className="flex justify-between items-center px-0.5">
+          <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#0A3D91] font-mono">
+            {language === 'am' ? 'የተፈቀዱ የሂሳብ ገንዳዎች' : 'AUTHORIZED BALANCE POOLS'}
+          </span>
+          <span className="text-[8px] font-black uppercase tracking-wider font-mono text-[#0180FE] bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full">
+            CBE Certified
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3.5">
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 flex flex-col justify-between items-start select-none shadow-3xs">
+            <span className="text-[8.5px] uppercase font-extrabold text-slate-400 tracking-wider font-mono">
+              {language === 'am' ? 'የተቀመጠ ሂሳብ (Deposit)' : 'Deposit Pool Balance'}
+            </span>
+            <span className="text-base font-mono font-black text-slate-900 mt-2">
+              {(profile?.depositBalance !== undefined ? profile.depositBalance : (profile?.walletBalance ?? 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              <span className="text-[9px] text-[#0A3D91] font-bold ml-1 uppercase">ETB</span>
+            </span>
+            <div className="flex items-center space-x-1.5 mt-2.5 pt-1.5 border-t border-slate-100 w-full text-[7.5px] font-extrabold text-[#0D3B66] uppercase font-sans">
+              <span>Handling Fee: 5%</span>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 flex flex-col justify-between items-start select-none shadow-3xs animate-pulse">
+            <span className="text-[8.5px] uppercase font-extrabold text-slate-400 tracking-wider font-mono">
+              {language === 'am' ? 'የትርፍ ሂሳብ (Income)' : 'Income Pool Balance'}
+            </span>
+            <span className="text-base font-mono font-black text-emerald-600 mt-2">
+              {(profile?.incomeBalance !== undefined ? profile.incomeBalance : 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              <span className="text-[9px] text-emerald-700 font-bold ml-1 uppercase">ETB</span>
+            </span>
+            <div className="flex items-center space-x-1.5 mt-2.5 pt-1.5 border-t border-slate-100 w-full text-[7.5px] font-extrabold text-emerald-705 uppercase font-sans">
+              <span>Tax & Fee: 10%</span>
             </div>
           </div>
         </div>

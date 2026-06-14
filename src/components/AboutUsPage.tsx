@@ -165,6 +165,68 @@ export default function AboutUsPage({ onBack }: AboutUsPageProps) {
         })}
       </div>
 
+      {/* NEW: Operational & Balance Pool Rules */}
+      <div className="p-5 bg-white border border-blue-105 rounded-3xl space-y-4 shadow-sm text-left">
+        <div className="flex items-center space-x-3">
+          <div className="p-2 rounded-xl border border-blue-100 shrink-0 text-[#0A3D91] bg-blue-50/70">
+            <ShieldCheck className="w-4 h-4 text-[#0A3D91]" />
+          </div>
+          <div>
+            <h3 className="font-display font-extrabold text-xs text-slate-900 uppercase tracking-wider">
+              {language === 'am' ? 'የገንዘብ ዝውውርና የሂሳብ አሠራር መመሪያ' : 'Capital Pools & Transaction Limits'}
+            </h3>
+            <p className="text-[9px] text-[#0A3D91] font-black uppercase tracking-widest mt-0.5 animate-pulse">
+              {language === 'am' ? 'ኦፊሴላዊ የCBE የሂሳብ ገንዳዎች ሕጎች' : 'CBE Authorized Payout Framework'}
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-3.5 text-[10.5px] text-slate-705 leading-relaxed font-sans font-medium">
+          <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-1.5 shadow-3xs">
+            <h4 className="font-extrabold text-[#0D3B66] text-[11px] uppercase tracking-wide flex items-center space-x-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#0A3D91]"></span>
+              <span>1. {language === 'am' ? 'የተቀመጠ ሂሳብ (Deposit Pool)' : 'Deposit Pool Balance'}</span>
+            </h4>
+            <p className="text-slate-600 text-[10px] leading-relaxed">
+              {language === 'am' 
+                ? 'በቀጥታ ወደ መድረኩ ያስገቡትን ገንዘብ ይቆጣጠራል። ይህ ሂሳብ በዋናነት ቪአይፒ ዕቅዶችን (VIP plans) ለመግዛትና ለማስጀመር ያገለግላል። ከዚህ ሂሳብ ላይ ገንዘብ ሲያወጡ የ 5% የአገልግሎት ማስተላለፊያ ክፍያ (5% Handling Fee) ይቆረጣል።'
+                : 'Tracks initial fundings routed to your portfolio. These funds are primarily allocated for purchasing and upgrading high-yield VIP tiers. Direct cashouts from this pool carry a 5% handling service fee.'}
+            </p>
+          </div>
+
+          <div className="p-3.5 bg-emerald-50/50 rounded-2xl border border-emerald-150 space-y-1.5 shadow-3xs">
+            <h4 className="font-extrabold text-emerald-800 text-[11px] uppercase tracking-wide flex items-center space-x-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>2. {language === 'am' ? 'የትርፍ ሂሳብ (Income Pool)' : 'Income Pool Balance'}</span>
+            </h4>
+            <p className="text-emerald-950 text-[10px] leading-relaxed">
+              {language === 'am' 
+                ? 'የቪአይፒ ዕቅዶች ዕለታዊ ትርፍ ወለዶችን፣ የትርፍ ድምር ውጤቶችን እና የሪፈራል (referral) ጉርሻዎችን ይመዘግባል። ከዚህ የትርፍ ሂሳብ ላይ ገንዘብ ሲያወጡ 10% ጠቅላላ ክፍያ (5% የመንግስት ታክስ + 5% አስተዳዳሪ አገልግሎት ክፍያ) ይቆረጣል።'
+                : 'Aggregates all passive daily interest returns, compounding yields, and partner team invitations. Cashouts from this pool reflect a 10% fee (5% Government/CBE Audited Tax + 5% Liquidity execution cost).'}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2.5 pt-1">
+            <div className="p-3 bg-white border border-slate-200 rounded-xl space-y-0.5 shadow-3xs">
+              <span className="text-[7.5px] text-slate-400 font-extrabold uppercase font-mono tracking-wider block">{language === 'am' ? 'ዝቅተኛ ማስቀመጫ' : 'Min Deposit'}</span>
+              <span className="font-mono text-[11px] font-black text-slate-900">5,000.00 ETB</span>
+            </div>
+            <div className="p-3 bg-white border border-slate-200 rounded-xl space-y-0.5 shadow-3xs">
+              <span className="text-[7.5px] text-slate-400 font-extrabold uppercase font-mono tracking-wider block">{language === 'am' ? 'ዝቅተኛ ወጪ ማውጫ' : 'Min Withdrawal'}</span>
+              <span className="font-mono text-[11px] font-black text-slate-900">600.00 ETB</span>
+            </div>
+            <div className="p-3 bg-white border border-slate-200 rounded-xl space-y-0.5 shadow-3xs">
+              <span className="text-[7.5px] text-slate-400 font-extrabold uppercase font-mono tracking-wider block">{language === 'am' ? 'የክፍያ ፍጥነት' : 'Settlement Speed'}</span>
+              <span className="font-mono text-[11px] font-black text-[#0A3D91]">2 to 6 Hours</span>
+            </div>
+            <div className="p-3 bg-white border border-slate-200 rounded-xl space-y-0.5 shadow-3xs">
+              <span className="text-[7.5px] text-slate-400 font-extrabold uppercase font-mono tracking-wider block">{language === 'am' ? 'የሪፈራል ኮሚሽን' : 'Referral Reward'}</span>
+              <span className="font-mono text-[11px] font-black text-emerald-600">10% Dynamic</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* NEW: How Lumora Operates detailed block as explicitly requested */}
       <div className="p-5 bg-white border border-blue-100 rounded-3xl space-y-4.5 shadow-sm">
         <div className="flex items-center space-x-3">

@@ -13,6 +13,7 @@ import LumoraLogo from './LumoraLogo';
 
 interface ProfileTabProps {
   profile: Profile;
+  todayEarnings?: number;
   withdrawals: Withdrawal[];
   loans: Loan[];
   onSubmitLoan: (amount: number, nationalId: string, tenureMonths: number) => Promise<{ success: boolean; error?: string }>;
@@ -61,6 +62,7 @@ const getRepaymentSchedule = (amount: number, tenureMonths: number = 6, startDat
 
 export default function ProfileTab({ 
   profile, 
+  todayEarnings,
   withdrawals, 
   loans,
   onSubmitLoan,
@@ -681,7 +683,7 @@ export default function ProfileTab({
               {t.totalReferralRewards}
             </span>
             <span className="font-display font-black text-lg text-emerald-700 mt-0.5 block font-mono">
-              {(profile?.totalEarnings ?? 0).toLocaleString()} ETB
+              {(profile?.totalEarnings || todayEarnings || 0).toLocaleString()} ETB
             </span>
           </div>
         </div>

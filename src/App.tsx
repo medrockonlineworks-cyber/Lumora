@@ -347,6 +347,23 @@ function MainAppContent() {
     .filter(i => i.status === 'active')
     .reduce((sum, curr) => sum + curr.dailyReturn, 0);
 
+  // Dynamic calculation for overall combined earnings (investment yields + referral bonuses/rewards)
+  const totalInvestmentEarningsVal = investments.reduce((sum, curr) => sum + (curr.totalEarned ?? 0), 0);
+  const totalReferralRewardsVal = recentTransactions
+    .filter(t => t.type === 'referral_reward' || t.type === 'bonus')
+    .reduce((sum, curr) => sum + curr.amount, 0);
+
+  // Combine the dynamic sources and ensure it doesn't drop below backend profile records
+  const calculatedTotalEarnings = Math.max(
+    profile?.totalEarnings ?? 0,
+    totalInvestmentEarningsVal + totalReferralRewardsVal
+  );
+
+  const enrichedProfile = profile ? {
+    ...profile,
+    totalEarnings: calculatedTotalEarnings
+  } : null;
+
   const isWide = activeTab === 'assistant' && !showAdmin && !showAgreements && !showAboutUs;
 
   return (
@@ -358,7 +375,7 @@ function MainAppContent() {
 
       {/* Header bar view */}
       <HeaderBar 
-        profile={profile}
+        profile={enrichedProfile}
         notifications={notifications}
         onNotificationsRead={handleNotificationsRead}
         isAdmin={isAdmin}
@@ -425,7 +442,7 @@ function MainAppContent() {
             >
               {activeTab === 'home' && (
                 <HomeTab 
-                  profile={profile}
+                  profile={enrichedProfile}
                   todayEarnings={todayEarningsVal}
                   activeInvestmentsValue={activeYCapSum}
                   recentTransactions={recentTransactions}
@@ -438,7 +455,7 @@ function MainAppContent() {
               {activeTab === 'investments' && (
                 <InvestmentsTab 
                   plans={plans}
-                  profile={profile}
+                  profile={enrichedProfile}
                   onBuyPlan={handleBuyPlan}
                 />
               )}
@@ -446,7 +463,7 @@ function MainAppContent() {
               {activeTab === 'earnings' && (
                 <EarningsTab 
                   investments={investments}
-                  profile={profile}
+                  profile={enrichedProfile}
                 />
               )}
 
@@ -456,7 +473,8 @@ function MainAppContent() {
 
               {activeTab === 'profile' && (
                 <ProfileTab 
-                  profile={profile}
+                  profile={enrichedProfile}
+                  todayEarnings={todayEarningsVal}
                   withdrawals={withdrawals}
                   loans={loans}
                   onSubmitLoan={handleSubmitLoan}
@@ -491,10 +509,10 @@ function MainAppContent() {
       />
 
       {/* Dynamic Popups Gate overlay */}
-      {transactionGate && profile && (
+      {transactionGate && enrichedProfile && (
         <TransactionsModals
           type={transactionGate}
-          profile={profile}
+          profile={enrichedProfile}
           onClose={() => setTransactionGate(null)}
           onRefreshDashboard={fetchDashboardData}
         />

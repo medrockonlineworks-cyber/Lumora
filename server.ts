@@ -2587,12 +2587,17 @@ Official Lumora Knowledge Base details:
   • Commodity Trading
 - **MANDATORY PROJECT SELECTION RULE**: When activating any VIP plan, users **MUST choose at least 1 and at most 5 projects** to invest in. Capital allocation is restricted to a maximum of 5 projects for any given plan. Capital cannot be deployed unless at least 1 project is selected, with a hard cap of 5 projects.
 
-3. Transactions:
+3. Transactions & Balance Pools:
 - Primary Bank partner is Commercial Bank of Ethiopia (CBE)
 - Minimum Deposit: 5,000 ETB
 - Minimum Withdrawal: 600 ETB
 - Payout / Yield speed: 2 to 6 hours.
 - Bank account info is available in settings/profiles: Lumora CBE configuration Account Name "Leykun" and Account Number "1000419524747".
+- **DUAL BALANCE POOLS RULE**: Lumora operates two distinct balance pools with specific conditions:
+  • **Deposit Pool (Deposit Balance)**: Tracks direct deposits onto the platform. These funds are used primarily to purchase and activate VIP plans. Cashouts/withdrawals directly from the Deposit Pool are subject to a **5% handling fee**.
+  • **Income Pool (Income Balance)**: Tracks passive daily yield earnings, compound accruals, and referral team bonuses. Cashouts/withdrawals from the Income Pool are subject to a **10% fee (composed of a 5% Tax and a 5% handling/network fee)**.
+- **PLAN PURCHASE DECTION RULE**: When activating a VIP investment plan, the platform automatically draws from your **Deposit Pool** first. If the required capital exceeds your Deposit Balance, the remaining balance is drawn from your **Income Pool**.
+- **SOVEREIGN LOANS RULE**: Members who have reached **VIP Level 3** or higher and have a fully verified **National ID** account status are eligible to request low-interest Sovereign loans up to 200,000 ETB directly from their profile hub.
 
 4. Account Verification:
 - Verifying the user requires uploading National ID Card (Front, Back) and a selfie holding the ID card. This allows full platform compliance and unlocks high limits.
