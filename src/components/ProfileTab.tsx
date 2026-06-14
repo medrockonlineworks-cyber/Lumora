@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useLanguage, LanguageCode, languages } from '../locale';
-import { Profile, Withdrawal, Loan, Referral } from '../types';
+import { Profile, Withdrawal, Loan, Referral, Investment } from '../types';
 import LoanCalculator from './LoanCalculator';
 import LumoraLogo from './LumoraLogo';
 
@@ -27,6 +27,7 @@ interface ProfileTabProps {
   isAdmin?: boolean;
   onAdminClick?: () => void;
   showAdmin?: boolean;
+  investments?: Investment[];
 }
 
 const getRepaymentSchedule = (amount: number, tenureMonths: number = 6, startDateStr: string) => {
@@ -60,6 +61,42 @@ const getRepaymentSchedule = (amount: number, tenureMonths: number = 6, startDat
   return result;
 };
 
+const getVipBadgeDetails = (level: number) => {
+  if (level === 0) {
+    return {
+      text: 'Basic',
+      bgColor: 'bg-slate-100 border-slate-200 text-slate-600',
+      iconEmoji: '✨',
+      glowClass: ''
+    };
+  }
+  
+  const colors: Record<number, { text: string; bgColor: string; iconEmoji: string; glowClass: string }> = {
+    1: { text: 'VIP 1 Copper', bgColor: 'bg-gradient-to-r from-orange-400 to-amber-500 text-white border-amber-300', iconEmoji: '🥉', glowClass: 'shadow-amber-500/25' },
+    2: { text: 'VIP 2 Bronze', bgColor: 'bg-gradient-to-r from-amber-600 to-amber-700 text-white border-amber-500', iconEmoji: '🥈', glowClass: 'shadow-amber-600/30' },
+    3: { text: 'VIP 3 Silver', bgColor: 'bg-gradient-to-r from-slate-300 via-slate-400 to-slate-500 text-white border-slate-250', iconEmoji: '🥇', glowClass: 'shadow-slate-400/25' },
+    4: { text: 'VIP 4 Gold', bgColor: 'bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-650 text-slate-950 border-yellow-300', iconEmoji: '🔑', glowClass: 'shadow-yellow-550/30' },
+    5: { text: 'VIP 5 Sapphire', bgColor: 'bg-gradient-to-r from-teal-400 to-emerald-600 text-white border-teal-300', iconEmoji: '💼', glowClass: 'shadow-teal-500/25' },
+    6: { text: 'VIP 6 Cobalt', bgColor: 'bg-gradient-to-r from-blue-500 via-indigo-500 to-sky-600 text-white border-blue-300', iconEmoji: '🔹', glowClass: 'shadow-blue-500/30' },
+    7: { text: 'VIP 7 Ruby', bgColor: 'bg-gradient-to-r from-rose-500 via-pink-600 to-red-650 text-white border-rose-300', iconEmoji: '🎈', glowClass: 'shadow-rose-500/30' },
+    8: { text: 'VIP 8 Emerald', bgColor: 'bg-gradient-to-r from-emerald-500 via-green-600 to-teal-750 text-white border-emerald-300', iconEmoji: '🟢', glowClass: 'shadow-emerald-500/30' },
+    9: { text: 'VIP 9 Amethyst', bgColor: 'bg-gradient-to-r from-purple-500 via-violet-600 to-indigo-850 text-white border-purple-300', iconEmoji: '🔮', glowClass: 'shadow-purple-500/30' },
+    10: { text: 'VIP 10 Diamond', bgColor: 'bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-500 text-white border-cyan-200', iconEmoji: '💎', glowClass: 'shadow-cyan-400/40' },
+    11: { text: 'VIP 11 Platinum', bgColor: 'bg-gradient-to-r from-slate-100 via-slate-300 to-slate-500 text-slate-900 border-white', iconEmoji: '💍', glowClass: 'shadow-slate-300/40' },
+    12: { text: 'VIP 12 Crown', bgColor: 'bg-gradient-to-r from-yellow-400 via-orange-500 to-purple-650 text-white border-yellow-200', iconEmoji: '👑', glowClass: 'shadow-orange-500/40' },
+    13: { text: 'VIP 13 Imperial', bgColor: 'bg-gradient-to-r from-red-500 via-purple-600 to-indigo-900 text-white border-red-300', iconEmoji: '🏛️', glowClass: 'shadow-purple-600/50' },
+    14: { text: 'VIP 14 Royal Sovereign', bgColor: 'bg-gradient-to-r from-amber-400 via-rose-500 to-violet-750 text-white border-amber-200', iconEmoji: '⚜️', glowClass: 'shadow-rose-500/60' },
+    15: { text: 'VIP 15 Ultimate Sovereign', bgColor: 'bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-600 text-slate-950 border-amber-200', iconEmoji: '🪐', glowClass: 'shadow-amber-400/70' }
+  };
+  
+  return colors[level] || {
+    text: `VIP ${level}`,
+    bgColor: 'bg-gradient-to-r from-slate-800 to-slate-950 text-white border-slate-700',
+    iconEmoji: '🛡️',
+    glowClass: 'shadow-black/20'
+  };
+};
+
 export default function ProfileTab({ 
   profile, 
   todayEarnings,
@@ -75,9 +112,16 @@ export default function ProfileTab({
   onRelaunchWalkthrough,
   isAdmin,
   onAdminClick,
-  showAdmin
+  showAdmin,
+  investments = []
 }: ProfileTabProps) {
   const { language, setLanguage, t, et } = useLanguage();
+
+  const activeInvestments = (investments || []).filter(i => i.status === 'active');
+  const highestActiveLevel = activeInvestments.length > 0
+    ? Math.max(...activeInvestments.map(i => i.planLevel))
+    : 0;
+  const vipBadge = getVipBadgeDetails(highestActiveLevel);
 
   const infoSectionTrans = {
     en: {
@@ -493,26 +537,37 @@ export default function ProfileTab({
         
         {/* Centered Avatar Display */}
         <div className="flex items-center justify-center -mt-12 relative z-10 select-none pb-2">
-          <div 
-            onClick={() => setShowAvatarModal(true)}
-            className="relative w-24 h-24 rounded-[1.8rem] border-4 border-white bg-slate-50 overflow-hidden flex items-center justify-center shadow-xl group cursor-pointer active:scale-95 transition-transform"
-          >
-            {profile.idSelfie || profile.profilePicture ? (
-              <img 
-                 src={profile.idSelfie || profile.profilePicture} 
-                 alt="User profile avatar" 
-                 className="w-full h-full object-cover" 
-              />
-            ) : (
-              <span className="font-display font-black text-3xl text-[#0A3D91] uppercase">
-                {profile.fullName.substring(0, 2)}
-              </span>
-            )}
-
-            <div
-              className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity duration-200"
+          <div className="relative">
+            <div 
+              onClick={() => setShowAvatarModal(true)}
+              className="relative w-24 h-24 rounded-[1.8rem] border-4 border-white bg-slate-50 overflow-hidden flex items-center justify-center shadow-xl group cursor-pointer active:scale-95 transition-transform"
             >
-              <Camera className="w-5 h-5 text-gray-200" />
+              {profile.idSelfie || profile.profilePicture ? (
+                <img 
+                   src={profile.idSelfie || profile.profilePicture} 
+                   alt="User profile avatar" 
+                   className="w-full h-full object-cover" 
+                />
+              ) : (
+                <span className="font-display font-black text-3xl text-[#0A3D91] uppercase">
+                  {profile.fullName.substring(0, 2)}
+                </span>
+              )}
+
+              <div
+                className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity duration-200"
+              >
+                <Camera className="w-5 h-5 text-gray-200" />
+              </div>
+            </div>
+
+            {/* Premium Dynamic VIP Level Badge based on highest active investment */}
+            <div 
+              className={`absolute -bottom-1 -right-2 z-20 flex items-center space-x-1.5 px-3 py-1 text-[9.5px] font-black rounded-2xl border shadow-lg ${vipBadge.bgColor} ${vipBadge.glowClass} leading-none transform hover:scale-105 transition-all duration-200 cursor-default select-none`}
+              title={`${vipBadge.text} - Highest Active Investment`}
+            >
+              <span className="text-xs">{vipBadge.iconEmoji}</span>
+              <span className="uppercase tracking-widest font-sans">VIP {highestActiveLevel}</span>
             </div>
           </div>
 

@@ -255,42 +255,40 @@ function autoAllocateLocalDailyEarnings(db: LumoraDB) {
       if (periods > 0) {
         const actualPeriodsToPay = Math.min(periods, inv.remainingDays);
         if (actualPeriodsToPay > 0) {
+          let newlyAccrued = 0;
           for (let i = 0; i < actualPeriodsToPay; i++) {
             inv.remainingDays = Math.max(0, inv.remainingDays - 1);
-            inv.totalEarned += inv.dailyReturn;
-
-            const profile = db.profiles.find(p => p.userId === inv.userId);
-            if (profile) {
-              profile.walletBalance += inv.dailyReturn;
-              profile.totalEarnings += inv.dailyReturn;
-
-              if (profile.incomeBalance === undefined) profile.incomeBalance = 0;
-              profile.incomeBalance += inv.dailyReturn;
-
-              db.transactions.push({
-                id: "tx-" + Math.random().toString(36).substr(2, 9),
-                userId: inv.userId,
-                type: "daily_earnings",
-                amount: inv.dailyReturn,
-                description: `Accrued guaranteed daily interest on VIP level ${inv.planLevel} active asset portfolio`,
-                date: new Date().toISOString()
-              });
-            }
+            newlyAccrued += inv.dailyReturn;
 
             if (inv.remainingDays <= 0) {
               inv.status = 'matured';
               break;
             }
           }
+          inv.unclaimedReturns = (inv.unclaimedReturns ?? 0) + newlyAccrued;
           inv.lastPayoutDate = new Date(lastPayout.getTime() + actualPeriodsToPay * oneDayMs).toISOString();
           dbUpdated = true;
+
+          // Notify the user they have unclaimed returns
+          const hasUnreadNotification = db.notifications.some(
+            n => n.userId === inv.userId && !n.read && n.title.includes("Unclaimed Returns")
+          );
+          if (!hasUnreadNotification) {
+            db.notifications.push({
+              id: "not-" + Math.random().toString(36).substr(2, 9),
+              userId: inv.userId,
+              title: "Unclaimed Returns Alert",
+              message: `You have accumulated daily returns pending of ${inv.dailyReturn} ETB. Please go to the Check-In or active assets section to claim manually.`,
+              read: false,
+              date: new Date().toISOString()
+            });
+          }
         }
       }
     }
   });
 
   if (dbUpdated) {
-    sanitizeLocalDBBalances(db);
     saveLocalDB(db);
   }
 }
@@ -744,6 +742,65 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     return respondJSON(200, { success: true, profile });
   }
 
+  // 12b. POST /api/investments/claim
+  if (pathname === '/api/investments/claim' && method === 'POST') {
+    const { userId, investmentId } = body;
+    if (!userId) return respondJSON(400, { error: "User ID is required" });
+
+    const userInvestments = db.investments.filter(i => i.userId === userId);
+    let totalClaimed = 0;
+    const claimDetails: string[] = [];
+
+    userInvestments.forEach(inv => {
+      if (investmentId && inv.id !== investmentId) return;
+      if (inv.unclaimedReturns && inv.unclaimedReturns > 0) {
+        const amt = inv.unclaimedReturns;
+        totalClaimed += amt;
+        inv.totalEarned = (inv.totalEarned ?? 0) + amt;
+        inv.unclaimedReturns = 0;
+        claimDetails.push(`${amt} ETB (${inv.planName})`);
+      }
+    });
+
+    if (totalClaimed <= 0) {
+      return respondJSON(400, { error: "You have no unclaimed returns to collect at this moment." });
+    }
+
+    const profile = db.profiles.find(p => p.userId === userId);
+    if (!profile) return respondJSON(404, { error: "Profile not found" });
+
+    profile.walletBalance += totalClaimed;
+    profile.totalEarnings += totalClaimed;
+    if (profile.incomeBalance === undefined) profile.incomeBalance = 0;
+    profile.incomeBalance += totalClaimed;
+
+    db.transactions.push({
+      id: "tx-" + Math.random().toString(36).substr(2, 9),
+      userId: userId,
+      type: "daily_earnings",
+      amount: totalClaimed,
+      description: `Claimed daily returns: ${claimDetails.join(", ")}`,
+      date: new Date().toISOString()
+    });
+
+    db.notifications.push({
+      id: "not-" + Math.random().toString(36).substr(2, 9),
+      userId: userId,
+      title: "Daily Earnings Claimed",
+      message: `Successfully claimed ${totalClaimed.toFixed(2)} ETB daily returns to your Income Pool.`,
+      read: false,
+      date: new Date().toISOString()
+    });
+
+    saveLocalDB(db);
+    return respondJSON(200, { 
+      success: true, 
+      profile, 
+      claimedAmount: totalClaimed,
+      investments: db.investments.filter(i => i.userId === userId)
+    });
+  }
+
   // 13. POST /api/profiles/withdrawal-setup
   if (pathname === '/api/profiles/withdrawal-setup' && method === 'POST') {
     const { userId, bankName, accountNumber, accountHolderName } = body;
@@ -767,6 +824,52 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     profile.transactionPin = pin;
     saveLocalDB(db);
     return respondJSON(200, { success: true, profile });
+  }
+
+  // 14b. POST /api/profiles/check-in
+  if (pathname === '/api/profiles/check-in' && method === 'POST') {
+    const { userId } = body;
+    const profile = db.profiles.find(p => p.userId === userId);
+    if (!profile) return respondJSON(404, { error: "Profile not found" });
+
+    const now = new Date();
+    if (profile.lastCheckInDate) {
+      const lastCheckIn = new Date(profile.lastCheckInDate);
+      const diffMs = now.getTime() - lastCheckIn.getTime();
+      const oneDayMs = 24 * 60 * 60 * 1000;
+      if (diffMs < oneDayMs) {
+        const remainingMs = oneDayMs - diffMs;
+        const remainingHours = Math.ceil(remainingMs / (1000 * 60 * 60));
+        return respondJSON(400, { error: `You have already claimed today's check-in bonus. Please check in again in ${remainingHours} hours.` });
+      }
+    }
+
+    const bonusAmount = 5;
+    profile.walletBalance += bonusAmount;
+    profile.incomeBalance = (profile.incomeBalance ?? 0) + bonusAmount;
+    profile.totalEarnings += bonusAmount;
+    profile.lastCheckInDate = now.toISOString();
+
+    db.transactions.push({
+      id: "tx-" + Math.random().toString(36).substr(2, 9),
+      userId: userId,
+      type: "referral_reward",
+      amount: bonusAmount,
+      description: "Accrued 5 ETB Daily Attendance Check-In Bonus Reward",
+      date: now.toISOString()
+    });
+
+    db.notifications.push({
+      id: "not-" + Math.random().toString(36).substr(2, 9),
+      userId,
+      title: "Daily Check-In Claimed",
+      message: "Congratulations! 5.00 ETB was successfully credited to your income balance as a daily login reward.",
+      read: false,
+      date: now.toISOString()
+    });
+
+    saveLocalDB(db);
+    return respondJSON(200, { success: true, profile, bonus: bonusAmount });
   }
 
   // 15. POST /api/profiles/avatar
@@ -1165,22 +1268,18 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     db.investments.forEach(inv => {
       if (inv.status === 'active') {
         inv.remainingDays = Math.max(0, inv.remainingDays - 1);
-        inv.totalEarned += inv.dailyReturn;
+        inv.unclaimedReturns = (inv.unclaimedReturns ?? 0) + inv.dailyReturn;
         returnSum += inv.dailyReturn;
 
         const profile = db.profiles.find(p => p.userId === inv.userId);
         if (profile) {
-          profile.walletBalance += inv.dailyReturn;
-          profile.totalEarnings += inv.dailyReturn;
-          if (profile.incomeBalance === undefined) profile.incomeBalance = 0;
-          profile.incomeBalance += inv.dailyReturn;
-          
-          db.transactions.push({
-            id: "tx-" + Math.random().toString(36).substr(2, 9),
+          // Notify user
+          db.notifications.push({
+            id: "not-" + Math.random().toString(36).substr(2, 9),
             userId: inv.userId,
-            type: "daily_earnings",
-            amount: inv.dailyReturn,
-            description: `Accrued guaranteed daily interest on VIP level ${inv.planLevel} active asset portfolio`,
+            title: "Unclaimed Returns Alert (Simulated)",
+            message: `A daily simulation tick has occurred! You have an unclaimed return of ${inv.dailyReturn} ETB on your ${inv.planName} investment. Click Claim to credit to your account.`,
+            read: false,
             date: new Date().toISOString()
           });
         }

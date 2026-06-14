@@ -359,9 +359,34 @@ function MainAppContent() {
     totalInvestmentEarningsVal + totalReferralRewardsVal
   );
 
+  const rawIncomeBalance = profile?.incomeBalance !== undefined ? profile.incomeBalance : 0;
+  const rawDepositBalance = profile?.depositBalance !== undefined ? profile.depositBalance : (profile?.walletBalance ?? 0);
+
+  let healedIncomeBalance = rawIncomeBalance;
+  let healedDepositBalance = rawDepositBalance;
+
+  if (calculatedTotalEarnings > 0) {
+    const maxPossibleIncome = Math.max(0, Math.min(profile?.walletBalance ?? 0, calculatedTotalEarnings - (profile?.totalWithdrawals ?? 0)));
+    if (healedIncomeBalance < maxPossibleIncome) {
+      healedIncomeBalance = maxPossibleIncome;
+      healedDepositBalance = Math.max(0, (profile?.walletBalance ?? 0) - healedIncomeBalance);
+    }
+  }
+
+  const totalInPools = healedDepositBalance + healedIncomeBalance;
+  if (profile && totalInPools !== profile.walletBalance) {
+    healedDepositBalance = profile.walletBalance - healedIncomeBalance;
+    if (healedDepositBalance < 0) {
+      healedDepositBalance = 0;
+      healedIncomeBalance = profile.walletBalance;
+    }
+  }
+
   const enrichedProfile = profile ? {
     ...profile,
-    totalEarnings: calculatedTotalEarnings
+    totalEarnings: calculatedTotalEarnings,
+    incomeBalance: healedIncomeBalance,
+    depositBalance: healedDepositBalance
   } : null;
 
   const isWide = activeTab === 'assistant' && !showAdmin && !showAgreements && !showAboutUs;
@@ -449,6 +474,8 @@ function MainAppContent() {
                   setActiveTab={setActiveTab}
                   onQuickDepositClick={() => setTransactionGate('deposit')}
                   onQuickWithdrawClick={() => setTransactionGate('withdrawal')}
+                  onRefreshDashboard={fetchDashboardData}
+                  investments={investments}
                 />
               )}
 
@@ -492,6 +519,7 @@ function MainAppContent() {
                     setShowAgreements(false);
                     setShowAboutUs(false);
                   }}
+                  investments={investments}
                 />
               )}
             </motion.div>

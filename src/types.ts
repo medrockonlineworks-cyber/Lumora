@@ -43,6 +43,7 @@ export interface Profile {
   bankName?: string;
   accountNumber?: string;
   accountHolderName?: string;
+  lastCheckInDate?: string;
 }
 
 export interface InvestmentPlan {
@@ -70,6 +71,7 @@ export interface Investment {
   status: 'active' | 'matured' | 'cancelled';
   totalEarned: number;
   lastPayoutDate?: string;
+  unclaimedReturns?: number;
 }
 
 export interface DailyEarning {
