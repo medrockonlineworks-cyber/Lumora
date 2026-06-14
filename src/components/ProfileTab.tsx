@@ -381,6 +381,13 @@ export default function ProfileTab({
       return;
     }
 
+    const cleanNationalId = nationalId.trim().replace(/[-\s]/g, '');
+    const isSixteenDigits = /^\d{16}$/.test(cleanNationalId);
+    if (!isSixteenDigits) {
+      setLoanError('The National ID / FAN registration number must be exactly 16 digits (e.g. 8989898911899987). It cannot be less than or more than 16 digits.');
+      return;
+    }
+
     setSubmitLoading(true);
     try {
       const result = await onSubmitLoan(amt, nationalId, loanTenure);

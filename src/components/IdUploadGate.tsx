@@ -162,6 +162,13 @@ export default function IdUploadGate({ userId, profile, onUploadSuccess, onLogou
       return;
     }
 
+    const cleanFanNum = fanNumber.trim().replace(/[-\s]/g, '');
+    const isSixteenDigits = /^\d{16}$/.test(cleanFanNum);
+    if (!isSixteenDigits) {
+      setErrorText("The National ID / FAN registration number must be exactly 16 digits (e.g. 8989898911899987). It cannot be less than or more than 16 digits.");
+      return;
+    }
+
     setErrorText(null);
     setUploading(true);
 

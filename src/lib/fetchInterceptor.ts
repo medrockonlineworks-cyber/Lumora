@@ -431,6 +431,15 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     if (!profile) return respondJSON(404, { error: "Profile not found" });
 
     const trimmedFan = (fanNumber || "").trim();
+    if (!trimmedFan) {
+      return respondJSON(400, { error: "Your National ID/FAN number is required." });
+    }
+    const cleanFanNum = trimmedFan.replace(/[-\s]/g, '');
+    const isSixteenDigits = /^\d{16}$/.test(cleanFanNum);
+    if (!isSixteenDigits) {
+      return respondJSON(400, { error: "The National ID / FAN registration number must be exactly 16 digits (e.g. 8989898911899987). It cannot be less than or more than 16 digits." });
+    }
+
     if (trimmedFan) {
       const duplicateFan = db.profiles.find(p => p.userId !== userId && p.fanNumber && p.fanNumber.trim().toUpperCase() === trimmedFan.toUpperCase());
       if (duplicateFan) {
@@ -790,12 +799,18 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
 
   // 18. POST /api/loans/submit
   if (pathname === '/api/loans/submit' && method === 'POST') {
-    const { userId, amount, purpose, duration } = body;
+    const { userId, amount, purpose, duration, nationalId } = body;
     const profile = db.profiles.find(p => p.userId === userId);
     if (!profile) return respondJSON(404, { error: "Profile not found" });
 
     if (profile.vipLevel < 3) {
       return respondJSON(400, { error: "Loan services are available only for members who have reached Level 3 or higher." });
+    }
+
+    const submittedId = nationalId || body.nationalId || "";
+    const cleanId = String(submittedId).trim().replace(/[-\s]/g, '');
+    if (!/^\d{16}$/.test(cleanId)) {
+      return respondJSON(400, { error: "The National ID / FAN registration number must be exactly 16 digits (e.g. 8989898911899987)." });
     }
 
     const loan: Loan = {
@@ -805,7 +820,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       userPhone: profile.phone,
       vipLevel: profile.vipLevel,
       amount: Number(amount),
-      nationalId: profile.fanNumber || '',
+      nationalId: submittedId || profile.fanNumber || '',
       status: "pending",
       submittedAt: new Date().toISOString(),
       tenureMonths: Math.ceil(Number(duration) / 30)
