@@ -745,7 +745,7 @@ export default function ProfileTab({
               {t.totalReferralRewards}
             </span>
             <span className="font-display font-black text-lg text-emerald-700 mt-0.5 block font-mono">
-              {(profile?.totalEarnings || todayEarnings || 0).toLocaleString()} ETB
+              {referrals.reduce((sum, r) => sum + (r.rewardEarned || 0), 0).toLocaleString()} ETB
             </span>
           </div>
         </div>
