@@ -918,6 +918,9 @@ async function startServer() {
                 p.walletBalance += inv.dailyReturn;
                 p.totalEarnings += inv.dailyReturn;
 
+                if (p.incomeBalance === undefined) p.incomeBalance = 0;
+                p.incomeBalance += inv.dailyReturn;
+
                 // Create transaction
                 db.transactions.push({
                   id: "tx-" + Math.random().toString(36).substr(2, 9),
@@ -957,8 +960,51 @@ async function startServer() {
     }
   }
 
+  // Force system balance integrity control
+  function sanitizeUserBalances() {
+    let updated = false;
+    db.profiles.forEach(p => {
+      let changed = false;
+      if (p.depositBalance === undefined || p.incomeBalance === undefined) {
+        const estIncome = Math.min(p.walletBalance, p.totalEarnings);
+        p.incomeBalance = p.incomeBalance !== undefined ? p.incomeBalance : estIncome;
+        p.depositBalance = p.depositBalance !== undefined ? p.depositBalance : (p.walletBalance - p.incomeBalance);
+        changed = true;
+      }
+      
+      if (p.depositBalance < 0) {
+        p.depositBalance = 0;
+        changed = true;
+      }
+      if (p.incomeBalance < 0) {
+        p.incomeBalance = 0;
+        changed = true;
+      }
+
+      const sum = p.depositBalance + p.incomeBalance;
+      if (sum !== p.walletBalance) {
+        // Enforce sum invariant
+        p.depositBalance = p.walletBalance - p.incomeBalance;
+        if (p.depositBalance < 0) {
+          p.depositBalance = 0;
+          p.incomeBalance = p.walletBalance;
+        }
+        changed = true;
+      }
+
+      if (changed) {
+        updated = true;
+      }
+    });
+
+    if (updated) {
+      saveDB(db);
+    }
+  }
+
   // Initial check on boot
   try {
+    sanitizeUserBalances();
     autoAllocateDailyEarnings();
   } catch (error) {
     console.error("Initial daily earnings check failed:", error);
@@ -967,6 +1013,7 @@ async function startServer() {
   // Trigger auto-credits periodically every 60 seconds
   setInterval(() => {
     try {
+      sanitizeUserBalances();
       autoAllocateDailyEarnings();
     } catch (e) {
       console.error("[Automatic Yield Tracker Check Failed]:", e);
@@ -976,6 +1023,7 @@ async function startServer() {
   // Trigger on every API request to guarantee immediate credit upon user loading or performing any operations
   app.use((req, res, next) => {
     try {
+      sanitizeUserBalances();
       autoAllocateDailyEarnings();
     } catch (e) {
       console.error("[Automatic Yield Tracker Middleware Check Failed]:", e);
@@ -1306,7 +1354,7 @@ async function startServer() {
 
   // Submit withdrawal request
   app.post("/api/withdrawals/submit", transactionLimiter, (req, res) => {
-    const { userId, amount, transactionPin, bankName, accountNumber, accountHolderName } = req.body;
+    const { userId, amount, transactionPin, bankName, accountNumber, accountHolderName, balanceType } = req.body;
 
     if (!userId || !amount || !transactionPin || !bankName || !accountNumber || !accountHolderName) {
       return res.status(400).json({ error: "All fields are required including bank details" });
@@ -1322,8 +1370,26 @@ async function startServer() {
       return res.status(404).json({ error: "User profile not found" });
     }
 
+    // Default to 'income' if they have enough balance, else 'deposit'
+    const chosenType: 'deposit' | 'income' = (balanceType === 'deposit' || balanceType === 'income') 
+      ? balanceType 
+      : ((profile.incomeBalance || 0) >= value ? 'income' : 'deposit');
+
+    if (profile.depositBalance === undefined) profile.depositBalance = profile.walletBalance;
+    if (profile.incomeBalance === undefined) profile.incomeBalance = 0;
+
+    if (chosenType === 'income') {
+      if (profile.incomeBalance < value) {
+        return res.status(400).json({ error: `Insufficient income balance. You requested ${value} ETB, but your income balance is only ${(profile.incomeBalance || 0).toFixed(2)} ETB.` });
+      }
+    } else {
+      if (profile.depositBalance < value) {
+        return res.status(400).json({ error: `Insufficient deposit balance. You requested ${value} ETB, but your deposit balance is only ${(profile.depositBalance || 0).toFixed(2)} ETB.` });
+      }
+    }
+
     if (profile.walletBalance < value) {
-      return res.status(400).json({ error: "Insufficient wallet balance" });
+      return res.status(400).json({ error: "Insufficient total wallet balance" });
     }
 
     // Set PIN if first time, else verify!
@@ -1333,8 +1399,21 @@ async function startServer() {
       return res.status(400).json({ error: "Incorrect Secure Transaction PIN" });
     }
 
+    // Calculate fees on chosenType:
+    // Deposit balance cashout fee is 5%.
+    // Income balance cashout fee is 5% tax + 5% fee (total 10%).
+    const feeRate = chosenType === 'income' ? 0.10 : 0.05;
+    const feeVal = Math.round(value * feeRate * 100) / 100;
+    const netAmtStr = (value - feeVal).toFixed(2);
+    const netAmount = parseFloat(netAmtStr);
+
     // Deduct balance instantly to reserve the fund
     profile.walletBalance -= value;
+    if (chosenType === 'income') {
+      profile.incomeBalance -= value;
+    } else {
+      profile.depositBalance -= value;
+    }
 
     const newWithdrawal: Withdrawal = {
       id: "wit-" + Math.random().toString(36).substr(2, 9),
@@ -1346,13 +1425,21 @@ async function startServer() {
       submittedAt: new Date().toISOString(),
       bankName,
       accountNumber,
-      accountHolderName
+      accountHolderName,
+      fee: feeVal,
+      netAmount: netAmount,
+      balanceType: chosenType
     };
 
     db.withdrawals.push(newWithdrawal);
     saveDB(db);
 
-    res.json({ message: "Withdrawal submitted. Under verification.", walletBalance: profile.walletBalance });
+    res.json({ 
+      message: "Withdrawal submitted. Under verification.", 
+      walletBalance: profile.walletBalance,
+      depositBalance: profile.depositBalance,
+      incomeBalance: profile.incomeBalance
+    });
   });
 
   // Get user withdrawals list
@@ -2200,7 +2287,15 @@ Instruct the user precisely on which page, component, or element to use to accom
 
       // Refund user wallet instantly as it was deducted on submission!
       if (p) {
+        if (p.depositBalance === undefined) p.depositBalance = p.walletBalance;
+        if (p.incomeBalance === undefined) p.incomeBalance = 0;
+
         p.walletBalance += wit.amount;
+        if (wit.balanceType === 'income') {
+          p.incomeBalance += wit.amount;
+        } else {
+          p.depositBalance += wit.amount;
+        }
 
         // Notify user
         db.notifications.push({

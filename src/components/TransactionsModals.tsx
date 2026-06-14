@@ -207,6 +207,7 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
   const [bankName, setBankName] = useState('Commercial Bank of Ethiopia (CBE)');
   const [accountNumber, setAccountNumber] = useState('');
   const [accountHolderName, setAccountHolderName] = useState(profile?.fullName || '');
+  const [balanceType, setBalanceType] = useState<'deposit' | 'income'>('deposit');
 
   const hasRegistered = !!(profile?.bankName && profile?.accountNumber && profile?.accountHolderName && profile?.transactionPin);
   const [showRegistrationForm, setShowRegistrationForm] = useState(!hasRegistered);
@@ -361,8 +362,25 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
   const handleWithdrawSubmit = async () => {
     const parsedAmt = parseFloat(withdrawalAmount);
     if (isNaN(parsedAmt) || parsedAmt < 600) {
-      setMessage({ text: 'Minimum withdrawal limit is 600 ETB', isError: true });
+      setMessage({ text: 'Minimum withdrawal amount limit is 600 ETB', isError: true });
       return;
+    }
+    if ((profile?.walletBalance ?? 0) < 600) {
+      setMessage({ text: 'User total wallet balance must be at least 600 ETB to withdraw funds.', isError: true });
+      return;
+    }
+    if (balanceType === 'deposit') {
+      const depBal = profile?.depositBalance !== undefined ? profile.depositBalance : (profile?.walletBalance ?? 0);
+      if (parsedAmt > depBal) {
+        setMessage({ text: `Insufficient deposit balance. You only have ${depBal.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB in your deposit balance.`, isError: true });
+        return;
+      }
+    } else {
+      const incBal = profile?.incomeBalance !== undefined ? profile.incomeBalance : 0;
+      if (parsedAmt > incBal) {
+        setMessage({ text: `Insufficient income balance. You only have ${incBal.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB in your income balance.`, isError: true });
+        return;
+      }
     }
     if (parsedAmt > (profile?.walletBalance ?? 0)) {
       setMessage({ text: t.insufficientBalance, isError: true });
@@ -398,7 +416,8 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
           transactionPin: securePin,
           bankName,
           accountNumber,
-          accountHolderName
+          accountHolderName,
+          balanceType
         })
       });
 
@@ -653,12 +672,88 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
         {type === 'withdrawal' && (
           <div className="space-y-4">
             
-            {/* Wallet balance quick metric */}
-            <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-3xl flex justify-between items-center text-xs">
-              <span className="text-slate-600 font-bold">{t.availableBal}</span>
-              <span className="font-black text-[#0A3D91] text-mono text-sm">
-                {(profile?.walletBalance ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
-              </span>
+            {/* Wallet balance quick metrics & Sub-balances selector */}
+            <div className="space-y-2 text-left">
+              <div className="px-1 flex justify-between items-center">
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                  Select Payout Source Pool
+                </span>
+                <span className="text-[10.5px] font-mono font-black text-slate-900 bg-slate-100 px-2.5 py-0.5 rounded-full border">
+                  Total: {(profile?.walletBalance ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-left">
+                {/* Deposit Balance Card Selector */}
+                <button
+                  type="button"
+                  onClick={() => setBalanceType('deposit')}
+                  className={`p-3.5 rounded-2xl border transition-all flex flex-col justify-between items-start text-left cursor-pointer relative overflow-hidden ${
+                    balanceType === 'deposit'
+                      ? 'bg-blue-50/70 border-[#0A3D91] ring-1 ring-[#0A3D91]'
+                      : 'bg-slate-50/40 border-slate-200 hover:bg-slate-100/50'
+                  }`}
+                >
+                  <span className="text-[8.5px] uppercase font-bold text-slate-400 tracking-wider">
+                    Deposit Balance
+                  </span>
+                  <span className="text-xs font-mono font-black text-[#0A3D91] mt-1.5">
+                    {(profile?.depositBalance !== undefined ? profile.depositBalance : (profile?.walletBalance ?? 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </span>
+                  <div className="flex justify-between items-center w-full mt-2.5 pt-1.5 border-t border-slate-100">
+                    <span className="text-[7.5px] uppercase font-extrabold text-slate-500">Fee Rate</span>
+                    <span className="text-[8px] font-mono font-black text-indigo-700 bg-indigo-50 border border-indigo-150 px-1 py-0.2 rounded">5%</span>
+                  </div>
+                  {balanceType === 'deposit' && (
+                    <div className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#0A3D91]"></div>
+                  )}
+                </button>
+
+                {/* Income Balance Card Selector */}
+                <button
+                  type="button"
+                  onClick={() => setBalanceType('income')}
+                  className={`p-3.5 rounded-2xl border transition-all flex flex-col justify-between items-start text-left cursor-pointer relative overflow-hidden ${
+                    balanceType === 'income'
+                      ? 'bg-blue-50/70 border-[#0A3D91] ring-1 ring-[#0A3D91]'
+                      : 'bg-slate-50/40 border-slate-200 hover:bg-slate-100/50'
+                  }`}
+                >
+                  <span className="text-[8.5px] uppercase font-bold text-slate-400 tracking-wider">
+                    Income Balance
+                  </span>
+                  <span className="text-xs font-mono font-black text-[#0A3D91] mt-1.5">
+                    {(profile?.incomeBalance !== undefined ? profile.incomeBalance : 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </span>
+                  <div className="flex justify-between items-center w-full mt-2.5 pt-1.5 border-t border-slate-100">
+                    <span className="text-[7.5px] uppercase font-extrabold text-slate-500">Tax & Fee</span>
+                    <span className="text-[8px] font-mono font-black text-amber-700 bg-amber-50 border border-amber-150 px-1 py-0.2 rounded">10%</span>
+                  </div>
+                  {balanceType === 'income' && (
+                    <div className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#0A3D91]"></div>
+                  )}
+                </button>
+              </div>
+
+              {/* Dynamic Fee / Tax Info Notification Summary banner */}
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+                <div className="flex justify-between items-center text-[9px] font-bold text-slate-600">
+                  <span>Authorized Fee Rate:</span>
+                  <span className="font-bold text-slate-800">{balanceType === 'income' ? '10% (5% Tax + 5% Fee)' : '5% (Handling Fee)'}</span>
+                </div>
+                <div className="flex justify-between items-center text-[9.5px]">
+                  <span className="text-slate-500 font-bold">Estimated Payout Fee:</span>
+                  <span className="font-mono font-black text-rose-600">
+                    {withdrawalAmount ? `${(parseFloat(withdrawalAmount) * (balanceType === 'income' ? 0.10 : 0.05)).toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB` : '0.00 ETB'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-[10px] pt-1 border-t border-dashed border-slate-200">
+                  <span className="text-slate-700 font-black">Net Received Sum:</span>
+                  <span className="font-mono font-black text-emerald-600">
+                    {withdrawalAmount ? `${(parseFloat(withdrawalAmount) * (balanceType === 'income' ? 0.90 : 0.95)).toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB` : '0.00 ETB'}
+                  </span>
+                </div>
+              </div>
             </div>
 
             {showRegistrationForm ? (

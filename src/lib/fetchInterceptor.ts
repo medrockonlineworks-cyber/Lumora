@@ -183,10 +183,46 @@ function loadLocalDB(): LumoraDB {
     }
   }
 
-  if (modified || !data) {
+  const balancesModified = sanitizeLocalDBBalances(db);
+  if (modified || balancesModified || !data) {
     saveLocalDB(db);
   }
   return db;
+}
+
+function sanitizeLocalDBBalances(db: LumoraDB) {
+  let modified = false;
+  if (!db.profiles) db.profiles = [];
+  db.profiles.forEach(p => {
+    let changed = false;
+    if (p.depositBalance === undefined || p.incomeBalance === undefined) {
+      const estIncome = Math.min(p.walletBalance, p.totalEarnings);
+      p.incomeBalance = p.incomeBalance !== undefined ? p.incomeBalance : estIncome;
+      p.depositBalance = p.depositBalance !== undefined ? p.depositBalance : (p.walletBalance - p.incomeBalance);
+      changed = true;
+    }
+    if (p.depositBalance < 0) {
+      p.depositBalance = 0;
+      changed = true;
+    }
+    if (p.incomeBalance < 0) {
+      p.incomeBalance = 0;
+      changed = true;
+    }
+    const sum = p.depositBalance + p.incomeBalance;
+    if (sum !== p.walletBalance) {
+      p.depositBalance = p.walletBalance - p.incomeBalance;
+      if (p.depositBalance < 0) {
+        p.depositBalance = 0;
+        p.incomeBalance = p.walletBalance;
+      }
+      changed = true;
+    }
+    if (changed) {
+      modified = true;
+    }
+  });
+  return modified;
 }
 
 function saveLocalDB(db: LumoraDB) {
@@ -217,6 +253,9 @@ function autoAllocateLocalDailyEarnings(db: LumoraDB) {
               profile.walletBalance += inv.dailyReturn;
               profile.totalEarnings += inv.dailyReturn;
 
+              if (profile.incomeBalance === undefined) profile.incomeBalance = 0;
+              profile.incomeBalance += inv.dailyReturn;
+
               db.transactions.push({
                 id: "tx-" + Math.random().toString(36).substr(2, 9),
                 userId: inv.userId,
@@ -240,6 +279,7 @@ function autoAllocateLocalDailyEarnings(db: LumoraDB) {
   });
 
   if (dbUpdated) {
+    sanitizeLocalDBBalances(db);
     saveLocalDB(db);
   }
 }
@@ -482,11 +522,12 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
 
   // 10. POST /api/withdrawals/submit
   if (pathname === '/api/withdrawals/submit' && method === 'POST') {
-    const { userId, amount, pin } = body;
+    const { userId, amount, pin, transactionPin, bankName, accountNumber, accountHolderName, balanceType } = body;
+    const finalPin = transactionPin || pin;
     const profile = db.profiles.find(p => p.userId === userId);
     if (!profile) return respondJSON(404, { error: "Profile not found" });
 
-    if (profile.transactionPin !== pin) {
+    if (profile.transactionPin && profile.transactionPin !== finalPin) {
       return respondJSON(400, { error: "Invalid 4-digit transaction security PIN" });
     }
 
@@ -494,11 +535,45 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     if (isNaN(withdrawAmount) || withdrawAmount < 600) {
       return respondJSON(400, { error: "Minimum withdrawal limit is 600 ETB" });
     }
+    if (profile.walletBalance < 600) {
+      return respondJSON(400, { error: "User total balance must be at least 600 ETB to withdraw." });
+    }
+
+    // Default to 'income' if they have enough balance, else 'deposit'
+    const chosenType: 'deposit' | 'income' = (balanceType === 'deposit' || balanceType === 'income')
+      ? balanceType
+      : ((profile.incomeBalance || 0) >= withdrawAmount ? 'income' : 'deposit');
+
+    if (profile.depositBalance === undefined) profile.depositBalance = profile.walletBalance;
+    if (profile.incomeBalance === undefined) profile.incomeBalance = 0;
+
+    if (chosenType === 'income') {
+      if (profile.incomeBalance < withdrawAmount) {
+        return respondJSON(400, { error: `Insufficient income balance. You only have ${(profile.incomeBalance || 0).toFixed(2)} ETB inside your income pool.` });
+      }
+    } else {
+      if (profile.depositBalance < withdrawAmount) {
+        return respondJSON(400, { error: `Insufficient deposit balance. You only have ${(profile.depositBalance || 0).toFixed(2)} ETB inside your deposit pool.` });
+      }
+    }
+
     if (profile.walletBalance < withdrawAmount) {
       return respondJSON(400, { error: "Insufficient available balance key in your wallet." });
     }
 
+    // Calculate fees on chosenType:
+    // Deposit balance cashout fee is 5%.
+    // Income balance cashout fee is 5% tax + 5% fee (total 10%).
+    const feeRate = chosenType === 'income' ? 0.10 : 0.05;
+    const feeVal = Math.round(withdrawAmount * feeRate * 100) / 100;
+    const netAmount = parseFloat((withdrawAmount - feeVal).toFixed(2));
+
     profile.walletBalance -= withdrawAmount;
+    if (chosenType === 'income') {
+      profile.incomeBalance -= withdrawAmount;
+    } else {
+      profile.depositBalance -= withdrawAmount;
+    }
     profile.totalWithdrawals += withdrawAmount;
 
     const newWithdrawal: Withdrawal = {
@@ -508,7 +583,13 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       userPhone: profile.phone,
       amount: withdrawAmount,
       status: "pending",
-      submittedAt: new Date().toISOString()
+      submittedAt: new Date().toISOString(),
+      bankName: bankName || profile.bankName,
+      accountNumber: accountNumber || profile.accountNumber,
+      accountHolderName: accountHolderName || profile.accountHolderName,
+      fee: feeVal,
+      netAmount,
+      balanceType: chosenType
     };
 
     db.withdrawals.push(newWithdrawal);
@@ -517,7 +598,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       userId,
       type: "withdrawal",
       amount: -withdrawAmount,
-      description: "Pending Cashout Withdrawal Request to CBE Bank",
+      description: `CBE cashout transaction: withdrew ${withdrawAmount} ETB from ${chosenType === 'income' ? 'Income Pool' : 'Deposit Pool'}. Net amount: ${netAmount} ETB.`,
       date: new Date().toISOString()
     });
 
@@ -525,7 +606,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       id: "not-" + Math.random().toString(36).substr(2, 9),
       userId,
       title: "Withdrawal Requested",
-      message: `Your cashout withdrawal request of ${withdrawAmount} ETB is currently in the queue. Checked in real-time.`,
+      message: `Your cashout withdrawal request of ${withdrawAmount} ETB from ${chosenType === 'income' ? 'income' : 'deposit'} balance is currently in the queue. Checked in real-time.`,
       read: false,
       date: new Date().toISOString()
     });
@@ -586,6 +667,16 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     const finalDurationDays = durationDays ? Number(durationDays) : plan.durationDays;
 
     profile.walletBalance -= plan.requiredInvestment;
+    if (profile.depositBalance === undefined) profile.depositBalance = profile.walletBalance + plan.requiredInvestment;
+    if (profile.incomeBalance === undefined) profile.incomeBalance = 0;
+
+    if (profile.depositBalance >= plan.requiredInvestment) {
+      profile.depositBalance -= plan.requiredInvestment;
+    } else {
+      const rest = plan.requiredInvestment - profile.depositBalance;
+      profile.depositBalance = 0;
+      profile.incomeBalance = Math.max(0, profile.incomeBalance - rest);
+    }
     profile.totalInvestments += plan.requiredInvestment;
     if (plan.level > profile.vipLevel) {
       profile.vipLevel = plan.level;
@@ -977,6 +1068,14 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       const profile = db.profiles.find(p => p.userId === wit.userId);
       if (profile) {
         profile.walletBalance += wit.amount;
+        const subType = wit.balanceType || 'deposit';
+        if (subType === 'income') {
+          if (profile.incomeBalance === undefined) profile.incomeBalance = 0;
+          profile.incomeBalance += wit.amount;
+        } else {
+          if (profile.depositBalance === undefined) profile.depositBalance = 0;
+          profile.depositBalance += wit.amount;
+        }
         profile.totalWithdrawals = Math.max(0, profile.totalWithdrawals - wit.amount);
 
         db.transactions.push({
@@ -984,7 +1083,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
           userId: wit.userId,
           type: "deposit",
           amount: wit.amount,
-          description: `Refunded withdrawal cashout rejection - Ref #${withdrawalId}`,
+          description: `Refunded withdrawal cashout rejection (${subType}) - Ref #${withdrawalId}`,
           date: new Date().toISOString()
         });
       }

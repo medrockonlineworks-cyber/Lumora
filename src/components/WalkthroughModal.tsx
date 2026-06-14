@@ -36,11 +36,11 @@ export default function WalkthroughModal({ userId, onClose }: WalkthroughModalPr
       color: 'from-sky-400 to-sky-600',
       textColor: 'text-sky-600',
       bgGlow: 'bg-sky-400/20',
-      description: 'Please explore the app to discover what suits your targets. Lumora hosts energy, technology, and commercial development liquidity pools managed by direct expert managers.',
+      description: 'Lumora hosts energy, technology, and commercial development liquidity pools managed by our specialist team. The Lumora team operates the entire investment lifecycle on behalf of the user—you only need to invest, and Lumora does the work.',
       bullets: [
-        'Access multiple high-yield local infrastructure campaigns.',
-        'Analyze project durations, maturity ranges, and risk factors.',
-        'Rest assured knowing your seed funds are secured by legal reserves.'
+        'Professional hands-free asset operation on your behalf.',
+        'No technical configuration: you invest, our team does the work.',
+        'Rest assured knowing your seed funds are secured by physical reserves.'
       ]
     },
     {

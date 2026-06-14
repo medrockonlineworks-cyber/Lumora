@@ -23,6 +23,8 @@ export interface Profile {
   profilePicture?: string;
   vipLevel: number; // 0 (User), 1 - 15 (VIP Level)
   walletBalance: number;
+  depositBalance?: number;
+  incomeBalance?: number;
   totalDeposits: number;
   totalWithdrawals: number;
   totalInvestments: number;
@@ -107,6 +109,9 @@ export interface Withdrawal {
   bankName?: string;
   accountNumber?: string;
   accountHolderName?: string;
+  fee?: number;
+  netAmount?: number;
+  balanceType?: 'deposit' | 'income';
 }
 
 export interface MyTransaction {

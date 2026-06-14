@@ -1,4 +1,4 @@
-import { ArrowLeft, ShieldCheck, Heart, Award, Eye, Mail, Phone, MapPin } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, Heart, Award, Eye, Mail, Phone, MapPin, Briefcase } from 'lucide-react';
 import { useLanguage } from '../locale';
 
 interface AboutUsPageProps {
@@ -15,6 +15,13 @@ export default function AboutUsPage({ onBack }: AboutUsPageProps) {
       vision: "To become the premier micro-allocation network in Ethiopia, expanding reliable visual tracking and AI-driven predictive insights across 5 language sectors seamlessly.",
       complianceTitle: "Official CBE Capital Guarantee Act",
       complianceDesc: "LUMORA is an official partner with the Commercial Bank of Ethiopia (CBE). All user investments and funds are 100% safe, capital protected, and fully secured by bank-backed physical reserves under our joint cooperative framework.",
+      operatesTitle: "How Lumora Operates",
+      operatesSubtitle: "Structured Investment & Asset Management Process",
+      operatesP1: "Lumora provides users with access to carefully selected investment opportunities through a structured investment management process.",
+      operatesP2: "Our dedicated analysis team continuously evaluates market conditions, investment opportunities, and potential project partnerships to identify opportunities that meet our selection standards. Based on this research and evaluation process, qualified investment projects are made available on the platform for users to review.",
+      operatesP3: "Users can explore available projects, compare investment options, and choose the opportunities that best match their investment goals, preferred duration, and budget.",
+      operatesP4: "Once an investment is selected, Lumora facilitates the allocation and management of funds through its operational framework. The platform coordinates investment activities, monitors project progress, and works with relevant partners or market participants where applicable. Lumora's professional management team coordinates these allocations on behalf of users, handling all direct execution and administrative oversight.",
+      operatesP5: "Throughout the investment period, users can track their investments and view relevant updates through their Lumora dashboard. At the conclusion of the investment term, investment outcomes are processed and reflected in the user's account according to the performance of the selected opportunity.",
       contactTitle: "Contact & Support",
       officeAddis: "Addis Ababa Office",
       hq: "4th Floor, METEC Building, Bole Subcity, Ethiopia"
@@ -25,6 +32,13 @@ export default function AboutUsPage({ onBack }: AboutUsPageProps) {
       vision: "አስተማማኝ የእይታ መከታተያ እና በ AI-የተደገፉ ግምቶችን በ5 ቋንቋ ዘርፎች ላይ ያለምንም እንከን በማስፋፋት የኢትዮጵያ ቀዳሚው የማይክሮ ድልድል መረብ መሆን።",
       complianceTitle: "ኦፊሴላዊ የCBE የካፒታል ዋስትና ስምምነት",
       complianceDesc: "LUMORA ከኢትዮጵያ ንግድ ባንክ (CBE) ጋር ይፋዊ አጋር ነው። ሁሉም የተጠቃሚዎች ኢንቨስትመንቶች እና ገንዘብ 100% አስተማማኝ፣ ካፒታላቸው የተጠበቀ እና በባንክ በተደገፉ አካላዊ ክምችቶች የተጠበቁ ናቸው።",
+      operatesTitle: "Lumora እንዴት እንደሚሰራ",
+      operatesSubtitle: "የተደራጀ የኢንቨስትመንት እና የንብረት አስተዳደር ሂደት",
+      operatesP1: "Lumora በተደራጀ የኢንቨስትመንት አስተዳደር ሂደት ለተጠቃሚዎች በጥንቃቄ የተመረጡ የኢንቨስትመንት ዕድሎችን ያቀርባል።",
+      operatesP2: "የእኛ የትንታኔ ቡድን የገበያ ሁኔታዎችን፣ የኢንቨስትመንት ዕድሎችን እና ሊሆኑ የሚችሉ የፕሮጀክት ሽርክናዎችን በቀጣይነት በመገምገም የእኛን የመምረጫ መስፈርቶች የሚያሟሉ ዕድሎችን ይለያል። በዚህ ምርምር እና ግምገማ ሂደት ላይ በመመስረት፣ ብቁ የኢንቨስትመንት ፕሮጀክቶች ለተጠቃሚዎች እንዲገመግሙ በፕላትፎርሙ ላይ ይቀርባሉ።",
+      operatesP3: "ተጠቃሚዎች ያሉትን ፕሮጀክቶች ማሰስ፣ የኢንቨስትመንት አማራጮችን ማወዳደር እና ከኢንቨስትመንት ግባቸው፣ ከሚመርጡት ጊዜ ቆይታ እና በጀታቸው ጋር ምርጥ የሚዛመዱትን ዕድሎች መምረጥ ይችላሉ።",
+      operatesP4: "አንዴ ኢንቨስትመንት ከተመረጠ፣ Lumora ገንዘብን በመመደብ እና በማስተዳደር በሥራ ማዕቀፉ በኩል ያመቻቻል። ፕላትፎርሙ የኢንቨስትመንት ሥራዎችን ያስተካክላል፣ የፕሮጀክቱን ሂደት ይከታተላል፣ እና በሚቻልበት ጊዜ ሁሉ ከሚመለከታቸው አጋሮች ወይም የገበያ ተሳታፊዎች ጋር አብሮ ይሠራል። የሉሞራ የባለሙያዎች ቡድን እነዚህን ምደባዎች በተጠቃሚዎች ስም ያስተባብራል፣ ሁሉንም አፈፃፀምና አስተዳደራዊ ቁጥጥሮች ይመራል።",
+      operatesP5: "በኢንቨስትመንት ጊዜ ውስጥ ተጠቃሚዎች ኢንቨስትመንቶቻቸውን መከታተል እና በLumora ዳሽቦርዳቸው በኩል ጠቃሚ ዝመናዎችን ማየት ይችላሉ። በኢንቨስትመንት ጊዜ ማጠናቀቂያ ላይ፣ የኢንቨስትመንት ንብረቶች ውጤቶች ተሰልተው በተመረጠው ዕድል አፈጻጸም መሠረት በተጠቃሚው አካውንት ላይ ይንጸባረቃሉ።",
       contactTitle: "እውቂያ እና ድጋፍ",
       officeAddis: "አዲስ አበባ ጽ/ቤት",
       hq: "4ኛ ፎቅ፣ ሜቴክ ህንፃ፣ ቦሌ ክፍለ ከተማ፣ ኢትዮጵያ"
@@ -35,6 +49,13 @@ export default function AboutUsPage({ onBack }: AboutUsPageProps) {
       vision: "Hordoffii agartuu amanamaa fi ibsa tileetii AI-driven ta’e damee luuqaa 5 gidduutti babal’isuun, Itoophiyaa keessatti networkii qoodinsa micro jalqabaa ta’uuf.",
       complianceTitle: "Mirkaneessa Kaapitaalaa Rasmiga CBE",
       complianceDesc: "LUMORA'n Baankii Daldala Itoophiyaa (CBE) waliin tumsa rasmigaa qaba. Investimantii fi maallaqni fayyadamaa hundis 100% wabii guutuu qabu, kapiitaalli eegamaadha.",
+      operatesTitle: "Akkaataa Lumor Itti Hojjetu",
+      operatesSubtitle: "Adeemsa Gurmaa'aa Maallaqa Fi Qabeenya Bulchuu",
+      operatesP1: "Lumor fayyadamtootaaf adeemsa bulchiinsa maallaqa gurmaa'een carraa investimentii filatamee dhiyaatu akka argatan taasisa.",
+      operatesP2: "Gareen keenya falanqii haala gabaa, carraalee investimentii fi walitthufeenya pirojektii adda addaa gamaaggamuun ulaagaalee keenya guutan adda baasa. Qorannoo fi gamaaggama kanaan booda, pirojektonni darban fayyadamtoonni madaaluun akka filatan taasifamu.",
+      operatesP3: "Fayyadamtoonni pirojektoota jiran keessaa filachuu, walbira qabanii madaaluu fi carraawwan karoora, yeroo fi bajata isaaniin deeman filachuu danda'u.",
+      operatesP4: "Yeroo investimentiin tokko filatamu, Lumor adeemsa hojii isaatiin qoodinsa maallaqaa mijeessa. Gareen keenya maqaa fayyadamtootaan raawwii kallattii fi bulchiinsa isaa hundaa ni hordofa.",
+      operatesP5: "Yeroo investimentii keessatti fayyadamtoonni hordoffii gochuu fi odeeffannoo haaraa argachuu danda'u dacha dakhlii isaaniitis argatu.",
       contactTitle: "Quunnamtii & Deeggarsa",
       officeAddis: "Waajjira Finfinnee",
       hq: "Lafee 4ffaa, Gamoo METEC, Kutaa Magaalaa Bolee, Itoophiyaa"
@@ -45,6 +66,13 @@ export default function AboutUsPage({ onBack }: AboutUsPageProps) {
       vision: "ሰነዳት መከታተሊን ብ AI ዝተደገፉ ትንቢታትን ኣብ 5 ቋንቋታት ብምስፋሕ፣ ኣብ ኢትዮጵያ ቀዳማይ ናይ ማይክሮ ምደባ መርበብ ንምዃን።",
       complianceTitle: "ወግዓዊ ውሕስነት ካፒታል CBE",
       complianceDesc: "LUMORA ምስ ንግዲ ባንኪ ኢትዮጵያ (CBE) ወግዓዊ መሻርኽቲ እዩ። ኩሎም ወፍሪታትን ገንዘብን ተጠቀምቲ 100% ውሑስን ካፒታሎም ዝተረጋገጸን እዩ።",
+      operatesTitle: "Lumora ብከመይ ይሰርሕ",
+      operatesSubtitle: "ዝተወደበ ናይ ወፍሪን ሃብቲ ምሕደራን መስርሕ",
+      operatesP1: "Lumora ንተጠቀምቲ ብጥንቃቄ ዝተመርጹ ናይ ወፍሪ ዕድላት ብዝተወደበ ናይ ወፍሪ ምሕደራ ኣቢሉ የቕርብ።",
+      operatesP2: "ናይ ትንተና ጋንታና ኩነታት ዕዳጋን ናይ ወፍሪ ዕድላትን ብምግምጋም መስፈርታትና ዘማልኡ ዕድላት ይፍለ። በዚ መገዲ ብቑዓት ፕሮጀክታት ኣብቲ ፕላትፎርም ይቐርቡ።",
+      operatesP3: "ተጠቀምቲ ዘለዉ ፕሮጀክትታት ክምርምሩ፣ ወፍሪታት ከወዳድሩን ምስ ናይ ዕላምኦምን በጀቶምን ዝሰማማዕ ክመርጹ ይኽእሉ።",
+      operatesP4: "ሓንሳብ ወፍሪ ምስ ተመርጸ፣ Lumora ነቲ ምደባ የሳልጦ። ናይ ሉሞራ ሞያውያን ነዚ ምደባታት ብስም ተጠቀምቲ የሳልጡን ይቆጻጸሩን።",
+      operatesP5: "ኣብ እዋን ወፍሪ ተጠቀምቲ ወፍሪታቶም ክከታተሉን ዝተረኽበ ውጽኢት ድማ ኣብ አካውንቶም ዝተመዝገበ ይረኽቡ።",
       contactTitle: "ርክብን ሓገዝን",
       officeAddis: "ቤት ጽሕፈት ኣዲስ ኣበባ",
       hq: "4ይ ደብሪ፣ ህንጻ ሜቴክ፣ ቦሌ ክፍለ ከተማ፣ ኢትዮጵያ"
@@ -55,6 +83,13 @@ export default function AboutUsPage({ onBack }: AboutUsPageProps) {
       vision: "Si aan u noqono nidaamka qoondaynta ugu weyn ee Itoobiya, fidinta ogaanshaha visualka ah iyo saadaasha AI ee 5 luuqadood ku hadla.",
       complianceTitle: "Dammaanadda Raasamaalka Rasmiga CBE",
       complianceDesc: "LUMORA waxay iskaashi rasmi ah la leedahay Bangiga Ganacsiga ee Itoobiya (CBE). Dhammaan maalgashiga iyo lacagaha isticmaalaha waa 100% kuwo badbaado ah oo raasamaalku sugan yahay.",
+      operatesTitle: "Sida Maalgashiga Lumora u Shaqeeyo",
+      operatesSubtitle: "Nidaamka Habaysan ee Maareynta Maalgashiga",
+      operatesP1: "Lumora waxay siisaa dadka isticmaala fursad ay ku helaan fursado maalgashi oo si taxaddar leh loo doonayo.",
+      operatesP2: "Kooxdayada takhasuska leh waxay had iyo jeer qiimeeyaan xaaladaha suuqa si ay u ogaadaan fursadaha buuxiya dabeecadaheena maalgashi.",
+      operatesP3: "Isticmaalayaashu waxay baran karaan mashruucyada jira, compares samayn karaan, doonana karaan tan ku haboon miisaaniyada.",
+      operatesP4: "Marka maalgashi la doorto, Lumora waxay dammaanad qaadaysaa qoondaynta dhaqaalaha. Kooxda Lumora ayaa kormeera hawlaha maalgashi iyagoo matalaya macaamiisha.",
+      operatesP5: "Muddada maalgashiga macaamiishu waxay hordoffi ku samayn karaan dashboard-ka.",
       contactTitle: "Xiriirka & Caawinta",
       officeAddis: "Xafiiska Addis Ababa",
       hq: "Dabaqa 4aad, Dhismaha METEC, Bole Subcity, Ethiopia"
@@ -128,6 +163,33 @@ export default function AboutUsPage({ onBack }: AboutUsPageProps) {
             </div>
           );
         })}
+      </div>
+
+      {/* NEW: How Lumora Operates detailed block as explicitly requested */}
+      <div className="p-5 bg-white border border-blue-100 rounded-3xl space-y-4.5 shadow-sm">
+        <div className="flex items-center space-x-3">
+          <div className="p-2 rounded-xl border border-blue-100 shrink-0 text-[#0A3D91] bg-blue-50/70">
+            <Briefcase className="w-4 h-4" />
+          </div>
+          <div>
+            <h3 className="font-display font-extrabold text-xs text-slate-900 uppercase tracking-wider">
+              {currentStrings.operatesTitle}
+            </h3>
+            <p className="text-[9px] text-[#0A3D91] font-black uppercase tracking-widest mt-0.5">
+              {currentStrings.operatesSubtitle}
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-3 text-[10.5px] text-slate-700 leading-relaxed font-sans font-medium">
+          <p className="font-bold text-slate-900">{currentStrings.operatesP1}</p>
+          <p>{currentStrings.operatesP2}</p>
+          <p>{currentStrings.operatesP3}</p>
+          <p className="bg-blue-50/40 p-3 rounded-2xl border border-blue-100/40 font-semibold text-slate-800">
+            {currentStrings.operatesP4}
+          </p>
+          <p>{currentStrings.operatesP5}</p>
+        </div>
       </div>
 
       {/* Compliance statement detail (Strict mandate) */}
