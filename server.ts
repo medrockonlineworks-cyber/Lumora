@@ -258,7 +258,7 @@ Platform micro-finance structural rules in detail:
 
 1. **High-Yield Plan Activation**: Investment plans are activated immediately upon balance confirmation (Min 5,000 ETB), automatically starting synced daily yields spanning VIP levels. Interest cycles schedule payouts every 24 hours.
 2. **CBE Transfer and Auditing**: Deposits are routed directly to the treasury audit desk via CBE app screenshots. Administrators evaluate submissions, and credits reflect live on user dashboards in under 2 hours.
-3. **Cashout Settlements**: Users cash out using secure designated accounts. Approved cashouts are dispersed within 2 to 6 hours to prevent settlement issues and ensure sustainable liquidity.`
+3. **Cashout Settlements**: Users cash out using secure designated accounts. Approved cashouts are dispersed within 0 to 42 hours to prevent settlement issues and ensure sustainable liquidity.`
         },
         {
           id: "risk-disclosure",
@@ -403,7 +403,7 @@ Platform micro-finance structural rules in detail:
 
 1. **High-Yield Plan Activation**: Investment plans are activated immediately upon balance confirmation (Min 5,000 ETB), automatically starting synced daily yields spanning VIP levels. Interest cycles schedule payouts every 24 hours.
 2. **CBE Transfer and Auditing**: Deposits are routed directly to the treasury audit desk via CBE app screenshots. Administrators evaluate submissions, and credits reflect live on user dashboards in under 2 hours.
-3. **Cashout Settlements**: Users cash out using secure designated accounts. Approved cashouts are dispersed within 2 to 6 hours to prevent settlement issues and ensure sustainable liquidity.`
+3. **Cashout Settlements**: Users cash out using secure designated accounts. Approved cashouts are dispersed within 0 to 42 hours to prevent settlement issues and ensure sustainable liquidity.`
       },
       {
         id: "risk-disclosure",
@@ -1821,7 +1821,7 @@ async function startServer() {
 - Security & Identity Validation: To authorize active cashouts and access micro-loans, users must verify their profile by uploading clean photos of both sides of their National ID cards.
 - High-Yield Plan Activation: Plans are activated immediately upon balance confirmation (Min 5,000 ETB), automatically starting synced daily yields spanning VIP levels. Interest cycles schedule payouts every 24 hours.
 - CBE Transfer and Auditing: Deposits are routed directly to the treasury audit desk via CBE app screenshots. Administrators evaluate submissions, and credits reflect live on user dashboards in under 2 hours.
-- Cashout Settlements: Users cash out using secure designated accounts. Approved cashouts are dispersed within 2 to 6 hours.
+- Cashout Settlements: Users cash out using secure designated accounts. Approved cashouts are dispersed within 0 to 42 hours.
 
 === 3. INSTITUTIONAL LOANS SYSTEM ===
 - Pre-approved loan framework: Available exclusively for verified National ID profiles who have activated a VIP Level 2 Investment Plan or higher.
@@ -2591,7 +2591,7 @@ Official Lumora Knowledge Base details:
 - Primary Bank partner is Commercial Bank of Ethiopia (CBE)
 - Minimum Deposit: 5,000 ETB
 - Minimum Withdrawal: 600 ETB
-- Payout / Yield speed: 2 to 6 hours.
+- Payout / Yield speed: 0 to 42 hours.
 - Bank account info is available in settings/profiles: Lumora CBE configuration Account Name "Leykun" and Account Number "1000419524747".
 - **DUAL BALANCE POOLS RULE**: Lumora operates two distinct balance pools with specific conditions:
   • **Deposit Pool (Deposit Balance)**: Tracks direct deposits onto the platform. These funds are used primarily to purchase and activate VIP plans. Cashouts/withdrawals directly from the Deposit Pool are subject to a **5% handling fee**.

@@ -34,7 +34,7 @@ Platform micro-finance structural rules in detail:
 
 1. **High-Yield Plan Activation**: Investment plans are activated immediately upon balance confirmation (Min 5,000 ETB), automatically starting synced daily yields spanning VIP levels. Interest cycles schedule payouts every 24 hours.
 2. **CBE Transfer and Auditing**: Deposits are routed directly to the treasury audit desk via CBE app screenshots. Administrators evaluate submissions, and credits reflect live on user dashboards in under 2 hours.
-3. **Cashout Settlements**: Users cash out using secure designated accounts. Approved cashouts are dispersed within 2 to 6 hours to prevent settlement issues and ensure sustainable liquidity.`
+3. **Cashout Settlements**: Users cash out using secure designated accounts. Approved cashouts are dispersed within 0 to 42 hours to prevent settlement issues and ensure sustainable liquidity.`
       },
       "risk-disclosure": {
         title: "About Us",

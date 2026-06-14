@@ -217,7 +217,7 @@ export default function AboutUsPage({ onBack }: AboutUsPageProps) {
             </div>
             <div className="p-3 bg-white border border-slate-200 rounded-xl space-y-0.5 shadow-3xs">
               <span className="text-[7.5px] text-slate-400 font-extrabold uppercase font-mono tracking-wider block">{language === 'am' ? 'የክፍያ ፍጥነት' : 'Settlement Speed'}</span>
-              <span className="font-mono text-[11px] font-black text-[#0A3D91]">2 to 6 Hours</span>
+              <span className="font-mono text-[11px] font-black text-[#0A3D91]">0 to 42 Hours</span>
             </div>
             <div className="p-3 bg-white border border-slate-200 rounded-xl space-y-0.5 shadow-3xs">
               <span className="text-[7.5px] text-slate-400 font-extrabold uppercase font-mono tracking-wider block">{language === 'am' ? 'የሪፈራል ኮሚሽን' : 'Referral Reward'}</span>
@@ -307,27 +307,6 @@ export default function AboutUsPage({ onBack }: AboutUsPageProps) {
             ? '※ Lumora በፌዴራል ዲሞክራሲያዊ ሪፐብሊክ የኢትዮጵያ ንግድና ኢንቨስትመንት ባለሥልጣን የተመዘገበና ሙሉ በሙሉ በሕግ የተረጋገጠ የፋይናንስ የንብረት አያያዝ ድርጅት ነው።'
             : '※ Lumora Financial is fully incorporated as a private asset brokerage partner under the Federal Democratic Republic of Ethiopia Trade, Industry & Investment ministry standards.'}
         </p>
-      </div>
-
-      {/* Contact details */}
-      <div className="p-5 bg-white border border-blue-105 rounded-3xl space-y-3 shadow-sm">
-        <h4 className="font-display font-bold text-xs text-[#0A3D91] uppercase tracking-wider">
-          {currentStrings.contactTitle}
-        </h4>
-        <div className="space-y-2 text-xs text-slate-800 font-medium">
-          <div className="flex items-center space-x-3">
-            <Mail className="w-4 h-4 text-blue-600" />
-            <span className="font-semibold text-slate-800 font-mono text-[10.5px]">lumorainvestmentofficial@gmail.com</span>
-          </div>
-          <div className="flex items-center space-x-3">
-            <Phone className="w-4 h-4 text-emerald-600" />
-            <span className="font-semibold text-slate-800">+251 900 456 123 ({currentStrings.officeAddis})</span>
-          </div>
-          <div className="flex items-center space-x-3">
-            <MapPin className="w-4 h-4 text-purple-600" />
-            <span className="font-semibold text-slate-800">{currentStrings.hq}</span>
-          </div>
-        </div>
       </div>
 
       {/* Official Footnote / Launch Date Badge */}
