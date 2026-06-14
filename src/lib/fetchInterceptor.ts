@@ -26,7 +26,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   cbeAccountName: "Leykun",
   cbeAccountNumber: "1000419524747",
   referralBonusPercentage: 10,
-  productionInviteUrl: "",
+  productionInviteUrl: "https://www.lumorainvest.company",
 };
 
 const VIP_PLANS = [
@@ -149,10 +149,20 @@ function loadLocalDB(): LumoraDB {
   if (!db.settings) {
     db.settings = { ...DEFAULT_SETTINGS };
     modified = true;
-  } else if (db.settings.cbeAccountNumber === "1000456123985" || db.settings.cbeAccountName === "LUMORA Financial Group") {
-    db.settings.cbeAccountNumber = "1000419524747";
-    db.settings.cbeAccountName = "Leykun";
-    modified = true;
+  } else {
+    let changed = false;
+    if (db.settings.cbeAccountNumber === "1000456123985" || db.settings.cbeAccountName === "LUMORA Financial Group") {
+      db.settings.cbeAccountNumber = "1000419524747";
+      db.settings.cbeAccountName = "Leykun";
+      changed = true;
+    }
+    if (!db.settings.productionInviteUrl) {
+      db.settings.productionInviteUrl = "https://www.lumorainvest.company";
+      changed = true;
+    }
+    if (changed) {
+      modified = true;
+    }
   }
 
   // Self-correcting: Ensure ALL initial seed users from getInitialDB() are always present in the database,
