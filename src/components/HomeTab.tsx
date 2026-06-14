@@ -36,6 +36,8 @@ export default function HomeTab({
   const [isClaimingYield, setIsClaimingYield] = useState(false);
   const [claimMsg, setClaimMsg] = useState<{ text: string; isError: boolean } | null>(null);
 
+  const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
+
   const lastCheckInTime = profile.lastCheckInDate ? new Date(profile.lastCheckInDate).getTime() : 0;
   const nowTime = new Date().getTime();
   const diffTime = nowTime - lastCheckInTime;
@@ -244,198 +246,13 @@ export default function HomeTab({
 
       </div>
 
-      {/* DAILY REWARDS & IMMERSIVE INCOME MANIFESTATION ROW */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        
-        {/* DAILY CHECK-IN REWARD MODULE */}
-        <div id="daily-checkin-module" className="relative overflow-hidden rounded-3xl bg-white border border-slate-200 p-5 shadow-[0_2px_12px_rgba(10,61,145,0.02)] flex flex-col justify-between">
-          <div className="flex items-start justify-between">
-            <div className="space-y-1">
-              <h4 className="font-display font-black text-xs text-[#0A3D91] uppercase tracking-wide flex items-center space-x-1.5">
-                {!hasCheckedInToday && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>}
-                <span>Daily Attendance Check-In Portal</span>
-              </h4>
-              <p className="text-[10px] text-slate-755 font-bold leading-normal">
-                Earn FREE <strong className="text-amber-600">5.00 ETB</strong> daily. Check in once every 24 hours under our automated CBE loyalty framework.
-              </p>
-            </div>
-            <div className="p-2 rounded-2xl bg-amber-50 border border-amber-200">
-              <Gift className="w-5 h-5 text-amber-500 fill-amber-200" />
-            </div>
-          </div>
-
-          {/* Status Msg */}
-          {msg && (
-            <motion.div 
-              id="checkin-status"
-              initial={{ opacity: 0, y: -5 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className={`mt-4 p-3 rounded-2xl text-[10.5px] leading-relaxed font-bold flex items-start space-x-2 border ${
-                msg.isError 
-                  ? 'bg-rose-50 text-rose-700 border-rose-100' 
-                  : 'bg-emerald-50 text-emerald-800 border-emerald-100'
-              }`}
-            >
-              <span>{msg.isError ? '⚠️' : '🎉'}</span>
-              <span>{msg.text}</span>
-            </motion.div>
-          )}
-
-          <div className="mt-4 flex items-center justify-between gap-3">
-            <div className="flex flex-col">
-              <span className="text-[8px] font-extrabold uppercase tracking-widest text-slate-400 font-mono">Reward Tier</span>
-              <span className="text-sm font-black font-mono text-[#0A3D91]">
-                +5.00 <span className="text-[9px] font-bold">ETB</span>
-              </span>
-            </div>
-
-            <button
-              id="claim-checkin-btn"
-              onClick={handleCheckIn}
-              disabled={isCheckingIn || hasCheckedInToday}
-              className={`px-5 py-2.5 rounded-2xl font-black text-[10.5px] uppercase tracking-wider transition-all duration-300 transform active:scale-95 flex items-center space-x-2 shrink-0 h-11 ${
-                hasCheckedInToday
-                  ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-amber-500 to-amber-400 text-[#0b3d91] hover:shadow-lg shadow-amber-500/20 active:translate-y-0.5 cursor-pointer border border-amber-300'
-              }`}
-            >
-              <UserCheck className="w-4 h-4 shrink-0" />
-              <span>
-                {isCheckingIn ? 'Allocating...' : 
-                 hasCheckedInToday ? `Claimed (Reset in ${remainingHours}h)` : 
-                 'Claim Daily Reward'}
-              </span>
-            </button>
-          </div>
-        </div>
-
-        {/* DAILY INVESTMENT YIELD MANUAL CLAIM MODULE */}
-        <div id="yield-claim-module" className="relative overflow-hidden rounded-3xl bg-white border border-slate-200 p-5 shadow-[0_2px_12px_rgba(10,61,145,0.02)] flex flex-col justify-between">
-          {/* Unclaimed Returns Sum Calculation */}
-          {(() => {
-            const unclaimedSum = investments ? investments.reduce((sum, inv) => sum + (inv.unclaimedReturns ?? 0), 0) : 0;
-            return (
-              <>
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <h4 className="font-display font-black text-xs text-[#0A3D91] uppercase tracking-wide flex items-center space-x-1.5">
-                      {unclaimedSum > 0 && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>}
-                      <span>VIP Asset Return Claims</span>
-                    </h4>
-                    <p className="text-[10px] text-slate-755 font-bold leading-normal">
-                      Manual claim required. Claim accrued profits to credit them directly into your Income Pool balance.
-                    </p>
-                  </div>
-                  <div className="p-2 rounded-2xl bg-emerald-50 border border-emerald-200">
-                    <Coins className="w-5 h-5 text-emerald-500" />
-                  </div>
-                </div>
-
-                {/* Return Status visual / notification alert as requested */}
-                {unclaimedSum > 0 ? (
-                  <div className="mt-3 p-2.5 rounded-2xl bg-emerald-50/50 border border-emerald-100 flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-emerald-600 text-sm">💰</span>
-                      <div className="flex flex-col">
-                        <span className="text-[8px] font-black uppercase text-emerald-700 tracking-wider">Unclaimed Pending Yield</span>
-                        <span className="text-xs font-black text-emerald-800">{unclaimedSum.toFixed(2)} ETB</span>
-                      </div>
-                    </div>
-                    <span className="text-[8px] px-2 py-0.5 rounded-full bg-emerald-100 border border-emerald-200 text-emerald-800 font-extrabold animate-pulse">
-                      PENDING CLAIM
-                    </span>
-                  </div>
-                ) : (
-                  <div className="mt-3 p-2.5 rounded-2xl bg-slate-50 border border-slate-100 flex items-center space-x-1.5">
-                    <span className="text-slate-400 text-xs">🔒</span>
-                    <p className="text-[9px] text-slate-500 font-medium leading-tight">
-                      No active yields are pending. Wait 24 hours or try simulating a day cycle inside the control center.
-                    </p>
-                  </div>
-                )}
-
-                {/* Sub-breakdown of returns if there are unclaimed values */}
-                {investments && investments.some(inv => (inv.unclaimedReturns ?? 0) > 0) && (
-                  <div className="mt-3 space-y-1 max-h-24 overflow-y-auto pr-1">
-                    {investments.map(inv => {
-                      const unclaimedAmt = inv.unclaimedReturns ?? 0;
-                      if (unclaimedAmt <= 0) return null;
-                      return (
-                        <div key={inv.id} className="flex items-center justify-between text-[9px] bg-slate-50 px-2.5 py-1 rounded-xl border border-slate-100">
-                          <span className="font-bold text-slate-600">{inv.planName}</span>
-                          <div className="flex items-center space-x-1.5">
-                            <span className="font-bold font-mono text-[#0A3D91]">{unclaimedAmt.toFixed(2)} ETB</span>
-                            <button
-                              disabled={isClaimingYield}
-                              onClick={() => handleClaimYield(inv.id)}
-                              className="text-[7.5px] bg-emerald-600 hover:bg-emerald-700 font-black text-white px-1.5 py-0.5 rounded transition-all cursor-pointer"
-                            >
-                              Claim
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {/* Status message */}
-                {claimMsg && (
-                  <motion.div 
-                    id="claim-yield-status"
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    className={`mt-3 p-2 rounded-xl text-[9.5px] leading-relaxed font-bold flex items-start space-x-2 border ${
-                      claimMsg.isError 
-                        ? 'bg-rose-50 text-rose-700 border-rose-100' 
-                        : 'bg-emerald-50 text-emerald-800 border-emerald-100'
-                    }`}
-                  >
-                    <span>{claimMsg.isError ? '⚠️' : '🎉'}</span>
-                    <span>{claimMsg.text}</span>
-                  </motion.div>
-                )}
-
-                <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-3">
-                  <div className="flex flex-col">
-                    <span className="text-[8px] font-extrabold uppercase tracking-widest text-[#0A3D91] font-mono">Harvest Pool</span>
-                    <span className="text-sm font-black font-mono text-[#0A3D91]">
-                      {unclaimedSum.toFixed(2)} <span className="text-[9px] font-bold">ETB</span>
-                    </span>
-                  </div>
-
-                  <button
-                    id="harvest-yield-btn"
-                    onClick={() => handleClaimYield()}
-                    disabled={isClaimingYield || unclaimedSum <= 0}
-                    className={`px-5 py-2.5 rounded-2xl font-black text-[10.5px] uppercase tracking-wider transition-all duration-300 transform active:scale-95 flex items-center space-x-2 shrink-0 h-11 ${
-                      unclaimedSum <= 0
-                        ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white hover:shadow-lg shadow-emerald-500/20 active:translate-y-0.5 cursor-pointer border border-emerald-500'
-                    }`}
-                  >
-                    <Coins className="w-4 h-4 shrink-0" />
-                    <span>
-                      {isClaimingYield ? 'Claiming...' : 'Claim Daily Income'}
-                    </span>
-                  </button>
-                </div>
-              </>
-            );
-          })()}
-        </div>
-
-      </div>
-
       {/* QUICK ACTIONS BANNER - PREMIUM GRID */}
-      <div className="grid grid-cols-4 gap-2.5">
+      <div className="grid grid-cols-4 gap-2.5 font-sans">
         {[
           { icon: ArrowUpRight, label: t.deposit || 'Deposit', action: onQuickDepositClick, color: 'bg-emerald-50 text-emerald-600 border-emerald-100/70 hover:bg-emerald-100/20 active:scale-95' },
           { icon: ArrowDownRight, label: t.withdraw || 'Withdraw', action: onQuickWithdrawClick, color: 'bg-rose-50 text-rose-600 border-rose-100/70 hover:bg-rose-100/20 active:scale-95' },
-          { icon: TrendingUp, label: t.invest || 'VIP Plans', action: () => setActiveTab('investments'), color: 'bg-blue-50 text-blue-700 border-blue-100/70 hover:bg-blue-100/20 active:scale-95' },
-          { icon: MessageSquare, label: t.aiAssistant || 'Support', action: () => setActiveTab('assistant'), color: 'bg-indigo-50 text-indigo-700 border-indigo-100/70 hover:bg-indigo-100/20 active:scale-95' },
+          { icon: TrendingUp, label: t.invest || 'VIP Plans', action: () => setActiveTab('investments'), color: 'bg-blue-50 text-[#0A3D91] border-blue-105 hover:bg-blue-100/20 active:scale-95' },
+          { icon: MessageSquare, label: t.aiAssistant || 'Support', action: () => setActiveTab('assistant'), color: 'bg-indigo-50 text-indigo-700 border-indigo-105 hover:bg-indigo-100/20 active:scale-95' },
         ].map((act, idx) => {
           const Icon = act.icon;
           return (
@@ -454,6 +271,274 @@ export default function HomeTab({
           );
         })}
       </div>
+
+      {/* PREMIUM CENTRAL CLAIM CENTER BUTTON/BANNER */}
+      {(() => {
+        const unclaimedSum = investments ? investments.reduce((sum, inv) => sum + (inv.unclaimedReturns ?? 0), 0) : 0;
+        const attendancePending = !hasCheckedInToday;
+        const attendanceValue = attendancePending ? 5 : 0;
+        const totalPendingInCenter = unclaimedSum + attendanceValue;
+
+        return (
+          <>
+            <div id="central-claim-center-trigger-card" className="relative overflow-hidden rounded-3xl bg-white border border-slate-200 p-5 shadow-[0_2px_12_rgba(10,61,145,0.02)] flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-start space-x-3.5 text-left">
+                <div className="p-3 bg-amber-500/10 border border-amber-200 rounded-2xl text-amber-600 shrink-0">
+                  <Gift className="w-6 h-6 shrink-0 fill-amber-500/20" />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="font-display font-black text-sm text-[#0A3D91] uppercase tracking-wide flex items-center space-x-2">
+                    <span>Lumora Claim Center</span>
+                    {totalPendingInCenter > 0 && (
+                      <span className="flex h-2 w-2 relative">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                      </span>
+                    )}
+                  </h4>
+                  <p className="text-[10px] text-slate-650 font-bold leading-normal">
+                    Attendance reward bonus and accumulated dynamic asset portfolio yields ready for manual collection.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between md:justify-end gap-4 border-t md:border-t-0 border-slate-100 pt-3 md:pt-0">
+                <div className="flex flex-col text-left md:text-right font-sans">
+                  <span className="text-[8px] font-extrabold uppercase tracking-widest text-slate-400 font-mono">Claimable Funds</span>
+                  <span className="text-sm font-black font-mono text-[#0A3D91] whitespace-nowrap">
+                    {totalPendingInCenter.toFixed(2)} <span className="text-[9px] font-bold">ETB</span>
+                  </span>
+                </div>
+
+                <button
+                  id="open-claim-center-btn"
+                  onClick={() => setIsClaimModalOpen(true)}
+                  className="px-5 py-2.5 rounded-2xl bg-[#0A3D91] hover:bg-[#072558] text-white hover:shadow-lg shadow-blue-500/10 active:scale-95 font-black text-[10.5px] uppercase tracking-wider transition-all duration-300 flex items-center space-x-2 shrink-0 h-11 cursor-pointer"
+                >
+                  <Coins className="w-4 h-4 shrink-0" />
+                  <span>Open Claim Center</span>
+                </button>
+              </div>
+            </div>
+
+            {/* PREMIUM CENTRAL CLAIM CENTER MODAL/OVERLAY */}
+            {isClaimModalOpen && (
+              <div id="central-claim-center-modal" className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+                {/* Backdrop */}
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  onClick={() => setIsClaimModalOpen(false)}
+                  className="absolute inset-0 bg-slate-900/60 backdrop-blur-xs"
+                />
+                
+                {/* Modal Card content */}
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  className="relative bg-white rounded-3xl w-full max-w-md border border-slate-200 overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
+                >
+                  {/* Header */}
+                  <div className="bg-gradient-to-r from-[#0a3d91] to-[#072558] p-5 text-white flex items-center justify-between">
+                    <div className="flex items-center space-x-3 text-left">
+                      <div className="p-2 bg-white/10 rounded-xl">
+                        <Gift className="w-5 h-5 text-amber-300 fill-amber-300/20" />
+                      </div>
+                      <div>
+                        <h3 className="font-display font-black text-sm uppercase tracking-wide">Lumora Claim Center</h3>
+                        <p className="text-[9px] text-blue-200 font-bold">Consolidated Attendance & Asset Harvest desk</p>
+                      </div>
+                    </div>
+                    
+                    <button 
+                      onClick={() => setIsClaimModalOpen(false)}
+                      className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 transition-all cursor-pointer text-white flex items-center justify-center w-8 h-8 font-sans"
+                      aria-label="Close"
+                    >
+                      <span className="text-md leading-none font-bold">✕</span>
+                    </button>
+                  </div>
+
+                  {/* Content Body */}
+                  <div className="p-5 space-y-5 overflow-y-auto text-left font-sans">
+                    
+                    {/* Summary stat box */}
+                    <div className="p-4 rounded-2.5xl bg-slate-50 border border-slate-150 flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <span className="text-[8px] font-extrabold uppercase tracking-widest text-slate-400 font-mono">Consolidated Pending Balance</span>
+                        <p className="text-lg font-black text-[#0A3D91] font-mono">
+                          {totalPendingInCenter.toFixed(2)} <span className="text-xs font-bold font-sans">ETB</span>
+                        </p>
+                      </div>
+                      <span className={`text-[8px] font-black px-2.5 py-1 rounded-full ${
+                        totalPendingInCenter > 0 
+                          ? 'bg-amber-100 text-amber-800 border border-amber-200 animate-pulse' 
+                          : 'bg-slate-200 text-slate-600 border border-slate-250'
+                      }`}>
+                        {totalPendingInCenter > 0 ? 'FUNDS PENDING' : 'ALL CLAIMED'}
+                      </span>
+                    </div>
+
+                    {/* SECTION A: DAILY ATTENDANCE BENEFIT */}
+                    <div className="space-y-2.5">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-1 h-3.5 bg-amber-500 rounded-full" />
+                        <h4 className="font-display font-black text-xs text-[#0A3D91] uppercase tracking-wider">Attendance Register</h4>
+                      </div>
+                      
+                      <div className="p-4 rounded-2xl bg-white border border-slate-200 flex flex-col justify-between gap-3 shadow-3xs">
+                        <div className="flex items-start justify-between">
+                          <p className="text-[10px] text-slate-650 font-bold leading-normal">
+                            Claim your free <strong className="text-amber-600">5.00 ETB</strong> loyalty incentive credited once every 24 hours.
+                          </p>
+                          <span className="text-[10px] font-mono font-black text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-lg shrink-0">
+                            +5.00 ETB
+                          </span>
+                        </div>
+
+                        {msg && (
+                          <motion.div 
+                            initial={{ opacity: 0, y: -5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className={`p-2.5 rounded-xl text-[9.5px] leading-relaxed font-bold flex items-start space-x-1.5 border ${
+                              msg.isError 
+                                ? 'bg-rose-50 text-rose-700 border-rose-100' 
+                                : 'bg-emerald-50 text-emerald-800 border-emerald-100'
+                            }`}
+                          >
+                            <span>{msg.isError ? '⚠️' : '🎉'}</span>
+                            <span>{msg.text}</span>
+                          </motion.div>
+                        )}
+
+                        <button
+                          onClick={handleCheckIn}
+                          disabled={isCheckingIn || hasCheckedInToday}
+                          className={`w-full py-2.5 rounded-xl font-black text-[10.5px] uppercase tracking-wider transition-all duration-350 flex items-center justify-center space-x-1.5 h-10 ${
+                            hasCheckedInToday
+                              ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed font-sans'
+                              : 'bg-amber-500 hover:bg-amber-600 text-[#0b3d91] active:scale-98 cursor-pointer shadow-sm border border-amber-400'
+                          }`}
+                        >
+                          <UserCheck className="w-4 h-4 shrink-0" />
+                          <span>
+                            {isCheckingIn ? 'Allocating Reward...' : 
+                             hasCheckedInToday ? `Claimed (Reset in ${remainingHours}h)` : 
+                             'Claim Daily Attendance Bonus'}
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* SECTION B: VIP ASSET DIVIDENDS */}
+                    <div className="space-y-2.5">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-1 h-3.5 bg-emerald-500 rounded-full" />
+                        <h4 className="font-display font-black text-xs text-[#0A3D91] uppercase tracking-wider">Dynamic Yield Harvest</h4>
+                      </div>
+
+                      <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-3.5 shadow-3xs">
+                        <p className="text-[10px] text-slate-650 font-bold leading-normal">
+                          Manually withdraw accrued hourly or daily profits of your VIP active portfolio into your withdrawable Income Balance.
+                        </p>
+
+                        {unclaimedSum > 0 ? (
+                          <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-100 flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <span className="text-emerald-600 text-base">💰</span>
+                              <div className="flex flex-col">
+                                <span className="text-[8px] font-black uppercase text-emerald-700 tracking-wider">Accrued Return Sum</span>
+                                <span className="text-xs font-black text-emerald-850">{unclaimedSum.toFixed(2)} ETB</span>
+                              </div>
+                            </div>
+                            <span className="text-[8px] px-2 py-0.5 rounded-full bg-emerald-100 border border-emerald-200 text-emerald-800 font-extrabold animate-pulse">
+                              HARVEST READY
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center space-x-1.5">
+                            <span className="text-slate-400 text-xs">🔒</span>
+                            <p className="text-[9px] text-slate-550 font-medium leading-tight">
+                              No active asset returns are currently pending. Check back later or trigger a simulation tick.
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Individual Plan Listing */}
+                        {investments && investments.some(inv => (inv.unclaimedReturns ?? 0) > 0) && (
+                          <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                            {investments.map(inv => {
+                              const unclaimedAmt = inv.unclaimedReturns ?? 0;
+                              if (unclaimedAmt <= 0) return null;
+                              return (
+                                <div key={inv.id} className="flex items-center justify-between text-[9px] bg-slate-50/60 px-3 py-1.5 rounded-xl border border-slate-150">
+                                  <span className="font-bold text-slate-600">{inv.planName}</span>
+                                  <div className="flex items-center space-x-2 font-mono">
+                                    <span className="font-extrabold text-[#0A3D91]">{unclaimedAmt.toFixed(2)} ETB</span>
+                                    <button
+                                      disabled={isClaimingYield}
+                                      onClick={() => handleClaimYield(inv.id)}
+                                      className="text-[8px] bg-emerald-600 hover:bg-emerald-700 font-black text-white px-2 py-0.5 rounded-lg transition-all cursor-pointer h-5 flex items-center justify-center uppercase active:scale-95 font-sans"
+                                    >
+                                      Claim
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {claimMsg && (
+                          <motion.div 
+                            initial={{ opacity: 0, y: -5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className={`p-2.5 rounded-xl text-[9.5px] leading-relaxed font-bold flex items-start space-x-1.5 border ${
+                              claimMsg.isError 
+                                ? 'bg-rose-50 text-rose-700 border-rose-100' 
+                                : 'bg-emerald-50 text-emerald-800 border-emerald-100'
+                            }`}
+                          >
+                            <span>{claimMsg.isError ? '⚠️' : '🎉'}</span>
+                            <span>{claimMsg.text}</span>
+                          </motion.div>
+                        )}
+
+                        <button
+                          onClick={() => handleClaimYield()}
+                          disabled={isClaimingYield || unclaimedSum <= 0}
+                          className={`w-full py-2.5 rounded-xl font-black text-[10.5px] uppercase tracking-wider transition-all duration-350 flex items-center justify-center space-x-2 h-10 ${
+                            unclaimedSum <= 0
+                              ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed font-sans'
+                              : 'bg-emerald-600 hover:bg-emerald-700 text-white active:scale-98 cursor-pointer shadow-sm border border-emerald-500'
+                          }`}
+                        >
+                          <Coins className="w-4 h-4 shrink-0" />
+                          <span>
+                            {isClaimingYield ? 'Harvesting...' : 'Harvest Complete Portfolio'}
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {/* Footer */}
+                  <div className="p-4 bg-slate-50 border-t border-slate-150 flex justify-end">
+                    <button
+                      onClick={() => setIsClaimModalOpen(false)}
+                      className="px-5 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-[10px] font-black uppercase tracking-wider cursor-pointer active:scale-95 transition-all h-9"
+                    >
+                      Close Portal
+                    </button>
+                  </div>
+
+                </motion.div>
+              </div>
+            )}
+          </>
+        );
+      })()}
 
       {/* INSTITUTIONAL WARNING COMPLIANCE BAR */}
       <div className="p-4 rounded-3xl bg-amber-500/5 border border-amber-500/20 text-xs text-amber-900 leading-relaxed flex items-start space-x-3.5 shadow-3xs">
