@@ -330,6 +330,16 @@ export default function AboutUsPage({ onBack }: AboutUsPageProps) {
         </div>
       </div>
 
+      {/* Official Footnote / Launch Date Badge */}
+      <div className="text-center py-6 text-[10px] text-slate-500 font-sans font-medium space-y-1">
+        <p className="font-extrabold text-[#0A3D91] uppercase tracking-wider">
+          {language === 'am' ? 'ሉሞራ ይፋዊ ምረቃ ቀን፦ ሰኔ ፮ ቀን ፪፲፲፰ ዓ.ም (June 13, 2026)' : 'Lumora Platform Launched Year: June 13, 2026'}
+        </p>
+        <p className="text-[9px] text-slate-400 font-mono">
+          © {new Date().getFullYear()} Lumora Financial Group. All investment activities are audited.
+        </p>
+      </div>
+
     </div>
   );
 }

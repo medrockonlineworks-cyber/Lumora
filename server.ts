@@ -2612,6 +2612,9 @@ Official Lumora Knowledge Base details:
 - Authorized Capital Reserve: 15,000,000 ETB (Verified)
 - Incorporation & Regulation: Registered and fully certified as a private asset brokerage partner under the Federal Democratic Republic of Ethiopia Trade, Industry & Investment ministry standards.
 
+7. Platform Launch Date:
+- Official Launch Date: June 13, 2026
+
 Rules:
 1. Answer only using information available in Lumora's official knowledge base.
 2. Never guess or invent information.
