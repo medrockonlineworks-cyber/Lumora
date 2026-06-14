@@ -1247,6 +1247,42 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     return respondJSON(200, { success: true });
   }
 
+  // 34b. POST /api/support/ai (Local fallback chatbot of Lumora Knowledge Base)
+  if (pathname === '/api/support/ai' && method === 'POST') {
+    const { message } = body;
+    const txt = (message || "").toLowerCase();
+    
+    let reply = "Hello! I am your Lumora AI Assistant. How can I help you with our VIP investment plans, CBE deposits, or withdrawals today?";
+    
+    if (txt.includes('deposit') || txt.includes('payment') || txt.includes('cbe') || txt.includes('transfer')) {
+      reply = "To deposit funds into Lumora:\n\n1. Go to the Home tab and click **DEPOSIT**, or select a VIP Plan first.\n2. Transfer the desired amount to our official CBE Account:\n   • **Bank**: Commercial Bank of Ethiopia (CBE)\n   • **Account Name**: Leykun\n   • **Account Number**: `1000419524747`\n3. Click 'I have paid', upload your transaction/receipt screenshot, and submit.\n4. Verification usually takes 0 to 42 hours (average is under 2 hours).";
+    } else if (txt.includes('withdraw') || txt.includes('cashout') || txt.includes('minimum withdrawal')) {
+      reply = "Lumora Withdrawal Rules:\n\n• **Minimum Withdrawal**: 600 ETB\n• **Fee**: 10% fee for Income Pool withdrawals (5% Tax + 5% Handling), 5% handling fee for Deposit Pool withdrawals.\n• **Payout Speed**: Requests are processed and dispatched within 0 to 42 hours.\n• Ensure you have configured your CBE account details and typed your secure 4-digit PIN in your Profile tab.";
+    } else if (txt.includes('plan') || txt.includes('vip') || txt.includes('interest') || txt.includes('rate') || txt.includes('return')) {
+      reply = "Lumora offers 15 premium VIP Levels for investment:\n\n" +
+              "• **VIP 1**: Invest 5,000 ETB, earn **3.50% daily** (total ~13,750 ETB, 50 days)\n" +
+              "• **VIP 2**: Invest 10,000 ETB, earn **3.75% daily** (total ~28,750 ETB, 50 days)\n" +
+              "• **VIP 3**: Invest 25,000 ETB, earn **4.00% daily** (total ~75,000 ETB, 50 days)\n" +
+              "• **VIP 4**: Invest 50,000 ETB, earn **4.30% daily** (total ~157,500 ETB, 50 days)\n" +
+              "• **VIP 5**: Invest 100,000 ETB, earn **4.60% daily** (total ~422,000 ETB, 70 days)\n" +
+              "• Refer to the **PLANS** tab for higher levels (VIP 6 to VIP 15) returning up to 10.00% daily returns.";
+    } else if (txt.includes('pool') || txt.includes('income pool') || txt.includes('deposit pool') || txt.includes('wallet balance')) {
+      reply = "Lumora operates two distinct balance pools:\n\n" +
+              "1. **Deposit Pool**: Tracks your direct deposits, used primarily to purchase VIP plans.\n" +
+              "2. **Income Pool**: Tracks your active passive earnings, compound yields, and referral bonuses. Daily earnings are credited directly to your Income Pool every 24 hours.\n\nWithdrawals can be made from either pool, subject to transaction rules.";
+    } else if (txt.includes('loan') || txt.includes('sovereign')) {
+      reply = "Members reaching **VIP Level 3** or higher with a fully verified **National ID** are eligible to apply for low-interest Sovereign Loans up to 200,000 ETB directly from the profile workspace.";
+    } else if (txt.includes('refer') || txt.includes('invite') || txt.includes('bonus') || txt.includes('commission')) {
+      reply = "Earn lucrative rewards by building your team!\n\n• Get a **10% direct VIP level incentive** on deposit amounts from invited users.\n• Bonus rewards are credited directly into your Income Pool instantly.";
+    } else if (txt.includes('license') || txt.includes('regulation') || txt.includes('safe') || txt.includes('legit')) {
+      reply = "Lumora is registered and fully certified under FDRE Trade, Industry & Investment ministry standards:\n\n• **Trade Registration No**: LUM-ETH/77402-2B\n• **Investment License No**: LIC-984/CBE/2026\n• **Audited SEC Ledger**: ETB-FTS-88402-SEC\n• Incorporates secure 3D-facial biometrics and CBE online ledger verification.";
+    } else if (txt.includes('how to invest') || txt.includes('how can i invest') || txt.includes('investing')) {
+      reply = "How to Invest in Lumora:\n\n1. Go to the **PLANS** or **HOME** tab.\n2. Select a VIP level plan matching your capital.\n3. Make sure to choose **at least 1 and up to 5 projects** (e.g. Cryptocurrency, Gold, Real Estate) to allocate your capital (this is a mandatory step).\n4. Click 'Confirm VIP Activation'. If your Deposit Balance is insufficient, you can pay via local CBE transfer and submit your transaction receipt.";
+    }
+
+    return respondJSON(200, { text: reply });
+  }
+
   // 35. POST /api/admin/broadcast
   if (pathname === '/api/admin/broadcast' && method === 'POST') {
     const { title, message } = body;
