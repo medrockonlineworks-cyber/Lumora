@@ -224,7 +224,11 @@ export default function ProfileTab({
     if (productionInviteUrl) {
       return productionInviteUrl.replace(/\/+$/, "");
     }
-    return "https://www.lumorainvest.company";
+    let origin = window.location.origin;
+    if (origin.includes("ais-dev-")) {
+      origin = origin.replace("ais-dev-", "ais-pre-");
+    }
+    return origin;
   };
 
   // Avatar Selection and self upload states

@@ -26,7 +26,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   cbeAccountName: "Leykun",
   cbeAccountNumber: "1000419524747",
   referralBonusPercentage: 10,
-  productionInviteUrl: "https://www.lumorainvest.company",
+  productionInviteUrl: "",
 };
 
 const VIP_PLANS = [
@@ -156,8 +156,8 @@ function loadLocalDB(): LumoraDB {
       db.settings.cbeAccountName = "Leykun";
       changed = true;
     }
-    if (!db.settings.productionInviteUrl) {
-      db.settings.productionInviteUrl = "https://www.lumorainvest.company";
+    if (db.settings.productionInviteUrl === "https://www.lumorainvest.company") {
+      db.settings.productionInviteUrl = "";
       changed = true;
     }
     if (changed) {
