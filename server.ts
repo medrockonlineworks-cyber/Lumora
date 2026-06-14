@@ -972,6 +972,16 @@ async function startServer() {
         changed = true;
       }
       
+      // Auto-heal incomeBalance if there are active earnings but incomeBalance was cleared or not updated
+      if (p.totalEarnings > 0) {
+        const maxPossibleIncome = Math.max(0, Math.min(p.walletBalance, p.totalEarnings - (p.totalWithdrawals || 0)));
+        if (p.incomeBalance < maxPossibleIncome) {
+          p.incomeBalance = maxPossibleIncome;
+          p.depositBalance = Math.max(0, p.walletBalance - p.incomeBalance);
+          changed = true;
+        }
+      }
+
       if (p.depositBalance < 0) {
         p.depositBalance = 0;
         changed = true;
@@ -1565,6 +1575,8 @@ async function startServer() {
             
             referrerProfile.walletBalance += bonusAmount;
             referrerProfile.totalEarnings += bonusAmount;
+            if (referrerProfile.incomeBalance === undefined) referrerProfile.incomeBalance = 0;
+            referrerProfile.incomeBalance += bonusAmount;
 
             // Track referral transaction
             db.transactions.push({
@@ -1924,6 +1936,8 @@ Instruct the user precisely on which page, component, or element to use to accom
         if (p) {
           p.walletBalance += inv.dailyReturn;
           p.totalEarnings += inv.dailyReturn;
+          if (p.incomeBalance === undefined) p.incomeBalance = 0;
+          p.incomeBalance += inv.dailyReturn;
 
           // Push record into transactions
           db.transactions.push({

@@ -201,6 +201,17 @@ function sanitizeLocalDBBalances(db: LumoraDB) {
       p.depositBalance = p.depositBalance !== undefined ? p.depositBalance : (p.walletBalance - p.incomeBalance);
       changed = true;
     }
+
+    // Auto-heal incomeBalance if there are active earnings but incomeBalance was cleared or not updated
+    if (p.totalEarnings > 0) {
+      const maxPossibleIncome = Math.max(0, Math.min(p.walletBalance, p.totalEarnings - (p.totalWithdrawals || 0)));
+      if (p.incomeBalance < maxPossibleIncome) {
+        p.incomeBalance = maxPossibleIncome;
+        p.depositBalance = Math.max(0, p.walletBalance - p.incomeBalance);
+        changed = true;
+      }
+    }
+
     if (p.depositBalance < 0) {
       p.depositBalance = 0;
       changed = true;
@@ -292,6 +303,8 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
   
   const db = loadLocalDB();
   autoAllocateLocalDailyEarnings(db);
+  sanitizeLocalDBBalances(db);
+  saveLocalDB(db);
 
   const respondJSON = (status: number, data: any) => {
     return new Response(JSON.stringify(data), {
@@ -1025,6 +1038,8 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
               const bonus = Number((dep.amount * (bPct / 100)).toFixed(2));
               refereeProfile.walletBalance += bonus;
               refereeProfile.totalEarnings += bonus;
+              if (refereeProfile.incomeBalance === undefined) refereeProfile.incomeBalance = 0;
+              refereeProfile.incomeBalance += bonus;
 
               // Update the reward field in the corresponding referral record
               const referralRecord = db.referrals.find(
@@ -1157,6 +1172,8 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
         if (profile) {
           profile.walletBalance += inv.dailyReturn;
           profile.totalEarnings += inv.dailyReturn;
+          if (profile.incomeBalance === undefined) profile.incomeBalance = 0;
+          profile.incomeBalance += inv.dailyReturn;
           
           db.transactions.push({
             id: "tx-" + Math.random().toString(36).substr(2, 9),
