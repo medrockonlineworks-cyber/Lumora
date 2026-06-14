@@ -813,7 +813,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
 
   // 13. POST /api/profiles/withdrawal-setup
   if (pathname === '/api/profiles/withdrawal-setup' && method === 'POST') {
-    const { userId, bankName, accountNumber, accountHolderName } = body;
+    const { userId, bankName, accountNumber, accountHolderName, transactionPin, pin } = body;
     const profile = db.profiles.find(p => p.userId === userId);
     if (!profile) return respondJSON(404, { error: "Profile not found" });
 
@@ -821,17 +821,23 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     profile.accountNumber = accountNumber;
     profile.accountHolderName = accountHolderName;
 
+    const finalPin = transactionPin !== undefined ? transactionPin : pin;
+    if (finalPin !== undefined) {
+      profile.transactionPin = finalPin;
+    }
+
     saveLocalDB(db);
     return respondJSON(200, { success: true, profile });
   }
 
   // 14. POST /api/profiles/pin
   if (pathname === '/api/profiles/pin' && method === 'POST') {
-    const { userId, pin } = body;
+    const { userId, pin, transactionPin } = body;
     const profile = db.profiles.find(p => p.userId === userId);
     if (!profile) return respondJSON(404, { error: "Profile not found" });
 
-    profile.transactionPin = pin;
+    const finalPin = transactionPin !== undefined ? transactionPin : pin;
+    profile.transactionPin = finalPin;
     saveLocalDB(db);
     return respondJSON(200, { success: true, profile });
   }
