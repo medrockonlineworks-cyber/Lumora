@@ -29,7 +29,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   const [depositFilter, setDepositFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
   const [withdrawalFilter, setWithdrawalFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
   const [loanFilter, setLoanFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
-  const [idFilter, setIdFilter] = useState<'all' | 'pending' | 'verified' | 'rejected'>('pending');
+  const [idFilter, setIdFilter] = useState<'all' | 'pending' | 'verified' | 'rejected' | 'unsubmitted'>('pending');
   
   // Lightbox and action modal states
   const [viewerImage, setViewerImage] = useState<string | null>(null);
@@ -377,7 +377,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
     if (!matchesSearch) return false;
     
     if (idFilter === 'all') {
-      return profStatus !== 'unsubmitted';
+      return true;
     }
     return profStatus === idFilter;
   });
@@ -805,8 +805,8 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
           {/* TAB 4: ID VERIFICATION MANAGER */}
           {activeSubTab === 'id-verify' && (
             <div className="space-y-4">
-              <div className="flex items-center space-x-2 border-b border-slate-200/60 pb-3">
-                {(['pending', 'verified', 'rejected', 'all'] as const).map((fil) => (
+              <div className="flex flex-wrap items-center gap-1.5 border-b border-slate-200/60 pb-3">
+                {(['unsubmitted', 'pending', 'verified', 'rejected', 'all'] as const).map((fil) => (
                   <button
                     key={fil}
                     onClick={() => setIdFilter(fil)}
@@ -818,7 +818,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                   >
                     {fil} ({users.filter(u => {
                       const verSt = u.profile?.idVerificationStatus || 'unsubmitted';
-                      return fil === 'all' ? verSt !== 'unsubmitted' : verSt === fil;
+                      return fil === 'all' ? true : verSt === fil;
                     }).length})
                   </button>
                 ))}
@@ -885,7 +885,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                               <button
                                 onClick={() => handleIdVerifyAction(usr.id, 'approve')}
                                 disabled={actionLoading !== null}
-                                className="px-3.5 py-2.5 rounded-xl bg-emerald-555 hover:bg-emerald-600 font-extrabold active:scale-98 text-white text-[10.5px] uppercase tracking-wider transition-all flex items-center space-x-1 cursor-pointer shadow-3xs"
+                                className="px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 font-extrabold active:scale-98 text-white text-[10.5px] uppercase tracking-wider transition-all flex items-center space-x-1 cursor-pointer shadow-3xs"
                               >
                                 <Check className="w-3.5 h-3.5 stroke-[3]" />
                                 <span>Verify Clearing</span>
@@ -893,15 +893,40 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                               <button
                                 onClick={() => setRejectionModal({ type: 'id-verify', id: usr.id })}
                                 disabled={actionLoading !== null}
-                                className="px-3.5 py-2.5 rounded-xl bg-rose-555 hover:bg-rose-600 font-extrabold active:scale-98 text-white text-[10.5px] uppercase tracking-wider transition-all flex items-center space-x-1 cursor-pointer shadow-3xs"
+                                className="px-3.5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 font-extrabold active:scale-98 text-white text-[10.5px] uppercase tracking-wider transition-all flex items-center space-x-1 cursor-pointer shadow-3xs"
                               >
                                 <XCircle className="w-3.5 h-3.5" />
                                 <span>Reject ID</span>
                               </button>
                             </>
                           ) : (
-                            <div className="text-[10px] text-slate-400 font-mono uppercase tracking-widest italic font-bold">
-                              {prof.idVerificationStatus === 'verified' ? 'Identity Cleared' : 'Identity Denied'}
+                            <div className="flex flex-col sm:flex-row items-center gap-2">
+                              <span className="text-[10px] text-slate-500 font-mono uppercase tracking-widest italic font-extrabold select-none bg-slate-100 px-2 py-1 rounded-lg">
+                                {prof.idVerificationStatus === 'verified' ? 'Identity Cleared' : prof.idVerificationStatus === 'rejected' ? 'Identity Denied' : 'Not Uploaded'}
+                              </span>
+                              
+                              <div className="flex items-center space-x-1">
+                                {prof.idVerificationStatus !== 'verified' && (
+                                  <button
+                                    onClick={() => handleIdVerifyAction(usr.id, 'approve')}
+                                    disabled={actionLoading !== null}
+                                    className="px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 text-[9.5px] font-black uppercase tracking-wider transition-all flex items-center space-x-1 cursor-pointer animate-pulse"
+                                  >
+                                    <Check className="w-3 h-3 stroke-[2.5]" />
+                                    <span>Verify</span>
+                                  </button>
+                                )}
+                                {prof.idVerificationStatus !== 'rejected' && (
+                                  <button
+                                    onClick={() => setRejectionModal({ type: 'id-verify', id: usr.id })}
+                                    disabled={actionLoading !== null}
+                                    className="px-2.5 py-1.5 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-[9.5px] font-black uppercase tracking-wider transition-all flex items-center space-x-1 cursor-pointer"
+                                  >
+                                    <XCircle className="w-3 h-3" />
+                                    <span>Reject</span>
+                                  </button>
+                                )}
+                              </div>
                             </div>
                           )}
                         </div>
@@ -950,7 +975,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                             {usr.referredBy ? `by #${usr.referredBy}` : "Direct visitor"}
                           </td>
                           <td className="p-3">
-                            <div className="flex flex-col space-y-1">
+                            <div className="flex flex-col space-y-1.5">
                               <span className={`p-1 px-2.5 rounded-full text-[9px] font-mono font-black uppercase tracking-widest w-fit ${
                                 prof.idVerificationStatus === 'verified' ? 'bg-emerald-100 text-emerald-700' :
                                 prof.idVerificationStatus === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'
@@ -958,7 +983,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                                 {prof.idVerificationStatus || 'unsubmitted'}
                               </span>
                               
-                              {prof.idVerificationStatus === 'pending' && (
+                              {prof.idVerificationStatus === 'pending' ? (
                                 <div className="mt-2 bg-slate-50 border border-slate-200/60 p-2 rounded-xl max-w-[170px] space-y-2 shadow-4xs">
                                   <p className="text-[8.5px] font-black text-slate-400 uppercase tracking-widest">UPLOADED ID PHOTO FILES</p>
                                   <div className="flex items-center space-x-1.5">
@@ -984,7 +1009,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                                     <button
                                       onClick={() => handleIdVerifyAction(usr.id, 'approve')}
                                       disabled={actionLoading !== null}
-                                      className="flex-1 py-1 px-2 bg-emerald-600 hover:bg-emerald-700 text-[9.5px] font-black text-white rounded-lg flex items-center justify-center space-x-1 cursor-pointer transition-all"
+                                      className="flex-1 py-1 px-2 bg-emerald-600 hover:bg-emerald-700 text-[9.5px] font-black text-white rounded-lg flex items-center justify-center space-x-1 cursor-pointer transition-all animate-pulse"
                                       title="Approve / Verify User ID"
                                     >
                                       <Check className="w-3 h-3 stroke-[2.5]" />
@@ -999,6 +1024,42 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                                       <XCircle className="w-3.5 h-3.5" />
                                     </button>
                                   </div>
+                                </div>
+                              ) : (
+                                <div className="flex items-center space-x-1">
+                                  {prof.idVerificationStatus !== 'verified' ? (
+                                    <button
+                                      onClick={() => handleIdVerifyAction(usr.id, 'approve')}
+                                      disabled={actionLoading !== null}
+                                      className="py-1 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-750 border border-emerald-200 rounded-lg text-[9px] font-black uppercase flex items-center space-x-1 cursor-pointer transition-all"
+                                      title="Manually Verify User Account"
+                                    >
+                                      <Check className="w-2.5 h-2.5 stroke-[2.5]" />
+                                      <span>Verify</span>
+                                    </button>
+                                  ) : null}
+                                  
+                                  {prof.idVerificationStatus !== 'rejected' && prof.idVerificationStatus !== 'unsubmitted' ? (
+                                    <button
+                                      onClick={() => setRejectionModal({ type: 'id-verify', id: usr.id })}
+                                      disabled={actionLoading !== null}
+                                      className="py-1 px-2 bg-rose-50 hover:bg-rose-100 text-rose-750 border border-rose-200 rounded-lg text-[9px] font-black uppercase flex items-center space-x-1 cursor-pointer transition-all"
+                                      title="Reject / Revoke Verification"
+                                    >
+                                      <XCircle className="w-2.5 h-2.5" />
+                                      <span>Reject</span>
+                                    </button>
+                                  ) : prof.idVerificationStatus === 'unsubmitted' ? (
+                                    <button
+                                      onClick={() => setRejectionModal({ type: 'id-verify', id: usr.id })}
+                                      disabled={actionLoading !== null}
+                                      className="py-1 px-2 bg-rose-50 hover:bg-rose-100 text-rose-750 border border-rose-200 rounded-lg text-[9px] font-black uppercase flex items-center space-x-1 cursor-pointer transition-all"
+                                      title="Reject User Verification"
+                                    >
+                                      <XCircle className="w-2.5 h-2.5" />
+                                      <span>Reject</span>
+                                    </button>
+                                  ) : null}
                                 </div>
                               )}
                             </div>
