@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Coins, ArrowUpRight, ArrowDownRight, TrendingUp, MessageSquare, Building, ChevronRight, ShieldCheck, ArrowRight, UserCheck, Gift } from 'lucide-react';
 import { useLanguage } from '../locale';
 import { Profile, MyTransaction, Investment } from '../types';
@@ -38,12 +38,70 @@ export default function HomeTab({
 
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
 
-  const lastCheckInTime = profile.lastCheckInDate ? new Date(profile.lastCheckInDate).getTime() : 0;
-  const nowTime = new Date().getTime();
-  const diffTime = nowTime - lastCheckInTime;
-  const targetDiff = 24 * 60 * 60 * 1000;
-  const hasCheckedInToday = profile.lastCheckInDate ? (diffTime < targetDiff) : false;
-  const remainingHours = Math.ceil((targetDiff - diffTime) / (1000 * 60 * 60));
+  const getEATDateString = (dateInput: Date | string | number): string => {
+    const d = new Date(dateInput);
+    const eatMs = d.getTime() + (3 * 60 * 60 * 1000);
+    const eatDate = new Date(eatMs);
+    const year = eatDate.getUTCFullYear();
+    const month = String(eatDate.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(eatDate.getUTCDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const getNextEATMidnight = (nowDate: Date): Date => {
+    const eatMs = nowDate.getTime() + (3 * 60 * 60 * 1000);
+    const eatDate = new Date(eatMs);
+    const year = eatDate.getUTCFullYear();
+    const month = String(eatDate.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(eatDate.getUTCDate()).padStart(2, '0');
+    return new Date(`${year}-${month}-${day}T21:00:00Z`);
+  };
+
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNow(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const hasCheckedInToday = profile.lastCheckInDate
+    ? (getEATDateString(profile.lastCheckInDate) === getEATDateString(now))
+    : false;
+
+  const nextMidnight = getNextEATMidnight(now);
+
+  const remainingHours = (() => {
+    const diffMs = nextMidnight.getTime() - now.getTime();
+    return Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60)));
+  })();
+
+  const formatCountdown = (ms: number): string => {
+    if (ms <= 0) return "00:00:00";
+    const totalSeconds = Math.floor(ms / 1000);
+    const hrs = Math.floor(totalSeconds / 3600);
+    const mins = Math.floor((totalSeconds % 3600) / 60);
+    const secs = totalSeconds % 60;
+    return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  };
+
+  const activeList = investments ? investments.filter(inv => inv.status === 'active' && inv.remainingDays > 0) : [];
+
+  const nearestPayoutMs = (() => {
+    if (activeList.length === 0) return Infinity;
+    const nowTime = now.getTime();
+    let minDiff = Infinity;
+    activeList.forEach(inv => {
+      const lastPayout = new Date(inv.lastPayoutDate || inv.startDate);
+      const nextPayout = lastPayout.getTime() + 24 * 60 * 60 * 1000;
+      const diff = nextPayout - nowTime;
+      if (diff > 0 && diff < minDiff) {
+        minDiff = diff;
+      }
+    });
+    return minDiff;
+  })();
 
   const handleCheckIn = async () => {
     if (isCheckingIn || hasCheckedInToday) return;
@@ -423,7 +481,7 @@ export default function HomeTab({
                           <UserCheck className="w-4 h-4 shrink-0" />
                           <span>
                             {isCheckingIn ? 'Allocating Reward...' : 
-                             hasCheckedInToday ? `Claimed (Reset in ${remainingHours}h)` : 
+                             hasCheckedInToday ? `Claimed (Reset in ${formatCountdown(nextMidnight.getTime() - now.getTime())})` : 
                              'Claim Daily Attendance Bonus'}
                           </span>
                         </button>
@@ -459,29 +517,68 @@ export default function HomeTab({
                           <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center space-x-1.5">
                             <span className="text-slate-400 text-xs">🔒</span>
                             <p className="text-[9px] text-slate-550 font-medium leading-tight">
-                              No active asset returns are currently pending. Check back later or trigger a simulation tick.
+                              No active asset returns are currently pending. Your active VIP plans generate returns automatically every 24 hours.
                             </p>
                           </div>
                         )}
 
-                        {/* Individual Plan Listing */}
-                        {investments && investments.some(inv => (inv.unclaimedReturns ?? 0) > 0) && (
-                          <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
-                            {investments.map(inv => {
+                        {/* NEXT SEQUENCE SUMMARY TICKER */}
+                        {nearestPayoutMs !== Infinity && (
+                          <div className="p-2.5 rounded-xl bg-blue-50/70 border border-blue-100 flex items-center justify-between text-[9px] text-[#0A3D91] font-bold">
+                            <div className="flex items-center space-x-2">
+                              <span className="text-xs">⏱️</span>
+                              <div>
+                                <span className="text-[8.5px] font-black uppercase text-blue-700 tracking-wider block">Next Portfolio Payout Sequence</span>
+                              </div>
+                            </div>
+                            <span className="font-mono text-[10px] font-black bg-blue-100/80 px-2.5 py-1 rounded-lg border border-blue-200 text-[#0a3d91] whitespace-nowrap">
+                              {formatCountdown(nearestPayoutMs)}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Individual Plan Listing with live countdowns */}
+                        {activeList.length > 0 && (
+                          <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                            <span className="text-[7.5px] font-extrabold uppercase tracking-widest text-slate-400 block font-mono pl-1">Active VIP Portfolios ({activeList.length})</span>
+                            {activeList.map(inv => {
                               const unclaimedAmt = inv.unclaimedReturns ?? 0;
-                              if (unclaimedAmt <= 0) return null;
+                              const lastPayout = new Date(inv.lastPayoutDate || inv.startDate);
+                              const nextPayout = lastPayout.getTime() + 24 * 60 * 60 * 1000;
+                              const diffMs = nextPayout - now.getTime();
+                              
                               return (
-                                <div key={inv.id} className="flex items-center justify-between text-[9px] bg-slate-50/60 px-3 py-1.5 rounded-xl border border-slate-150">
-                                  <span className="font-bold text-slate-600">{inv.planName}</span>
-                                  <div className="flex items-center space-x-2 font-mono">
-                                    <span className="font-extrabold text-[#0A3D91]">{unclaimedAmt.toFixed(2)} ETB</span>
-                                    <button
-                                      disabled={isClaimingYield}
-                                      onClick={() => handleClaimYield(inv.id)}
-                                      className="text-[8px] bg-emerald-600 hover:bg-emerald-700 font-black text-white px-2 py-0.5 rounded-lg transition-all cursor-pointer h-5 flex items-center justify-center uppercase active:scale-95 font-sans"
-                                    >
-                                      Claim
-                                    </button>
+                                <div key={inv.id} className="flex flex-col text-[9.5px] bg-slate-50/65 px-3 py-2 rounded-xl border border-slate-150/85 space-y-1.5">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex flex-col">
+                                      <span className="font-extrabold text-[#0A3D91] uppercase tracking-wide">{inv.planName}</span>
+                                      <span className="text-[8px] text-slate-400 font-mono">Invested: {inv.amount.toFixed(0)} ETB</span>
+                                    </div>
+                                    <div className="flex items-center space-x-2 font-mono">
+                                      {unclaimedAmt > 0 ? (
+                                        <>
+                                          <span className="font-extrabold text-emerald-600">+{unclaimedAmt.toFixed(2)} ETB</span>
+                                          <button
+                                            disabled={isClaimingYield}
+                                            onClick={() => handleClaimYield(inv.id)}
+                                            className="text-[8px] bg-emerald-600 hover:bg-emerald-700 font-black text-white px-2 py-0.5 rounded-lg transition-all cursor-pointer h-5 flex items-center justify-center uppercase active:scale-95 font-sans shadow-3xs"
+                                          >
+                                            Claim
+                                          </button>
+                                        </>
+                                      ) : (
+                                        <span className="text-slate-400 font-semibold text-[8px] bg-slate-100 border border-slate-200/60 px-1.5 py-0.5 rounded uppercase">Accruing</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center justify-between text-[8px] text-slate-500 font-medium font-sans border-t border-slate-100 pt-1">
+                                    <span>Remaining Lift: {inv.remainingDays} days</span>
+                                    <div className="flex items-center space-x-1">
+                                      <span className="text-[7.5px] font-bold text-slate-400">Next yield in:</span>
+                                      <span className="font-mono text-slate-700 font-extrabold bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200/40">
+                                        {diffMs <= 0 ? "00:00:00" : formatCountdown(diffMs)}
+                                      </span>
+                                    </div>
                                   </div>
                                 </div>
                               );

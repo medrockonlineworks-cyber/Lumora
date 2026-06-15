@@ -849,14 +849,33 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     if (!profile) return respondJSON(404, { error: "Profile not found" });
 
     const now = new Date();
+    const getEATDateString = (dateInput: Date | string | number): string => {
+      const d = new Date(dateInput);
+      const eatMs = d.getTime() + (3 * 60 * 60 * 1000);
+      const eatDate = new Date(eatMs);
+      const year = eatDate.getUTCFullYear();
+      const month = String(eatDate.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(eatDate.getUTCDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    const getNextEATMidnight = (nowDate: Date): Date => {
+      const eatMs = nowDate.getTime() + (3 * 60 * 60 * 1000);
+      const eatDate = new Date(eatMs);
+      const year = eatDate.getUTCFullYear();
+      const month = String(eatDate.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(eatDate.getUTCDate()).padStart(2, '0');
+      return new Date(`${year}-${month}-${day}T21:00:00Z`);
+    };
+
     if (profile.lastCheckInDate) {
-      const lastCheckIn = new Date(profile.lastCheckInDate);
-      const diffMs = now.getTime() - lastCheckIn.getTime();
-      const oneDayMs = 24 * 60 * 60 * 1000;
-      if (diffMs < oneDayMs) {
-        const remainingMs = oneDayMs - diffMs;
-        const remainingHours = Math.ceil(remainingMs / (1000 * 60 * 60));
-        return respondJSON(400, { error: `You have already claimed today's check-in bonus. Please check in again in ${remainingHours} hours.` });
+      const todayEAT = getEATDateString(now);
+      const lastCheckInEAT = getEATDateString(profile.lastCheckInDate);
+      if (todayEAT === lastCheckInEAT) {
+        const nextMidnight = getNextEATMidnight(now);
+        const diffMs = nextMidnight.getTime() - now.getTime();
+        const remainingHours = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60)));
+        return respondJSON(400, { error: `You have already claimed today's check-in bonus. It resets at local Ethiopia midnight (EAT). Please try again in ${remainingHours} hours.` });
       }
     }
 

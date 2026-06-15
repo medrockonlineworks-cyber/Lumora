@@ -1433,30 +1433,6 @@ export default function ProfileTab({
 
       </div>
 
-      {/* Admin Gateway Access Card */}
-      {isAdmin && onAdminClick && (
-        <div className="p-3.5 bg-gradient-to-r from-amber-500/10 to-blue-500/10 border border-amber-500/20 rounded-[2rem] shadow-2xs space-y-1">
-          <button
-            onClick={onAdminClick}
-            className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200/80 text-xs text-slate-900 font-black transition-all cursor-pointer group shadow-sm"
-          >
-            <div className="flex items-center space-x-3.5">
-              <div className="p-2 bg-amber-100 text-amber-600 rounded-xl group-hover:scale-105 transition-transform">
-                <Shield className="w-4.5 h-4.5 text-amber-600 fill-amber-100" />
-              </div>
-              <div className="text-left">
-                <span className="block text-slate-950 text-[11.5px] font-black leading-none uppercase tracking-wide">Admin Control Gateway</span>
-                <span className="text-[8px] text-amber-700 block tracking-widest uppercase font-mono mt-1 font-bold">Authorized portal access</span>
-              </div>
-            </div>
-            <div className="flex items-center space-x-1.5 bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-[9.5px] font-black uppercase px-2.5 py-1.5 rounded-xl cursor-pointer shadow-xs font-semibold">
-              <span>Enter Portal</span>
-              <ChevronRight className="w-3 h-3 text-white" />
-            </div>
-          </button>
-        </div>
-      )}
-
       {/* CARD 5: Platform Regulatory Vault Resources */}
       <div className="p-3.5 bg-white border border-slate-200 rounded-[2rem] space-y-1 shadow-sm">
         <button

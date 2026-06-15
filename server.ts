@@ -763,6 +763,28 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
+  // Timezone helper functions for precise Ethiopia Local Time (EAT = UTC+3)
+  const getEATDateString = (dateInput: Date | string | number): string => {
+    const d = new Date(dateInput);
+    const eatMs = d.getTime() + (3 * 60 * 60 * 1000);
+    const eatDate = new Date(eatMs);
+    const year = eatDate.getUTCFullYear();
+    const month = String(eatDate.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(eatDate.getUTCDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const getNextEATMidnight = (nowDate: Date): Date => {
+    const eatMs = nowDate.getTime() + (3 * 60 * 60 * 1000);
+    const eatDate = new Date(eatMs);
+    const year = eatDate.getUTCFullYear();
+    const month = String(eatDate.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(eatDate.getUTCDate()).padStart(2, '0');
+    return new Date(`${year}-${month}-${day}T21:00:00Z`);
+  };
+
+  let lastCheckedEATDay = getEATDateString(new Date());
+
   // Simple, high-performance in-memory rate limiter to secure critical endpoints
   const rateLimitStore: Record<string, { count: number; resetAt: number }> = {};
   function rateLimiter(limit: number, windowMs: number) {
@@ -1008,11 +1030,31 @@ async function startServer() {
     console.error("Initial daily earnings check failed:", error);
   }
 
-  // Trigger auto-credits periodically every 60 seconds
+  // Trigger auto-credits periodically every 60 seconds and run midnight transition cron
   setInterval(() => {
     try {
       sanitizeUserBalances();
       autoAllocateDailyEarnings();
+
+      const currentEATDay = getEATDateString(new Date());
+      if (currentEATDay !== lastCheckedEATDay) {
+        console.log(`[EAT Midnight Cron] Rollover detected from EAT Day: ${lastCheckedEATDay} to: ${currentEATDay}. Initiating daily reset actions.`);
+        
+        // Push user notification about fresh daily claims
+        db.profiles.forEach(p => {
+          db.notifications.push({
+            id: "not-reset-" + Math.random().toString(36).substr(2, 9),
+            userId: p.userId,
+            title: "Daily Claims Restocked",
+            message: `Your attendance daily claims reset completed successfully at 0:00 (6:00 local time) EAT! You can now claim your 5.00 ETB daily check-in bonus.`,
+            read: false,
+            date: new Date().toISOString()
+          });
+        });
+
+        lastCheckedEATDay = currentEATDay;
+        saveDB(db);
+      }
     } catch (e) {
       console.error("[Automatic Yield Tracker Check Failed]:", e);
     }
@@ -1717,14 +1759,14 @@ async function startServer() {
 
     const now = new Date();
     if (profile.lastCheckInDate) {
-      const lastCheckIn = new Date(profile.lastCheckInDate);
-      const diffMs = now.getTime() - lastCheckIn.getTime();
-      const oneDayMs = 24 * 60 * 60 * 1000;
-      if (diffMs < oneDayMs) {
-        const remainingMs = oneDayMs - diffMs;
-        const remainingHours = Math.ceil(remainingMs / (1000 * 60 * 60));
+      const todayEAT = getEATDateString(now);
+      const lastCheckInEAT = getEATDateString(profile.lastCheckInDate);
+      if (todayEAT === lastCheckInEAT) {
+        const nextMidnight = getNextEATMidnight(now);
+        const diffMs = nextMidnight.getTime() - now.getTime();
+        const remainingHours = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60)));
         return res.status(400).json({ 
-          error: `You have already claimed today's check-in bonus. Please check in again in ${remainingHours} hours.` 
+          error: `You have already claimed today's check-in bonus. It resets at local Ethiopia midnight (EAT). Please try again in ${remainingHours} hours.` 
         });
       }
     }

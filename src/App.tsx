@@ -12,7 +12,6 @@ import ProfileTab from './components/ProfileTab';
 import LoginScreen from './components/LoginScreen';
 import AgreementsPage from './components/AgreementsPage';
 import AboutUsPage from './components/AboutUsPage';
-import AdminPanel from './components/AdminPanel';
 import TransactionsModals from './components/TransactionsModals';
 import IdUploadGate from './components/IdUploadGate';
 import WalkthroughModal from './components/WalkthroughModal';
@@ -106,7 +105,8 @@ function MainAppContent() {
 
   // Layout states
   const [activeTab, setActiveTab] = useState<string>('home');
-  const [showAdmin, setShowAdmin] = useState<boolean>(false);
+  const showAdmin = false;
+  const setShowAdmin = (show: boolean) => {};
   const [showAgreements, setShowAgreements] = useState<boolean>(false);
   const [showAboutUs, setShowAboutUs] = useState<boolean>(false);
   
@@ -424,20 +424,7 @@ function MainAppContent() {
       {/* Master Smartphone mock boundary and responsive container flow */}
       <main className={`flex-1 w-full mx-auto px-4.5 pt-5 relative transition-all duration-300 ${isWide ? 'max-w-5xl' : 'max-w-md'}`}>
         <AnimatePresence mode="wait">
-          {showAdmin ? (
-            <motion.div
-              key="admin"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.2 }}
-            >
-              <AdminPanel 
-                onBack={() => setShowAdmin(false)} 
-                onRefreshDashboard={fetchDashboardData}
-              />
-            </motion.div>
-          ) : showAgreements ? (
+          {showAgreements ? (
             <motion.div
               key="agreements"
               initial={{ opacity: 0, y: 12 }}
