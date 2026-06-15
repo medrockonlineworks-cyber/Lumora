@@ -16,6 +16,7 @@ import TransactionsModals from './components/TransactionsModals';
 import IdUploadGate from './components/IdUploadGate';
 import WalkthroughModal from './components/WalkthroughModal';
 import LumoraLogo from './components/LumoraLogo';
+import AdminPanel from './components/AdminPanel';
 import { Profile, Investment, MyTransaction, Notification, InvestmentPlan, Withdrawal, Loan } from './types';
 
 const offlineTranslations: Record<string, string> = {
@@ -105,8 +106,7 @@ function MainAppContent() {
 
   // Layout states
   const [activeTab, setActiveTab] = useState<string>('home');
-  const showAdmin = false;
-  const setShowAdmin = (show: boolean) => {};
+  const [showAdmin, setShowAdmin] = useState<boolean>(false);
   const [showAgreements, setShowAgreements] = useState<boolean>(false);
   const [showAboutUs, setShowAboutUs] = useState<boolean>(false);
   
@@ -389,7 +389,7 @@ function MainAppContent() {
     depositBalance: healedDepositBalance
   } : null;
 
-  const isWide = activeTab === 'assistant' && !showAdmin && !showAgreements && !showAboutUs;
+  const isWide = (activeTab === 'assistant' || showAdmin) && !showAgreements && !showAboutUs;
 
   return (
     <div className="min-h-screen bg-white text-[#0F172A] flex flex-col font-sans select-none">
@@ -443,6 +443,16 @@ function MainAppContent() {
               transition={{ duration: 0.2 }}
             >
               <AboutUsPage onBack={() => setShowAboutUs(false)} />
+            </motion.div>
+          ) : showAdmin ? (
+            <motion.div
+              key="admin_panel"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.2 }}
+            >
+              <AdminPanel onBack={() => setShowAdmin(false)} />
             </motion.div>
           ) : (
             <motion.div
