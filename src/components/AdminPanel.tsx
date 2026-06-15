@@ -324,27 +324,36 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   };
 
   const filteredDeposits = deposits.filter(d => {
+    const correspondingUser = users.find(u => u.id === d.userId);
     const matchesSearch = d.userName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           d.userPhone?.includes(searchTerm) || 
-                          d.id?.includes(searchTerm);
+                          d.id?.includes(searchTerm) ||
+                          (correspondingUser?.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (correspondingUser?.profile?.email || '').toLowerCase().includes(searchTerm.toLowerCase());
     if (!matchesSearch) return false;
     if (depositFilter === 'all') return true;
     return d.status === depositFilter;
   });
 
   const filteredWithdrawals = withdrawals.filter(w => {
+    const correspondingUser = users.find(u => u.id === w.userId);
     const matchesSearch = w.userName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           w.userPhone?.includes(searchTerm) || 
-                          w.id?.includes(searchTerm);
+                          w.id?.includes(searchTerm) ||
+                          (correspondingUser?.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (correspondingUser?.profile?.email || '').toLowerCase().includes(searchTerm.toLowerCase());
     if (!matchesSearch) return false;
     if (withdrawalFilter === 'all') return true;
     return w.status === withdrawalFilter;
   });
 
   const filteredLoans = loans.filter(l => {
+    const correspondingUser = users.find(u => u.id === l.userId);
     const matchesSearch = l.userName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           l.userPhone?.includes(searchTerm) || 
-                          l.id?.includes(searchTerm);
+                          l.id?.includes(searchTerm) ||
+                          (correspondingUser?.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (correspondingUser?.profile?.email || '').toLowerCase().includes(searchTerm.toLowerCase());
     if (!matchesSearch) return false;
     if (loanFilter === 'all') return true;
     return l.status === loanFilter;
@@ -353,7 +362,10 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   const filteredIdUsers = users.filter(u => {
     const profStatus = u.profile?.idVerificationStatus || 'unsubmitted';
     const matchesSearch = (u.fullName || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          u.phone?.includes(searchTerm);
+                          u.phone?.includes(searchTerm) ||
+                          u.id?.includes(searchTerm) ||
+                          (u.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (u.profile?.email || '').toLowerCase().includes(searchTerm.toLowerCase());
     if (!matchesSearch) return false;
     
     if (idFilter === 'all') {
@@ -365,7 +377,9 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   const filteredUserList = users.filter(u => {
     return (u.fullName || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
            u.phone?.includes(searchTerm) || 
-           u.id?.includes(searchTerm);
+           u.id?.includes(searchTerm) ||
+           (u.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+           (u.profile?.email || '').toLowerCase().includes(searchTerm.toLowerCase());
   });
 
   return (
@@ -452,10 +466,10 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
           <Search className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
           <input
             type="text"
-            placeholder="Search by candidate name, phone number, or ID reference..."
+            placeholder="Search accounts by name, phone, email, or user ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#0A3D91]"
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#0A3D91] placeholder-slate-400"
           />
         </div>
       )}
@@ -928,12 +942,58 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                             {usr.referredBy ? `by #${usr.referredBy}` : "Direct visitor"}
                           </td>
                           <td className="p-3">
-                            <span className={`p-1 px-2.5 rounded-full text-[9px] font-mono font-black uppercase tracking-widest ${
-                              prof.idVerificationStatus === 'verified' ? 'bg-emerald-100 text-emerald-700' :
-                              prof.idVerificationStatus === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'
-                            }`}>
-                              {prof.idVerificationStatus || 'unsubmitted'}
-                            </span>
+                            <div className="flex flex-col space-y-1">
+                              <span className={`p-1 px-2.5 rounded-full text-[9px] font-mono font-black uppercase tracking-widest w-fit ${
+                                prof.idVerificationStatus === 'verified' ? 'bg-emerald-100 text-emerald-700' :
+                                prof.idVerificationStatus === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'
+                              }`}>
+                                {prof.idVerificationStatus || 'unsubmitted'}
+                              </span>
+                              
+                              {prof.idVerificationStatus === 'pending' && (
+                                <div className="mt-2 bg-slate-50 border border-slate-200/60 p-2 rounded-xl max-w-[170px] space-y-2 shadow-4xs">
+                                  <p className="text-[8.5px] font-black text-slate-400 uppercase tracking-widest">UPLOADED ID PHOTO FILES</p>
+                                  <div className="flex items-center space-x-1.5">
+                                    {['idCardFront', 'idCardBack', 'idSelfie'].map((key) => {
+                                      const val = prof[key];
+                                      if (!val) return null;
+                                      const labels = { idCardFront: 'Front', idCardBack: 'Back', idSelfie: 'Selfie' };
+                                      return (
+                                        <button
+                                          key={key}
+                                          onClick={() => setViewerImage(val)}
+                                          className="w-8 h-8 rounded-lg border border-slate-250 bg-white overflow-hidden hover:scale-105 transition-all shadow-4xs cursor-zoom-in relative group shrink-0"
+                                          title={`${labels[key as keyof typeof labels]} ID Photo (Click to zoom)`}
+                                        >
+                                          <img src={val} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                  
+                                  {/* Direct Actions inline */}
+                                  <div className="flex items-center space-x-1 pt-1.5 border-t border-slate-200/50">
+                                    <button
+                                      onClick={() => handleIdVerifyAction(usr.id, 'approve')}
+                                      disabled={actionLoading !== null}
+                                      className="flex-1 py-1 px-2 bg-emerald-600 hover:bg-emerald-700 text-[9.5px] font-black text-white rounded-lg flex items-center justify-center space-x-1 cursor-pointer transition-all"
+                                      title="Approve / Verify User ID"
+                                    >
+                                      <Check className="w-3 h-3 stroke-[2.5]" />
+                                      <span>Verify</span>
+                                    </button>
+                                    <button
+                                      onClick={() => setRejectionModal({ type: 'id-verify', id: usr.id })}
+                                      disabled={actionLoading !== null}
+                                      className="p-1 bg-rose-50 hover:bg-rose-150 text-rose-600 border border-rose-200 rounded-lg cursor-pointer transition-all"
+                                      title="Reject ID Document"
+                                    >
+                                      <XCircle className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           </td>
                           <td className="p-3">
                             <span className={`p-1 px-2.5 rounded-full text-[9px] font-mono font-black uppercase tracking-widest ${

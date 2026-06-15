@@ -683,7 +683,36 @@ export default function ProfileTab({
 
       </div>
 
+      {/* ADMIN CONSOLE ENTRY BANNER */}
+      {isAdmin && (
+        <div className="px-1" id="premium-admin-shuttle-link">
+          <button
+            onClick={onAdminClick}
+            className="w-full bg-gradient-to-r from-[#0A3D91] via-[#1E40AF] to-[#1D4ED8] hover:from-blue-800 hover:to-blue-700 active:scale-98 text-white p-5 rounded-[2rem] border border-blue-500/35 shadow-lg relative overflow-hidden transition-all text-left flex items-center justify-between group cursor-pointer"
+          >
+            {/* Ambient Background Glow Particles */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl transform translate-x-12 -translate-y-6 group-hover:scale-110 transition-transform"></div>
+            
+            <div className="flex items-center space-x-3.5 relative z-10">
+              <div className="p-3 rounded-2xl bg-white/12 border border-white/20 text-yellow-300">
+                <Shield className="w-5 h-5 animate-pulse" />
+              </div>
+              <div>
+                <div className="flex items-center space-x-2">
+                  <span className="p-0.5 px-2 bg-yellow-400 text-slate-900 rounded-full text-[8px] font-mono font-black uppercase tracking-wider">SYSTEM ADMIN</span>
+                  <span className="text-[9px] font-bold text-blue-200 uppercase tracking-widest font-mono">ROOT PRIVILEGES</span>
+                </div>
+                <h4 className="font-display font-black text-sm uppercase tracking-wide text-white mt-1">TREASURY AUDITING CONSOLE</h4>
+                <p className="text-[10px] text-blue-150 leading-none mt-0.5 font-medium">Verify submissions, clearing ledger, verify custom bank rails.</p>
+              </div>
+            </div>
 
+            <div className="bg-white/10 p-2 rounded-xl border border-white/20 text-white relative z-10 group-hover:bg-[#0A3D91] transition-colors">
+              <ChevronRight className="w-5 h-5 stroke-[2.5]" />
+            </div>
+          </button>
+        </div>
+      )}
 
       {/* CARD 2: Referrals Invite System Panel (Bento Layout) */}
       <div className="p-6 rounded-[2.2rem] bg-white border border-slate-100 shadow-sm space-y-5">
