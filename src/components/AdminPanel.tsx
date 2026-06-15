@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Users, Coins, CheckCircle, XCircle, Search, ShieldAlert, ShieldCheck, 
   UserPlus, Award, Landmark, RefreshCw, ChevronRight, Ban, Eye, Key,
-  Sparkles, Save, FileText, ChevronDown, Check, Sliders, Settings, CreditCard 
+  Sparkles, Save, FileText, ChevronDown, Check, Sliders, Settings, CreditCard, Copy 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Profile, Deposit, Withdrawal, Loan, AppSettings, User } from '../types';
@@ -30,6 +30,23 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   const [withdrawalFilter, setWithdrawalFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
   const [loanFilter, setLoanFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
   const [idFilter, setIdFilter] = useState<'all' | 'pending' | 'verified' | 'rejected' | 'unsubmitted'>('pending');
+  const [userStatusFilter, setUserStatusFilter] = useState<'all' | 'active' | 'suspended'>('all');
+  
+  // Custom Toast notification states
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => {
+      setToast(curr => curr?.message === message ? null : curr);
+    }, 2500);
+  };
+
+  const copyToClipboard = (text: string, label: string) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    showToast(`${label} copied successfully!`);
+  };
   
   // Lightbox and action modal states
   const [viewerImage, setViewerImage] = useState<string | null>(null);
@@ -38,12 +55,21 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
     id: string;
   } | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
+
+  // Confirmation modal states
+  const [withdrawalActionConfirm, setWithdrawalActionConfirm] = useState<{
+    id: string;
+    userName: string;
+    amount: number;
+    action: 'approve' | 'reject';
+  } | null>(null);
   
   // User edit modal states
   const [selectedUserForEdit, setSelectedUserForEdit] = useState<any | null>(null);
   const [adjustAmount, setAdjustAmount] = useState('');
   const [adjustType, setAdjustType] = useState<'add' | 'subtract'>('add');
   const [adjustVipLevel, setAdjustVipLevel] = useState<number>(0);
+  const [showBalanceConfirm, setShowBalanceConfirm] = useState(false);
   
   // System Settings state inputs
   const [cbeAccountName, setCbeAccountName] = useState('');
@@ -144,13 +170,16 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
       });
       if (res.ok) {
         setRejectionModal(null);
+        setWithdrawalActionConfirm(null);
         setRejectionReason('');
+        showToast(action === 'approve' ? "Withdrawal approved successfully" : "Withdrawal rejected successfully", "success");
         fetchAllAdminData();
       } else {
-        alert("Failed to submit withdrawal audit action.");
+        showToast("Failed to submit withdrawal audit action", "error");
       }
     } catch (err) {
       console.error(err);
+      showToast("Network error submitting audit action", "error");
     } finally {
       setActionLoading(null);
     }
@@ -207,7 +236,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
     if (!selectedUserForEdit) return;
     const amount = Number(adjustAmount);
     if (!amount || amount <= 0) {
-      alert("Please provide a valid ledger adjustment amount.");
+      showToast("Please provide a valid ledger adjustment amount.", "error");
       return;
     }
     setActionLoading('adjust-balance');
@@ -232,12 +261,14 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
             walletBalance: updatedUserRaw.profile.walletBalance
           }
         } : null);
+        showToast(`Balance adjusted successfully by ${amount} ETB`, "success");
         fetchAllAdminData();
       } else {
-        alert("Failed to adjust account balance.");
+        showToast("Failed to adjust account balance.", "error");
       }
     } catch (err) {
       console.error(err);
+      showToast("Network error adjusting balance.", "error");
     } finally {
       setActionLoading(null);
     }
@@ -265,12 +296,14 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
             vipLevel: vipLvl
           }
         } : null);
+        showToast(`VIP Tier shifted to VIP ${vipLvl} authorized!`, "success");
         fetchAllAdminData();
       } else {
-        alert("Failed to set user VIP level.");
+        showToast("Failed to set user VIP level.", "error");
       }
     } catch (err) {
       console.error(err);
+      showToast("Network error updating VIP tier.", "error");
     } finally {
       setActionLoading(null);
     }
@@ -383,11 +416,14 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   });
 
   const filteredUserList = users.filter(u => {
-    return (u.fullName || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
-           u.phone?.includes(searchTerm) || 
-           u.id?.includes(searchTerm) ||
-           (u.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-           (u.profile?.email || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (u.fullName || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          u.phone?.includes(searchTerm) || 
+                          u.id?.includes(searchTerm) ||
+                          (u.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (u.profile?.email || '').toLowerCase().includes(searchTerm.toLowerCase());
+    if (!matchesSearch) return false;
+    if (userStatusFilter === 'all') return true;
+    return u.status === userStatusFilter;
   });
 
   return (
@@ -600,7 +636,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                 </div>
               ) : (
                 <div className="overflow-x-auto rounded-2xl border border-slate-200/50 bg-white shadow-3xs">
-                  <table className="w-full text-left border-collapse">
+                  <table className="w-full min-w-[850px] text-left border-collapse">
                     <thead>
                       <tr className="bg-slate-50 border-b border-slate-200">
                         <th className="p-3 text-[9px] font-black uppercase text-slate-500 tracking-wider">Depositor</th>
@@ -716,7 +752,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                 </div>
               ) : (
                 <div className="overflow-x-auto rounded-2xl border border-slate-200/50 bg-white shadow-3xs">
-                  <table className="w-full text-left border-collapse">
+                  <table className="w-full min-w-[950px] text-left border-collapse">
                     <thead>
                       <tr className="bg-slate-50 border-b border-slate-200">
                         <th className="p-3 text-[9px] font-black uppercase text-slate-500 tracking-wider">Candidate Name</th>
@@ -771,26 +807,28 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                           </td>
                           <td className="p-3 text-right">
                             {wit.status === 'pending' ? (
-                              <div className="flex items-center justify-end space-x-1">
+                              <div className="flex items-center justify-end space-x-2">
                                 <button
-                                  onClick={() => handleWithdrawalAction(wit.id, 'approve')}
+                                  onClick={() => setWithdrawalActionConfirm({ id: wit.id, userName: wit.userName || "LUMORA Member", amount: wit.amount, action: 'approve' })}
                                   disabled={actionLoading !== null}
-                                  className="p-1.5 rounded-lg bg-emerald-555 text-white hover:bg-emerald-600 transition-all cursor-pointer shadow-3xs"
-                                  title="Disburse / Approve"
+                                  className="py-1.5 px-3 rounded-lg bg-emerald-600 font-extrabold text-[10px] text-white uppercase tracking-wider hover:bg-emerald-700 hover:scale-102 active:scale-98 flex items-center space-x-1 cursor-pointer transition-all shadow-3xs"
+                                  title="Approve / Disburse cashout"
                                 >
                                   <Check className="w-3.5 h-3.5 stroke-[3]" />
+                                  <span>Approve</span>
                                 </button>
                                 <button
-                                  onClick={() => setRejectionModal({ type: 'withdrawal', id: wit.id })}
+                                  onClick={() => setWithdrawalActionConfirm({ id: wit.id, userName: wit.userName || "LUMORA Member", amount: wit.amount, action: 'reject' })}
                                   disabled={actionLoading !== null}
-                                  className="p-1.5 rounded-lg bg-rose-555 text-white hover:bg-rose-600 transition-all cursor-pointer shadow-3xs"
+                                  className="py-1.5 px-3 rounded-lg bg-rose-600 font-extrabold text-[10px] text-white uppercase tracking-wider hover:bg-rose-700 hover:scale-102 active:scale-98 flex items-center space-x-1 cursor-pointer transition-all shadow-3xs"
                                   title="Reject cashout"
                                 >
                                   <XCircle className="w-3.5 h-3.5" />
+                                  <span>Reject</span>
                                 </button>
                               </div>
                             ) : (
-                              <span className="text-[10px] font-mono text-slate-400">—</span>
+                              <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-wider">Reviewed</span>
                             )}
                           </td>
                         </tr>
@@ -941,17 +979,33 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
           {/* TAB 5: USERS MANAGER */}
           {activeSubTab === 'users' && (
             <div className="space-y-4">
+              {/* Status filter controls for Users */}
+              <div className="flex items-center space-x-2 border-b border-slate-200/60 pb-3">
+                {(['all', 'active', 'suspended'] as const).map((fil) => (
+                  <button
+                    key={fil}
+                    onClick={() => setUserStatusFilter(fil)}
+                    className={`px-3.5 py-1.5 rounded-lg text-[9.5px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+                      userStatusFilter === fil 
+                        ? 'bg-[#0A3D91] text-white' 
+                        : 'text-slate-500 hover:text-slate-900 bg-white border border-slate-200/60'
+                    }`}
+                  >
+                    {fil === 'all' ? 'All Accounts' : fil === 'active' ? 'Active' : 'Suspended'} ({users.filter(u => fil === 'all' ? true : u.status === fil).length})
+                  </button>
+                ))}
+              </div>
+
               <div className="overflow-x-auto rounded-2xl border border-slate-200/50 bg-white shadow-3xs">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full min-w-[1350px] text-left border-collapse">
                   <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200">
-                      <th className="p-3 text-[9px] font-black uppercase text-slate-500 tracking-wider">Candidate Profile</th>
-                      <th className="p-3 text-[9px] font-black uppercase text-slate-500 tracking-wider">Wallet Balance</th>
-                      <th className="p-3 text-[9px] font-black uppercase text-slate-500 tracking-wider">VIP Level</th>
-                      <th className="p-3 text-[9px] font-black uppercase text-slate-500 tracking-wider">LUMORA Referrer</th>
-                      <th className="p-3 text-[9px] font-black uppercase text-slate-500 tracking-wider">Identification Status</th>
-                      <th className="p-3 text-[9px] font-black uppercase text-slate-500 tracking-wider">System Restriction</th>
-                      <th className="p-3 text-[9px] font-black uppercase text-slate-500 tracking-wider text-right">Auditor Panel</th>
+                    <tr className="bg-slate-50 border-b border-slate-200 text-[9.5px] text-slate-500 font-black uppercase tracking-wider">
+                      <th className="p-3 w-[220px]">User Identity</th>
+                      <th className="p-3 w-[200px]">System Passwords</th>
+                      <th className="p-3 w-[260px]">Withdrawal Bank Account</th>
+                      <th className="p-3 w-[180px]">Ledgers & VIP</th>
+                      <th className="p-3 w-[280px]">Verification & Restrictions</th>
+                      <th className="p-3 text-right">Auditor Console</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-xs">
@@ -959,33 +1013,132 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                       const prof = usr.profile || {};
                       return (
                         <tr key={usr.id} className="hover:bg-slate-50/40">
+                          {/* Col 1: Name, Phone, ID, Registration Date */}
                           <td className="p-3">
-                            <p className="font-bold text-slate-700">{usr.fullName || "Unregistered Member"}</p>
-                            <p className="text-[10px] text-slate-400 font-mono mt-0.5">{usr.phone}</p>
+                            <p className="font-bold text-slate-800 text-[12px]">{usr.fullName || "Unregistered Member"}</p>
+                            <div className="space-y-1 mt-1 font-mono text-[10px]">
+                              <p className="text-slate-500 flex items-center space-x-1">
+                                <span className="bg-slate-100 px-1 rounded text-slate-400 font-sans text-[8px] font-bold uppercase tracking-wide">ID</span>
+                                <span className="text-[#0A3D91] font-bold">{usr.id}</span>
+                                <Copy 
+                                  className="w-3.5 h-3.5 text-slate-300 hover:text-[#0A3D91] transition cursor-pointer active:scale-90" 
+                                  onClick={() => copyToClipboard(usr.id, 'User ID')}
+                                />
+                              </p>
+                              <p className="text-slate-500 flex items-center space-x-1">
+                                <span className="bg-slate-100 px-1 rounded text-slate-400 font-sans text-[8px] font-bold uppercase tracking-wide">PH</span>
+                                <span className="text-slate-700 font-bold">{usr.phone}</span>
+                                <Copy 
+                                  className="w-3.5 h-3.5 text-slate-300 hover:text-[#0A3D91] transition cursor-pointer active:scale-90" 
+                                  onClick={() => copyToClipboard(usr.phone, 'Phone Number')}
+                                />
+                              </p>
+                            </div>
+                            <p className="text-[9.5px] text-slate-400 font-semibold mt-1.5 font-sans">
+                              Registered: {usr.registrationDate ? new Date(usr.registrationDate).toLocaleDateString() : 'N/A'}
+                            </p>
                           </td>
-                          <td className="p-3 font-mono font-black text-[#0A3D91]">
-                            {(prof.walletBalance || 0).toLocaleString()} ETB
-                          </td>
+
+                          {/* Col 2: Login Password & Transaction PIP */}
                           <td className="p-3">
-                            <span className="p-1 px-2 text-[9.5px] font-mono font-black bg-slate-100 text-slate-700 border border-slate-200 rounded-lg">
-                              VIP {prof.vipLevel || 0}
-                            </span>
+                            <div className="space-y-2">
+                              <div>
+                                <span className="text-[8.5px] text-slate-400 uppercase font-bold tracking-widest block">Login Password</span>
+                                <div className="flex items-center space-x-1.5 font-mono text-[10.5px] text-slate-800 bg-slate-50 border border-slate-150 p-1 px-2 rounded-lg mt-0.5 w-fit">
+                                  <span>{usr.password || "N/A"}</span>
+                                  {usr.password && (
+                                    <Copy 
+                                      className="w-3.5 h-3.5 text-slate-400 hover:text-[#0A3D91] transition cursor-pointer active:scale-90" 
+                                      onClick={() => copyToClipboard(usr.password || '', 'Login Password')}
+                                    />
+                                  )}
+                                </div>
+                              </div>
+                              <div>
+                                <span className="text-[8.5px] text-slate-400 uppercase font-bold tracking-widest block">Payment Password (PIN)</span>
+                                <div className="flex items-center space-x-1.5 font-mono text-[10.5px] text-emerald-700 bg-emerald-50/40 border border-emerald-150 p-1 px-2 rounded-lg mt-0.5 w-fit font-bold">
+                                  <span>{prof.transactionPin || "Not Loaded"}</span>
+                                  {prof.transactionPin && (
+                                    <Copy 
+                                      className="w-3.5 h-3.5 text-slate-400 hover:text-emerald-700 transition cursor-pointer active:scale-90" 
+                                      onClick={() => copyToClipboard(prof.transactionPin || '', 'Payment Password')}
+                                    />
+                                  )}
+                                </div>
+                              </div>
+                            </div>
                           </td>
-                          <td className="p-3 font-mono text-[10px] text-slate-500">
-                            {usr.referredBy ? `by #${usr.referredBy}` : "Direct visitor"}
-                          </td>
+
+                          {/* Col 3: bank account, account name, account number */}
                           <td className="p-3">
-                            <div className="flex flex-col space-y-1.5">
-                              <span className={`p-1 px-2.5 rounded-full text-[9px] font-mono font-black uppercase tracking-widest w-fit ${
-                                prof.idVerificationStatus === 'verified' ? 'bg-emerald-100 text-emerald-700' :
-                                prof.idVerificationStatus === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'
-                              }`}>
-                                {prof.idVerificationStatus || 'unsubmitted'}
-                              </span>
-                              
+                            <div className="space-y-1.5 text-[10px] text-slate-600">
+                              <div>
+                                <span className="text-[8.5px] text-slate-400 uppercase font-bold tracking-widest block">Bank / Wallet Destination</span>
+                                <span className="font-bold text-slate-800 block text-[11px] mt-0.5">{prof.bankName || "Commercial Bank of Ethiopia (CBE)"}</span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <span className="bg-slate-100 px-1 rounded text-slate-400 font-sans text-[8px] font-bold uppercase tracking-wide">NAME</span>
+                                <span className="font-semibold text-slate-700 max-w-[130px] truncate">{prof.accountHolderName || "N/A"}</span>
+                                {prof.accountHolderName && (
+                                  <Copy 
+                                    className="w-3.5 h-3.5 text-slate-300 hover:text-[#0A3D91] transition cursor-pointer active:scale-90 shrink-0" 
+                                    onClick={() => copyToClipboard(prof.accountHolderName || '', 'Account Name')}
+                                  />
+                                )}
+                              </div>
+                              <div className="flex items-center space-x-1 font-mono">
+                                <span className="bg-slate-100 px-1 rounded text-slate-400 font-sans text-[8px] font-bold uppercase tracking-wide">ACCT</span>
+                                <span className="font-black text-[#0A3D91]">{prof.accountNumber || "N/A"}</span>
+                                {prof.accountNumber && (
+                                  <Copy 
+                                    className="w-3.5 h-3.5 text-slate-300 hover:text-[#0A3D91] transition cursor-pointer active:scale-90 shrink-0" 
+                                    onClick={() => copyToClipboard(prof.accountNumber || '', 'Account Number')}
+                                  />
+                                )}
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Col 4: wallet balances and VIP */}
+                          <td className="p-3">
+                            <div className="space-y-1.5">
+                              <div>
+                                <span className="text-[8.5px] text-slate-400 uppercase font-bold tracking-widest block">Available Balance</span>
+                                <span className="font-mono font-black text-[#0A3D91] text-[12.5px]">{(prof.walletBalance || 0).toLocaleString()} <span className="text-[9px] font-bold font-sans">ETB</span></span>
+                              </div>
+                              <div className="flex gap-1.5 items-center">
+                                <span className="p-0.5 px-2 text-[9px] font-mono font-black bg-[#0A3D91]/10 text-[#0A3D91] border border-slate-205 rounded-md uppercase tracking-wider">
+                                  VIP {prof.vipLevel || 0}
+                                </span>
+                              </div>
+                              <p className="text-[9px] text-slate-450 font-medium">
+                                {usr.referredBy ? `Referred: #${usr.referredBy}` : "Direct Arrival"}
+                              </p>
+                            </div>
+                          </td>
+
+                          {/* Col 5: Verification & system status restriction details */}
+                          <td className="p-3">
+                            <div className="space-y-2">
+                              {/* Status Badges line */}
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <span className={`p-1 px-2.5 rounded-full text-[9px] font-mono font-black uppercase tracking-widest w-fit ${
+                                  prof.idVerificationStatus === 'verified' ? 'bg-emerald-100 text-emerald-700' :
+                                  prof.idVerificationStatus === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'
+                                }`}>
+                                  ID: {prof.idVerificationStatus || 'unsubmitted'}
+                                </span>
+                                
+                                <span className={`p-1 px-2 rounded-full text-[9px] font-mono font-black uppercase tracking-widest ${
+                                  usr.status === 'suspended' ? 'bg-rose-100 text-rose-700 border border-rose-200' : 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                                }`}>
+                                  LIMITS: {usr.status || 'active'}
+                                </span>
+                              </div>
+
                               {prof.idVerificationStatus === 'pending' ? (
-                                <div className="mt-2 bg-slate-50 border border-slate-200/60 p-2 rounded-xl max-w-[170px] space-y-2 shadow-4xs">
-                                  <p className="text-[8.5px] font-black text-slate-400 uppercase tracking-widest">UPLOADED ID PHOTO FILES</p>
+                                <div className="bg-slate-50 border border-slate-200/60 p-2 rounded-xl space-y-2 shadow-4xs max-w-[240px]">
+                                  <p className="text-[8.5px] font-black text-slate-400 uppercase tracking-widest">SUBMITTED IDENTIFICATION IMAGE</p>
                                   <div className="flex items-center space-x-1.5">
                                     {['idCardFront', 'idCardBack', 'idSelfie'].map((key) => {
                                       const val = prof[key];
@@ -994,6 +1147,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                                       return (
                                         <button
                                           key={key}
+                                          type="button"
                                           onClick={() => setViewerImage(val)}
                                           className="w-8 h-8 rounded-lg border border-slate-250 bg-white overflow-hidden hover:scale-105 transition-all shadow-4xs cursor-zoom-in relative group shrink-0"
                                           title={`${labels[key as keyof typeof labels]} ID Photo (Click to zoom)`}
@@ -1004,9 +1158,10 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                                     })}
                                   </div>
                                   
-                                  {/* Direct Actions inline */}
-                                  <div className="flex items-center space-x-1 pt-1.5 border-t border-slate-200/50">
+                                  {/* Direct review inline */}
+                                  <div className="flex items-center space-x-1.5 pt-1.5 border-t border-slate-200/50">
                                     <button
+                                      type="button"
                                       onClick={() => handleIdVerifyAction(usr.id, 'approve')}
                                       disabled={actionLoading !== null}
                                       className="flex-1 py-1 px-2 bg-emerald-600 hover:bg-emerald-700 text-[9.5px] font-black text-white rounded-lg flex items-center justify-center space-x-1 cursor-pointer transition-all animate-pulse"
@@ -1016,70 +1171,68 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                                       <span>Verify</span>
                                     </button>
                                     <button
+                                      type="button"
                                       onClick={() => setRejectionModal({ type: 'id-verify', id: usr.id })}
                                       disabled={actionLoading !== null}
-                                      className="p-1 bg-rose-50 hover:bg-rose-150 text-rose-600 border border-rose-200 rounded-lg cursor-pointer transition-all"
+                                      className="p-1 px-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-lg text-[9.5px] font-bold cursor-pointer transition-all"
                                       title="Reject ID Document"
                                     >
-                                      <XCircle className="w-3.5 h-3.5" />
+                                      Reject
                                     </button>
                                   </div>
                                 </div>
                               ) : (
-                                <div className="flex items-center space-x-1">
-                                  {prof.idVerificationStatus !== 'verified' ? (
+                                <div className="flex items-center space-x-1.5">
+                                  {prof.idVerificationStatus !== 'verified' && (
                                     <button
+                                      type="button"
                                       onClick={() => handleIdVerifyAction(usr.id, 'approve')}
                                       disabled={actionLoading !== null}
                                       className="py-1 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-750 border border-emerald-200 rounded-lg text-[9px] font-black uppercase flex items-center space-x-1 cursor-pointer transition-all"
-                                      title="Manually Verify User Account"
                                     >
                                       <Check className="w-2.5 h-2.5 stroke-[2.5]" />
-                                      <span>Verify</span>
+                                      <span>Verify ID</span>
                                     </button>
-                                  ) : null}
+                                  )}
                                   
                                   {prof.idVerificationStatus !== 'rejected' && prof.idVerificationStatus !== 'unsubmitted' ? (
                                     <button
+                                      type="button"
                                       onClick={() => setRejectionModal({ type: 'id-verify', id: usr.id })}
                                       disabled={actionLoading !== null}
                                       className="py-1 px-2 bg-rose-50 hover:bg-rose-100 text-rose-750 border border-rose-200 rounded-lg text-[9px] font-black uppercase flex items-center space-x-1 cursor-pointer transition-all"
-                                      title="Reject / Revoke Verification"
                                     >
                                       <XCircle className="w-2.5 h-2.5" />
-                                      <span>Reject</span>
+                                      <span>Revoke</span>
                                     </button>
                                   ) : prof.idVerificationStatus === 'unsubmitted' ? (
                                     <button
+                                      type="button"
                                       onClick={() => setRejectionModal({ type: 'id-verify', id: usr.id })}
                                       disabled={actionLoading !== null}
-                                      className="py-1 px-2 bg-rose-50 hover:bg-rose-100 text-rose-750 border border-rose-200 rounded-lg text-[9px] font-black uppercase flex items-center space-x-1 cursor-pointer transition-all"
-                                      title="Reject User Verification"
+                                      className="py-1 px-2 bg-rose-55 hover:bg-rose-100 text-rose-750 border border-rose-200 rounded-lg text-[9px] font-black uppercase flex items-center space-x-1 cursor-pointer transition-all"
                                     >
                                       <XCircle className="w-2.5 h-2.5" />
-                                      <span>Reject</span>
+                                      <span>Decline</span>
                                     </button>
                                   ) : null}
                                 </div>
                               )}
                             </div>
                           </td>
-                          <td className="p-3">
-                            <span className={`p-1 px-2.5 rounded-full text-[9px] font-mono font-black uppercase tracking-widest ${
-                              usr.status === 'suspended' ? 'bg-rose-100 text-rose-700 border border-rose-200' : 'bg-emerald-100 text-emerald-700 border border-emerald-200'
-                            }`}>
-                              {usr.status || 'active'}
-                            </span>
-                          </td>
+
+                          {/* Col 6: Edit, Suspend/Unsuspend auditor panel actions */}
                           <td className="p-3 text-right">
-                            <div className="flex items-center justify-end space-x-1">
+                            <div className="flex items-center justify-end space-x-2">
                               <button
+                                type="button"
                                 onClick={() => setSelectedUserForEdit(usr)}
-                                className="px-2.5 py-1.5 border border-[#0A3D91]/20 rounded-xl bg-[#0A3D91]/5 font-black uppercase hover:bg-[#0A3D91]/10 text-xs text-[#0A3D91] cursor-pointer transition-all shadow-3xs"
+                                className="px-3 py-1.5 border border-[#0A3D91]/20 rounded-xl bg-[#0A3D91]/5 font-black uppercase hover:bg-[#0A3D91]/10 text-[10px] text-[#0A3D91] cursor-pointer transition-all shadow-3xs"
                               >
-                                Edit Account
+                                Edit / Audit
                               </button>
                               <button
+                                type="button"
                                 onClick={() => handleToggleUserStatus(usr)}
                                 disabled={actionLoading !== null}
                                 className={`p-1.5 rounded-lg border cursor-pointer transition-all ${
@@ -1127,7 +1280,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                 </div>
               ) : (
                 <div className="overflow-x-auto rounded-2xl border border-slate-200/50 bg-white shadow-3xs">
-                  <table className="w-full text-left border-collapse">
+                  <table className="w-full min-w-[850px] text-left border-collapse">
                     <thead>
                       <tr className="bg-slate-50 border-b border-slate-200">
                         <th className="p-3 text-[9px] font-black uppercase text-slate-500 tracking-wider">Candidate</th>
@@ -1371,7 +1524,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
               </button>
 
               {/* User Bio Header */}
-              <div className="flex items-start space-x-3 border-b border-slate-100 pb-3">
+              <div className="flex items-center space-x-3 border-b border-slate-100 pb-3">
                 <div className="w-11 h-11 bg-slate-100 border border-slate-200 rounded-xl overflow-hidden flex items-center justify-center shrink-0">
                   {selectedUserForEdit.profile?.idSelfie || selectedUserForEdit.profile?.profilePicture ? (
                     <img src={selectedUserForEdit.profile.idSelfie || selectedUserForEdit.profile.profilePicture} alt="User" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
@@ -1381,189 +1534,458 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                 </div>
                 <div>
                   <h4 className="font-display font-black text-sm text-[#0A3D91] uppercase tracking-tight">{selectedUserForEdit.fullName}</h4>
-                  <p className="text-[10.5px] text-slate-400 font-mono mt-0.5">PHONE CONTACT: {selectedUserForEdit.phone} • REGISTRATION ID: #{selectedUserForEdit.id}</p>
+                  <p className="text-[10.5px] text-slate-400 font-mono mt-0.5">AUDITING CLIENT CONSOLE PANEL</p>
                 </div>
               </div>
 
-              {/* Balances list */}
-              <div className="grid grid-cols-3 gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-150">
-                <div className="text-center">
-                  <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Wallet Balance</p>
-                  <p className="text-xs font-black text-[#0A3D91] mt-0.5 font-mono">{(selectedUserForEdit.profile?.walletBalance || 0).toLocaleString()} ETB</p>
-                </div>
-                <div className="text-center border-x border-slate-150">
-                  <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Deposits Accrued</p>
-                  <p className="text-xs font-black text-emerald-600 mt-0.5 font-mono">{(selectedUserForEdit.profile?.totalDeposits || 0).toLocaleString()} ETB</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Cleared Cashout</p>
-                  <p className="text-xs font-black text-rose-500 mt-0.5 font-mono">{(selectedUserForEdit.profile?.totalWithdrawals || 0).toLocaleString()} ETB</p>
-                </div>
-              </div>
-
-              {/* Adjustment panel ledger */}
-              <div className="space-y-3 p-3 bg-[#0A3D91]/5 rounded-2xl border border-[#0A3D91]/10">
-                <p className="text-[10px] font-black text-[#0A3D91] uppercase tracking-widest">Adjust Wallet Balance Ledger</p>
+              {/* Scrollable multi-sectioned content container */}
+              <div className="max-h-[60vh] overflow-y-auto space-y-5 pr-1 text-xs">
                 
-                <div className="flex space-x-2">
-                  <select
-                    value={adjustType}
-                    onChange={(e) => setAdjustType(e.target.value as any)}
-                    className="bg-white border border-slate-200 text-slate-900 rounded-xl px-2.5 py-2 text-xs font-extrabold focus:outline-none cursor-pointer"
-                  >
-                    <option value="add">Add Credit (+)</option>
-                    <option value="subtract">Subtract Debit (-)</option>
-                  </select>
+                {/* SECTION 1: Account Information */}
+                <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-150 space-y-2.5">
+                  <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest flex items-center space-x-1">
+                    <Users className="w-3 h-3 text-[#0A3D91]" />
+                    <span>Account Information</span>
+                  </p>
                   
-                  <div className="flex-1 relative">
-                    <input
-                      type="number"
-                      placeholder="Amount in ETB"
-                      value={adjustAmount}
-                      onChange={(e) => setAdjustAmount(e.target.value)}
-                      className="w-full bg-white border border-slate-200 text-slate-900 rounded-xl px-3.5 py-2 text-xs font-mono font-black placeholder:font-sans focus:outline-none focus:ring-1 focus:ring-[#0A3D91]"
-                    />
-                    <span className="absolute right-3.5 top-2.5 text-[10px] uppercase font-black text-slate-450 select-none">ETB</span>
-                  </div>
-
-                  <button
-                    onClick={handleAdjustBalance}
-                    disabled={actionLoading === 'adjust-balance' || !adjustAmount || isNaN(Number(adjustAmount)) || Number(adjustAmount) <= 0}
-                    className="px-4 py-2 bg-[#0A3D91] hover:bg-[#072f70] text-white text-[10.5px] uppercase font-black tracking-wider rounded-xl cursor-pointer transition-all active:scale-95 disabled:opacity-40 disabled:pointer-events-none shadow-3xs"
-                  >
-                    Authorize
-                  </button>
-                </div>
-
-                {/* REAL-TIME MONEY NUMBERS DYNAMIC PREVIEW BOX */}
-                {adjustAmount && !isNaN(Number(adjustAmount)) && Number(adjustAmount) > 0 && (
-                  <div className="mt-2.5 p-3 rounded-xl bg-[#071630] border border-[#0A3D91]/30 text-white font-mono space-y-1.5 shadow-md animate-in slide-in-from-top-1 duration-150">
-                    <div className="flex justify-between items-center text-slate-400 text-[9px] font-sans uppercase font-black tracking-wider">
-                      <span>AUDIT CORRESPONDENCE PREVIEW</span>
-                      <span className={adjustType === 'add' ? 'text-emerald-400 font-black' : 'text-rose-400 font-black'}>
-                        {adjustType === 'add' ? '● LEDGER CREDIT' : '● LEDGER DEBIT'}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <span className="text-[8.5px] text-slate-400 uppercase font-bold tracking-widest block">Full Name</span>
+                      <span className="font-bold text-slate-800">{selectedUserForEdit.fullName || "Unregistered"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[8.5px] text-slate-400 uppercase font-bold tracking-widest block">User ID</span>
+                      <div className="flex items-center space-x-1 text-slate-700 font-mono mt-0.5 animate-pulse-once">
+                        <span className="font-black text-[#0A3D91]">{selectedUserForEdit.id}</span>
+                        <Copy 
+                          className="w-3.5 h-3.5 text-slate-300 hover:text-[#0A3D91] transition cursor-pointer active:scale-90" 
+                          onClick={() => copyToClipboard(selectedUserForEdit.id, 'User ID')}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-[8.5px] text-slate-400 uppercase font-bold tracking-widest block">Phone Number</span>
+                      <div className="flex items-center space-x-1 text-slate-700 font-mono mt-0.5">
+                        <span className="font-bold">{selectedUserForEdit.phone}</span>
+                        <Copy 
+                          className="w-3.5 h-3.5 text-slate-300 hover:text-[#0A3D91] transition cursor-pointer active:scale-95" 
+                          onClick={() => copyToClipboard(selectedUserForEdit.phone, 'Phone Number')}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-[8.5px] text-slate-400 uppercase font-bold tracking-widest block">Invitation Code</span>
+                      <div className="flex items-center space-x-1 text-slate-700 font-mono mt-0.5">
+                        <span className="text-emerald-700 font-black uppercase tracking-widest">{selectedUserForEdit.referralCode || "NONE"}</span>
+                        {selectedUserForEdit.referralCode && (
+                          <Copy 
+                            className="w-3.5 h-3.5 text-slate-300 hover:text-emerald-700 transition cursor-pointer active:scale-95" 
+                            onClick={() => copyToClipboard(selectedUserForEdit.referralCode, 'Invitation Code')}
+                          />
+                        )}
+                      </div>
+                    </div>
+                    <div className="col-span-2">
+                      <span className="text-[8.5px] text-slate-400 uppercase font-bold tracking-widest block">Registration Timestamp</span>
+                      <span className="text-slate-650 font-medium font-mono">
+                        {selectedUserForEdit.registrationDate ? new Date(selectedUserForEdit.registrationDate).toLocaleString() : 'N/A'}
                       </span>
                     </div>
-                    
-                    <div className="text-sm font-black text-center py-1 flex items-center justify-center space-x-2 bg-black/20 rounded-lg">
-                      <span className={adjustType === 'add' ? 'text-emerald-400' : 'text-rose-400'}>
-                        {adjustType === 'add' ? '+' : '-'} {Number(adjustAmount).toLocaleString()} ETB
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2 text-[9px] border-t border-white/5 pt-1.5 font-sans">
-                      <div>
-                        <span className="text-slate-450 uppercase tracking-tight block">STARTING BALANCE</span>
-                        <span className="font-mono font-bold text-slate-200">{(selectedUserForEdit.profile?.walletBalance || 0).toLocaleString()} ETB</span>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-slate-450 uppercase tracking-tight block">POST-AUDIT BALANCE</span>
-                        <span className={`font-mono font-black ${adjustType === 'add' ? 'text-emerald-400' : 'text-rose-400'}`}>
-                          {Math.max(0, adjustType === 'add' 
-                            ? (selectedUserForEdit.profile?.walletBalance || 0) + Number(adjustAmount) 
-                            : (selectedUserForEdit.profile?.walletBalance || 0) - Number(adjustAmount)
-                          ).toLocaleString()} ETB
-                        </span>
-                      </div>
-                    </div>
                   </div>
-                )}
-              </div>
-
-              {/* VIP promotion desk */}
-              <div className="space-y-3 p-3 bg-slate-50 border border-slate-150 rounded-2xl">
-                <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">VIP Level Alignment Desk</p>
-                
-                <div className="flex flex-wrap gap-1.5 max-h-[85px] overflow-y-auto pr-1 scrollbar-none">
-                  {Array.from({ length: 16 }).map((_, level) => {
-                    const isProposed = adjustVipLevel === level;
-                    const isCurrent = (selectedUserForEdit.profile?.vipLevel || 0) === level;
-                    
-                    return (
-                      <button
-                        key={level}
-                        type="button"
-                        disabled={actionLoading === 'update-vip'}
-                        onClick={() => setAdjustVipLevel(level)}
-                        className={`px-3 py-1.5 rounded-lg font-mono font-black text-[10px] border cursor-pointer transition-all relative ${
-                          isProposed
-                            ? 'bg-[#0A3D91] text-white border-transparent shadow-xs scale-102 z-10'
-                            : isCurrent
-                              ? 'bg-blue-50 border-blue-300 text-blue-700 hover:bg-blue-100'
-                              : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'
-                        }`}
-                      >
-                        VIP {level}
-                        {isCurrent && (
-                          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-blue-550 border border-white text-[6px] text-white flex items-center justify-center font-sans font-extrabold" title="Current Level">C</span>
-                        )}
-                        {isProposed && !isCurrent && (
-                          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-yellow-450 border border-white text-[6px] text-slate-955 flex items-center justify-center font-sans font-extrabold" title="Proposed Level">P</span>
-                        )}
-                      </button>
-                    );
-                  })}
                 </div>
 
-                {/* VIP CONFIRMATION GATE */}
-                {adjustVipLevel !== (selectedUserForEdit.profile?.vipLevel || 0) && (
-                  <div className="p-3 bg-amber-50 rounded-xl border border-amber-250 mt-1.5 space-y-2.5 animate-in slide-in-from-top-1 duration-150">
-                    <div className="flex items-start space-x-2">
-                      <div className="p-1.5 bg-amber-100 text-amber-800 rounded-lg shrink-0 mt-0.5">
-                        <Award className="w-4 h-4 animate-bounce" />
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-black text-amber-800 uppercase tracking-wider">CONFIRY VIP RE-ALIGNMENT</p>
-                        <p className="text-[10px] text-amber-700 font-semibold leading-relaxed">
-                          You are altering this client's category from <strong className="font-extrabold font-mono">VIP {selectedUserForEdit.profile?.vipLevel || 0}</strong> to <strong className="font-extrabold font-mono">VIP {adjustVipLevel}</strong>. This changes their transaction coefficients and system perks.
-                        </p>
+                {/* SECTION 2: Security Credentials */}
+                <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-150 space-y-2.5">
+                  <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest flex items-center space-x-1">
+                    <Key className="w-3 h-3 text-rose-600" />
+                    <span>Security Information</span>
+                  </p>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <span className="text-[8.5px] text-slate-400 uppercase font-bold tracking-widest block">Login Password</span>
+                      <div className="flex items-center space-x-1.5 font-mono text-[11px] text-slate-800 bg-white border border-slate-150 p-1 px-2 rounded-lg mt-0.5 w-fit">
+                        <span>{selectedUserForEdit.password || "N/A"}</span>
+                        {selectedUserForEdit.password && (
+                          <Copy 
+                            className="w-3.5 h-3.5 text-slate-400 hover:text-[#0A3D91] transition cursor-pointer active:scale-90" 
+                            onClick={() => copyToClipboard(selectedUserForEdit.password || '', 'Login Password')}
+                          />
+                        )}
                       </div>
                     </div>
-                    
-                    <div className="flex space-x-2 pt-1 border-t border-amber-200">
-                      <button
-                        type="button"
-                        onClick={() => handleUpdateVip(adjustVipLevel)}
-                        disabled={actionLoading === 'update-vip'}
-                        className="flex-1 py-1 px-3 bg-[#0A3D91] hover:bg-[#072f70] text-[10px] font-black text-white uppercase tracking-wider rounded-lg flex items-center justify-center space-x-1 cursor-pointer transition-all active:scale-98"
-                      >
-                        <Check className="w-3.5 h-3.5 stroke-[3]" />
-                        <span>Authorize VIP Shift</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setAdjustVipLevel(selectedUserForEdit.profile?.vipLevel || 0)}
-                        className="py-1 px-3 bg-white hover:bg-slate-100 text-[10px] font-bold text-slate-600 border border-slate-200 rounded-lg cursor-pointer transition-all"
-                      >
-                        Reset
-                      </button>
+                    <div>
+                      <span className="text-[8.5px] text-slate-400 uppercase font-bold tracking-widest block">Payment Password (PIN)</span>
+                      <div className="flex items-center space-x-1.5 font-mono text-[11px] text-emerald-700 bg-white border border-emerald-150 p-1 px-2 rounded-lg mt-0.5 w-fit font-bold font-mono">
+                        <span>{selectedUserForEdit.profile?.transactionPin || "Not Loaded"}</span>
+                        {selectedUserForEdit.profile?.transactionPin && (
+                          <Copy 
+                            className="w-3.5 h-3.5 text-slate-400 hover:text-emerald-700 transition cursor-pointer active:scale-90" 
+                            onClick={() => copyToClipboard(selectedUserForEdit.profile?.transactionPin || '', 'Payment PIN')}
+                          />
+                        )}
+                      </div>
+                    </div>
+                    <div className="col-span-2">
+                      <span className="text-[8.5px] text-slate-400 uppercase font-bold tracking-widest block font-sans">KYC ID Verification State</span>
+                      <span className={`inline-block mt-1 p-0.5 px-3 rounded-full text-[9px] font-mono font-black uppercase tracking-widest ${
+                        selectedUserForEdit.profile?.idVerificationStatus === 'verified' ? 'bg-emerald-100 text-emerald-700' :
+                        selectedUserForEdit.profile?.idVerificationStatus === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'
+                      }`}>
+                        {selectedUserForEdit.profile?.idVerificationStatus || 'unsubmitted'}
+                      </span>
                     </div>
                   </div>
-                )}
+                </div>
+
+                {/* SECTION 3: Withdrawal Account */}
+                <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-150 space-y-2.5">
+                  <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest flex items-center space-x-1">
+                    <Landmark className="w-3 h-3 text-amber-600" />
+                    <span>Withdrawal Account Information</span>
+                  </p>
+                  
+                  <div className="space-y-2">
+                    <div>
+                      <span className="text-[8.5px] text-slate-400 uppercase font-bold tracking-widest block">Bank / Mobile Wallet Name</span>
+                      <div className="flex items-center space-x-1 text-slate-800 font-semibold mt-0.5">
+                        <span>{selectedUserForEdit.profile?.bankName || "Commercial Bank of Ethiopia (CBE)"}</span>
+                        <Copy 
+                          className="w-3.5 h-3.5 text-slate-300 hover:text-[#0A3D91] transition cursor-pointer active:scale-90" 
+                          onClick={() => copyToClipboard(selectedUserForEdit.profile?.bankName || 'Commercial Bank of Ethiopia (CBE)', 'Bank Name')}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <span className="text-[8.5px] text-slate-400 uppercase font-bold tracking-widest block">Account Holder Name</span>
+                        <div className="flex items-center space-x-1 text-slate-700 mt-0.5">
+                          <span className="font-bold">{selectedUserForEdit.profile?.accountHolderName || "N/A"}</span>
+                          {selectedUserForEdit.profile?.accountHolderName && (
+                            <Copy 
+                              className="w-3.5 h-3.5 text-slate-300 hover:text-[#0A3D91] transition cursor-pointer active:scale-95" 
+                              onClick={() => copyToClipboard(selectedUserForEdit.profile?.accountHolderName || '', 'Account Holder Name')}
+                            />
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-[8.5px] text-slate-400 uppercase font-bold tracking-widest block">Account / Wallet Number</span>
+                        <div className="flex items-center space-x-1 text-slate-700 font-mono mt-0.5">
+                          <span className="font-black text-[#0A3D91]">{selectedUserForEdit.profile?.accountNumber || "N/A"}</span>
+                          {selectedUserForEdit.profile?.accountNumber && (
+                            <Copy 
+                              className="w-3.5 h-3.5 text-slate-300 hover:text-[#0A3D91] transition cursor-pointer active:scale-95" 
+                              onClick={() => copyToClipboard(selectedUserForEdit.profile?.accountNumber || '', 'Account Number')}
+                            />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* SECTION 4: Financial Ledger & VIP Realignment */}
+                <div className="space-y-4">
+                  {/* Ledger stats */}
+                  <div className="grid grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-150">
+                    <div className="text-center">
+                      <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Wallet Balance</p>
+                      <p className="text-xs font-black text-[#0A3D91] mt-0.5 font-mono">{(selectedUserForEdit.profile?.walletBalance || 0).toLocaleString()} ETB</p>
+                    </div>
+                    <div className="text-center border-x border-slate-150">
+                      <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Total Deposits</p>
+                      <p className="text-xs font-black text-emerald-600 mt-0.5 font-mono">{(selectedUserForEdit.profile?.totalDeposits || 0).toLocaleString()} ETB</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Withdrawals cleared</p>
+                      <p className="text-xs font-black text-rose-500 mt-0.5 font-mono">{(selectedUserForEdit.profile?.totalWithdrawals || 0).toLocaleString()} ETB</p>
+                    </div>
+                  </div>
+
+                  {/* Adjust wallet input */}
+                  <div className="space-y-3 p-3 bg-[#0A3D91]/5 rounded-2xl border border-[#0A3D91]/10">
+                    <p className="text-[10px] font-black text-[#0A3D91] uppercase tracking-widest">Adjust Wallet Balance Ledger</p>
+                    
+                    <div className="flex space-x-2">
+                      <select
+                        value={adjustType}
+                        onChange={(e) => setAdjustType(e.target.value as any)}
+                        className="bg-white border border-slate-200 text-slate-900 rounded-xl px-2.5 py-2 text-xs font-extrabold focus:outline-none cursor-pointer"
+                      >
+                        <option value="add">Add Credit (+)</option>
+                        <option value="subtract">Subtract Debit (-)</option>
+                      </select>
+                      
+                      <div className="flex-1 relative">
+                        <input
+                          type="number"
+                          placeholder="Amount in ETB"
+                          value={adjustAmount}
+                          onChange={(e) => setAdjustAmount(e.target.value)}
+                          className="w-full bg-white border border-slate-200 text-slate-900 rounded-xl px-3.5 py-2 text-xs font-mono font-black placeholder:font-sans focus:outline-none focus:ring-1 focus:ring-[#0A3D91]"
+                        />
+                        <span className="absolute right-3.5 top-2.5 text-[10px] uppercase font-black text-slate-450 select-none">ETB</span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleAdjustBalance}
+                        disabled={actionLoading === 'adjust-balance' || !adjustAmount || isNaN(Number(adjustAmount)) || Number(adjustAmount) <= 0}
+                        className="px-4 py-2 bg-[#0A3D91] hover:bg-[#072f70] text-white text-[10.5px] uppercase font-black tracking-wider rounded-xl cursor-pointer transition-all active:scale-95 disabled:opacity-40 disabled:pointer-events-none shadow-3xs"
+                      >
+                        Authorize
+                      </button>
+                    </div>
+
+                    {/* REAL-TIME PREVIEW */}
+                    {adjustAmount && !isNaN(Number(adjustAmount)) && Number(adjustAmount) > 0 && (
+                      <div className="mt-2.5 p-3 rounded-xl bg-[#071630] border border-[#0A3D91]/30 text-white font-mono space-y-1.5 shadow-md animate-in slide-in-from-top-1 duration-150 text-[10px]">
+                        <div className="flex justify-between items-center text-slate-400 text-[9px] font-sans uppercase font-black tracking-wider">
+                          <span>AUDIT RECORD PREVIEW</span>
+                          <span className={adjustType === 'add' ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
+                            {adjustType === 'add' ? '● CREDIT ADJUSTMENT' : '● DEBIT DEDUCTION'}
+                          </span>
+                        </div>
+                        
+                        <div className="text-xs font-black text-center py-1 flex items-center justify-center space-x-2 bg-black/20 rounded-lg">
+                          <span className={adjustType === 'add' ? 'text-emerald-400 font-extrabold' : 'text-rose-400 font-extrabold'}>
+                            {adjustType === 'add' ? '+' : '-'} {Number(adjustAmount).toLocaleString()} ETB
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 text-[9px] border-t border-white/5 pt-1.5 font-sans">
+                          <div>
+                            <span className="text-slate-400 block pb-0.5 font-sans">CURRENT BALANCE</span>
+                            <span className="font-mono font-bold text-slate-300">{(selectedUserForEdit.profile?.walletBalance || 0).toLocaleString()} ETB</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-slate-400 block pb-0.5 font-sans">POST-AUDIT BALANCE</span>
+                            <span className={`font-mono font-black ${adjustType === 'add' ? 'text-emerald-400' : 'text-rose-400'}`}>
+                              {Math.max(0, adjustType === 'add' 
+                                ? (selectedUserForEdit.profile?.walletBalance || 0) + Number(adjustAmount) 
+                                : (selectedUserForEdit.profile?.walletBalance || 0) - Number(adjustAmount)
+                              ).toLocaleString()} ETB
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* VIP re-alignment desk */}
+                  <div className="space-y-3 p-3 bg-slate-50 border border-slate-150 rounded-2xl">
+                    <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">VIP Level Alignment Desk</p>
+                    
+                    <div className="flex flex-wrap gap-1.5 max-h-[85px] overflow-y-auto pr-1 scrollbar-none">
+                      {Array.from({ length: 16 }).map((_, level) => {
+                        const isProposed = adjustVipLevel === level;
+                        const isCurrent = (selectedUserForEdit.profile?.vipLevel || 0) === level;
+                        
+                        return (
+                          <button
+                            key={level}
+                            type="button"
+                            disabled={actionLoading === 'update-vip'}
+                            onClick={() => setAdjustVipLevel(level)}
+                            className={`px-3 py-1.5 rounded-lg font-mono font-black text-[10px] border cursor-pointer transition-all relative ${
+                              isProposed
+                                ? 'bg-[#0A3D91] text-white border-transparent shadow-xs scale-102 z-10'
+                                : isCurrent
+                                  ? 'bg-blue-50 border-blue-300 text-blue-700 hover:bg-blue-100'
+                                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'
+                            }`}
+                          >
+                            VIP {level}
+                            {isCurrent && (
+                              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-blue-550 border border-white text-[6px] text-white flex items-center justify-center font-sans font-extrabold" title="Current Level">C</span>
+                            )}
+                            {isProposed && !isCurrent && (
+                              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-yellow-450 border border-white text-[6px] text-slate-955 flex items-center justify-center font-sans font-extrabold" title="Proposed Level">P</span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* VIP Confirmation Gate inline */}
+                    {adjustVipLevel !== (selectedUserForEdit.profile?.vipLevel || 0) && (
+                      <div className="p-3 bg-amber-50 rounded-xl border border-amber-250 mt-1.5 space-y-2.5 animate-in slide-in-from-top-1 duration-150">
+                        <div className="flex items-start space-x-2">
+                          <div className="p-1.5 bg-amber-100 text-amber-800 rounded-lg shrink-0 mt-0.5">
+                            <Award className="w-4 h-4 animate-bounce" />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-black text-amber-800 uppercase tracking-wider">CONFIRM VIP REALIGNMENT</p>
+                            <p className="text-[10px] text-amber-700 font-semibold leading-relaxed">
+                              Altering VIP status from <strong className="font-extrabold font-mono">VIP {selectedUserForEdit.profile?.vipLevel || 0}</strong> to <strong className="font-extrabold font-mono">VIP {adjustVipLevel}</strong>. This aligns deposit benefits and commission privileges.
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex space-x-2 pt-1 border-t border-amber-200">
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateVip(adjustVipLevel)}
+                            disabled={actionLoading === 'update-vip'}
+                            className="flex-1 py-1 px-3 bg-[#0A3D91] hover:bg-[#072f70] text-[10px] font-black text-white uppercase tracking-wider rounded-lg flex items-center justify-center space-x-1 cursor-pointer transition-all active:scale-98"
+                          >
+                            <Check className="w-3.5 h-3.5 stroke-[3]" />
+                            <span>Confirm VIP Change</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setAdjustVipLevel(selectedUserForEdit.profile?.vipLevel || 0)}
+                            className="py-1 px-3 bg-white hover:bg-slate-100 text-[10px] font-bold text-slate-600 border border-slate-200 rounded-lg cursor-pointer transition-all"
+                          >
+                            Reset
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
               </div>
 
-              {/* Account properties summary */}
-              <div className="grid grid-cols-2 gap-3 text-[10px] font-semibold text-slate-500 bg-slate-50/50 p-2 text-center rounded-xl">
+              {/* Account properties summary footer */}
+              <div className="grid grid-cols-2 gap-3 text-[10px] font-semibold text-slate-500 bg-slate-50/55 p-2.5 text-center rounded-xl">
                 <div>Invite Code: <span className="font-bold text-slate-700 font-mono tracking-widest uppercase">{selectedUserForEdit.referralCode}</span></div>
-                <div>ID Verification: <span className="text-slate-700 font-bold uppercase">{selectedUserForEdit.profile?.idVerificationStatus || 'unsubmitted'}</span></div>
+                <div>ID Verification: <span className="text-slate-705 font-black uppercase tracking-wide">{selectedUserForEdit.profile?.idVerificationStatus || 'unsubmitted'}</span></div>
               </div>
 
               <div className="flex gap-2 pt-3 border-t border-slate-100">
                 <button
+                  type="button"
                   onClick={() => handleToggleUserStatus(selectedUserForEdit)}
                   className={`flex-1 py-3 border font-black uppercase text-xs tracking-wider rounded-xl text-center active:scale-98 transition-all cursor-pointer shadow-3xs ${
                     selectedUserForEdit.status === 'suspended'
-                      ? 'bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100'
+                      ? 'bg-emerald-50 border-emerald-250 text-emerald-600 hover:bg-emerald-100'
                       : 'bg-rose-50 border-rose-250 text-rose-600 hover:bg-rose-100'
                   }`}
                 >
                   {selectedUserForEdit.status === 'suspended' ? 'Activate Account' : 'Suspend Account'}
                 </button>
                 <button
+                  type="button"
                   onClick={() => setSelectedUserForEdit(null)}
                   className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 active:scale-98 text-slate-700 font-black uppercase text-xs tracking-wider rounded-xl transition-all cursor-pointer text-center"
                 >
-                  Close Auditing Panel
+                  Close Panel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Toast Notification HUD */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: -25, scale: 0.92 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            className="fixed top-5 left-1/2 -translate-x-1/2 z-[1100] max-w-sm w-full px-4 animate-in fade-in zoom-in-95 duration-200"
+          >
+            <div className={`p-3.5 rounded-2xl border shadow-xl flex items-center space-x-3 backdrop-blur-md ${
+              toast.type === 'error' 
+                ? 'bg-rose-50/95 border-rose-200 text-rose-800' 
+                : toast.type === 'info'
+                  ? 'bg-blue-50/95 border-blue-200 text-blue-800'
+                  : 'bg-emerald-50/95 border-emerald-250 text-emerald-800'
+            }`}>
+              <div className={`p-1.5 rounded-xl shrink-0 ${
+                toast.type === 'error' ? 'bg-rose-100 text-rose-600' :
+                toast.type === 'info' ? 'bg-blue-100 text-blue-600' : 'bg-emerald-100 text-emerald-600'
+              }`}>
+                {toast.type === 'error' ? <XCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+              </div>
+              <p className="text-xs font-black uppercase tracking-wide flex-1 leading-snug">{toast.message}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* withdrawalActionConfirm MODAL */}
+      <AnimatePresence>
+        {withdrawalActionConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[1100] bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              className="bg-white rounded-3xl max-w-sm w-full p-5 sm:p-6 border border-slate-200 shadow-2xl relative space-y-4"
+            >
+              <div className="flex items-center space-x-3 text-amber-600">
+                <div className={`p-2 rounded-xl ${
+                  withdrawalActionConfirm.action === 'approve' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
+                }`}>
+                  <ShieldAlert className="w-5 h-5" />
+                </div>
+                <h4 className="font-display font-black text-sm uppercase tracking-wider text-slate-900">
+                  Confirm Withdrawal Decision
+                </h4>
+              </div>
+
+              <div className="space-y-3 text-xs text-slate-600">
+                <p className="leading-relaxed font-semibold">
+                  You are about to <strong className={withdrawalActionConfirm.action === 'approve' ? 'text-emerald-600 font-extrabold uppercase' : 'text-rose-600 font-extrabold uppercase'}>{withdrawalActionConfirm.action}</strong> the following withdrawal petition:
+                </p>
+
+                <div className="bg-slate-50 p-3 rounded-2xl border border-slate-150 space-y-1.5 font-mono">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400 font-sans uppercase text-[10px] tracking-tight">PETITIONER:</span>
+                    <span className="font-bold text-slate-800">{withdrawalActionConfirm.userName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400 font-sans uppercase text-[10px] tracking-tight">ORDER ID:</span>
+                    <span className="font-bold text-slate-800 text-right">#{withdrawalActionConfirm.id}</span>
+                  </div>
+                  <div className="flex justify-between border-t border-slate-200 pt-1.5">
+                    <span className="text-slate-400 font-sans uppercase text-[10px] tracking-tight">CASH QUANTITY:</span>
+                    <span className="font-black text-[#0A3D91] text-[13px]">{withdrawalActionConfirm.amount.toLocaleString()} ETB</span>
+                  </div>
+                </div>
+
+                {withdrawalActionConfirm.action === 'approve' ? (
+                  <p className="text-[10.5px] text-emerald-700 bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 font-medium leading-relaxed">
+                    ● Approving this order will officially update status to <strong>APPROVED</strong>. (Note: The requested balance was already withheld upon client petition creation).
+                  </p>
+                ) : (
+                  <p className="text-[10.5px] text-rose-700 bg-rose-50 p-2.5 rounded-xl border border-rose-220 font-medium leading-relaxed">
+                    ● Rejecting this request will automatically refund <strong>{withdrawalActionConfirm.amount.toLocaleString()} ETB</strong> back into the user's primary wallet balance immediately.
+                  </p>
+                )}
+              </div>
+
+              <div className="flex space-x-2 pt-2">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const { id, action } = withdrawalActionConfirm;
+                    setWithdrawalActionConfirm(null);
+                    await handleWithdrawalAction(id, action);
+                  }}
+                  className={`flex-1 py-2.5 px-4 text-white text-[11px] font-black uppercase tracking-wider rounded-xl cursor-pointer transition-all active:scale-95 text-center shrink-0 ${
+                    withdrawalActionConfirm.action === 'approve'
+                      ? 'bg-emerald-600 hover:bg-emerald-700'
+                      : 'bg-rose-600 hover:bg-rose-700'
+                  }`}
+                >
+                  Authorize Execution
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setWithdrawalActionConfirm(null)}
+                  className="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-black uppercase tracking-wider rounded-xl cursor-pointer transition-all text-center"
+                >
+                  Cancel
                 </button>
               </div>
             </motion.div>

@@ -1032,6 +1032,18 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     if (!user) return respondJSON(404, { error: "User not found" });
 
     user.status = status;
+
+    db.notifications.push({
+      id: "not-" + Math.random().toString(36).substr(2, 9),
+      userId: targetUserId,
+      title: status === 'active' ? "Account Activated" : "Account Suspended",
+      message: status === 'active' 
+        ? "Your account has been fully activated by the administrator. You can now access all features and check your VIP portfolios."
+        : "Your account has been temporarily suspended due to security compliance checks. Please contact LUMORA support.",
+      read: false,
+      date: new Date().toISOString()
+    });
+
     saveLocalDB(db);
     return respondJSON(200, { success: true });
   }
@@ -1044,6 +1056,16 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     if (!profile) return respondJSON(404, { error: "Profile not found" });
 
     profile.vipLevel = Number(vipLevel);
+
+    db.notifications.push({
+      id: "not-" + Math.random().toString(36).substr(2, 9),
+      userId: targetUserId,
+      title: `VIP Level Updated to VIP ${vipLevel}`,
+      message: `Your account grade has been updated by the administrator to VIP Level ${vipLevel}. This updates your high-yield eligibility rates and commission perks. Enjoy your premium rank!`,
+      read: false,
+      date: new Date().toISOString()
+    });
+
     saveLocalDB(db);
     return respondJSON(200, { success: true });
   }
@@ -1078,6 +1100,17 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
         date: new Date().toISOString()
       });
     }
+
+    db.notifications.push({
+      id: "not-" + Math.random().toString(36).substr(2, 9),
+      userId: targetUserId,
+      title: type === 'add' ? "Wallet Balance Credited" : "Wallet Balance Debited",
+      message: type === 'add'
+        ? `Your wallet balance has been credited with ${delta} ETB by an administrative manual deposit adjustment. Current balance: ${profile.walletBalance} ETB.`
+        : `Your wallet balance has been debited by ${delta} ETB by an administrative balance adjustment. Current balance: ${profile.walletBalance} ETB.`,
+      read: false,
+      date: new Date().toISOString()
+    });
 
     saveLocalDB(db);
     return respondJSON(200, { success: true, profile });
@@ -1210,6 +1243,17 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       }
     }
 
+    db.notifications.push({
+      id: "not-" + Math.random().toString(36).substr(2, 9),
+      userId: dep.userId,
+      title: finalStatus === 'approved' ? "CBE Deposit Cleared" : "CBE Deposit Declined",
+      message: finalStatus === 'approved'
+        ? `Great news! Your deposit of ${dep.amount} ETB via CBE has been approved and credited to your wallet balance. Reference: #${dep.id}.`
+        : `Your deposit submission of ${dep.amount} ETB was rejected. Reason: ${rejectionReason || 'Receipt verification failure'}. Please contact support or re-submit a valid CBE screenshot.`,
+      read: false,
+      date: new Date().toISOString()
+    });
+
     saveLocalDB(db);
     return respondJSON(200, { success: true });
   }
@@ -1257,6 +1301,17 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       }
     }
 
+    db.notifications.push({
+      id: "not-" + Math.random().toString(36).substr(2, 9),
+      userId: wit.userId,
+      title: finalStatus === 'approved' ? "Withdrawal Disbursed" : "Withdrawal Rejected",
+      message: finalStatus === 'approved'
+        ? `Your cashout petition of ${wit.amount} ETB has been cleared and disbursed to your bank account of ${wit.bankName}. Net amount credited: ${wit.netAmount} ETB (Fee: ${wit.fee} ETB).`
+        : `Your cashout petition of ${wit.amount} ETB was rejected by our compliance reviewers. Reason: ${rejectionReason || 'Bank account info mismatch'}. The full amount has been refunded back to your wallet balance.`,
+      read: false,
+      date: new Date().toISOString()
+    });
+
     saveLocalDB(db);
     return respondJSON(200, { success: true });
   }
@@ -1292,6 +1347,17 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
         });
       }
     }
+
+    db.notifications.push({
+      id: "not-" + Math.random().toString(36).substr(2, 9),
+      userId: loan.userId,
+      title: finalStatus === 'approved' ? "Commercial Loan Approved" : "Commercial Loan Rejected",
+      message: finalStatus === 'approved'
+        ? `Agreement cleared! Your commercial line-of-credit petition for ${loan.amount} ETB has been approved and credited to your wallet balance.`
+        : `We regret to inform you that your commercial loan petition of ${loan.amount} ETB was declined by underwriters. Reason: ${rejectionReason || 'Institutional compliance risk limits'}.`,
+      read: false,
+      date: new Date().toISOString()
+    });
 
     saveLocalDB(db);
     return respondJSON(200, { success: true });
