@@ -422,7 +422,7 @@ function MainAppContent() {
       )}
 
       {/* Master Smartphone mock boundary and responsive container flow */}
-      <main className={`flex-1 w-full mx-auto px-4.5 pt-5 relative transition-all duration-300 ${isWide ? 'max-w-5xl' : 'max-w-md'}`}>
+      <main className={`flex-1 w-full mx-auto px-4.5 pt-5 pb-32 relative transition-all duration-300 ${isWide ? 'max-w-5xl' : 'max-w-md'}`}>
         <AnimatePresence mode="wait">
           {showAgreements ? (
             <motion.div

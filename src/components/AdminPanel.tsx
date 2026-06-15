@@ -102,6 +102,14 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
     fetchAllAdminData();
   }, [activeSubTab]);
 
+  useEffect(() => {
+    if (selectedUserForEdit) {
+      setAdjustVipLevel(selectedUserForEdit.profile?.vipLevel || 0);
+    } else {
+      setAdjustVipLevel(0);
+    }
+  }, [selectedUserForEdit]);
+
   // Handle deposit action (approve/reject)
   const handleDepositAction = async (depositId: string, action: 'approve' | 'reject', reason?: string) => {
     setActionLoading(`deposit-${depositId}`);
@@ -1340,7 +1348,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                   <select
                     value={adjustType}
                     onChange={(e) => setAdjustType(e.target.value as any)}
-                    className="bg-white border border-slate-200 rounded-xl px-2.5 py-2 text-xs font-extrabold text-slate-700 focus:outline-none cursor-pointer"
+                    className="bg-white border border-slate-200 text-slate-900 rounded-xl px-2.5 py-2 text-xs font-extrabold focus:outline-none cursor-pointer"
                   >
                     <option value="add">Add Credit (+)</option>
                     <option value="subtract">Subtract Debit (-)</option>
@@ -1352,43 +1360,125 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                       placeholder="Amount in ETB"
                       value={adjustAmount}
                       onChange={(e) => setAdjustAmount(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-mono font-black placeholder:font-sans focus:outline-none focus:ring-1 focus:ring-[#0A3D91]"
+                      className="w-full bg-white border border-slate-200 text-slate-900 rounded-xl px-3.5 py-2 text-xs font-mono font-black placeholder:font-sans focus:outline-none focus:ring-1 focus:ring-[#0A3D91]"
                     />
-                    <span className="absolute right-3.5 top-2.5 text-[10px] uppercase font-black text-slate-400">ETB</span>
+                    <span className="absolute right-3.5 top-2.5 text-[10px] uppercase font-black text-slate-450 select-none">ETB</span>
                   </div>
 
                   <button
                     onClick={handleAdjustBalance}
-                    disabled={actionLoading === 'adjust-balance'}
-                    className="px-4 py-2 bg-[#0A3D91] hover:bg-[#072f70] text-white text-[10.5px] uppercase font-black tracking-wider rounded-xl cursor-pointer transition-all active:scale-95 shadow-3xs"
+                    disabled={actionLoading === 'adjust-balance' || !adjustAmount || isNaN(Number(adjustAmount)) || Number(adjustAmount) <= 0}
+                    className="px-4 py-2 bg-[#0A3D91] hover:bg-[#072f70] text-white text-[10.5px] uppercase font-black tracking-wider rounded-xl cursor-pointer transition-all active:scale-95 disabled:opacity-40 disabled:pointer-events-none shadow-3xs"
                   >
                     Authorize
                   </button>
                 </div>
+
+                {/* REAL-TIME MONEY NUMBERS DYNAMIC PREVIEW BOX */}
+                {adjustAmount && !isNaN(Number(adjustAmount)) && Number(adjustAmount) > 0 && (
+                  <div className="mt-2.5 p-3 rounded-xl bg-[#071630] border border-[#0A3D91]/30 text-white font-mono space-y-1.5 shadow-md animate-in slide-in-from-top-1 duration-150">
+                    <div className="flex justify-between items-center text-slate-400 text-[9px] font-sans uppercase font-black tracking-wider">
+                      <span>AUDIT CORRESPONDENCE PREVIEW</span>
+                      <span className={adjustType === 'add' ? 'text-emerald-400 font-black' : 'text-rose-400 font-black'}>
+                        {adjustType === 'add' ? '● LEDGER CREDIT' : '● LEDGER DEBIT'}
+                      </span>
+                    </div>
+                    
+                    <div className="text-sm font-black text-center py-1 flex items-center justify-center space-x-2 bg-black/20 rounded-lg">
+                      <span className={adjustType === 'add' ? 'text-emerald-400' : 'text-rose-400'}>
+                        {adjustType === 'add' ? '+' : '-'} {Number(adjustAmount).toLocaleString()} ETB
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-[9px] border-t border-white/5 pt-1.5 font-sans">
+                      <div>
+                        <span className="text-slate-450 uppercase tracking-tight block">STARTING BALANCE</span>
+                        <span className="font-mono font-bold text-slate-200">{(selectedUserForEdit.profile?.walletBalance || 0).toLocaleString()} ETB</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-slate-450 uppercase tracking-tight block">POST-AUDIT BALANCE</span>
+                        <span className={`font-mono font-black ${adjustType === 'add' ? 'text-emerald-400' : 'text-rose-400'}`}>
+                          {Math.max(0, adjustType === 'add' 
+                            ? (selectedUserForEdit.profile?.walletBalance || 0) + Number(adjustAmount) 
+                            : (selectedUserForEdit.profile?.walletBalance || 0) - Number(adjustAmount)
+                          ).toLocaleString()} ETB
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* VIP promotion desk */}
               <div className="space-y-3 p-3 bg-slate-50 border border-slate-150 rounded-2xl">
                 <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">VIP Level Alignment Desk</p>
+                
                 <div className="flex flex-wrap gap-1.5 max-h-[85px] overflow-y-auto pr-1 scrollbar-none">
                   {Array.from({ length: 16 }).map((_, level) => {
-                    const isSelected = (selectedUserForEdit.profile?.vipLevel || 0) === level;
+                    const isProposed = adjustVipLevel === level;
+                    const isCurrent = (selectedUserForEdit.profile?.vipLevel || 0) === level;
+                    
                     return (
                       <button
                         key={level}
+                        type="button"
                         disabled={actionLoading === 'update-vip'}
-                        onClick={() => handleUpdateVip(level)}
-                        className={`px-3 py-1.5 rounded-lg font-mono font-black text-[10px] border cursor-pointer transition-all ${
-                          isSelected
-                            ? 'bg-[#0A3D91] text-white border-transparent shadow-3xs scale-102'
-                            : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                        onClick={() => setAdjustVipLevel(level)}
+                        className={`px-3 py-1.5 rounded-lg font-mono font-black text-[10px] border cursor-pointer transition-all relative ${
+                          isProposed
+                            ? 'bg-[#0A3D91] text-white border-transparent shadow-xs scale-102 z-10'
+                            : isCurrent
+                              ? 'bg-blue-50 border-blue-300 text-blue-700 hover:bg-blue-100'
+                              : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'
                         }`}
                       >
                         VIP {level}
+                        {isCurrent && (
+                          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-blue-550 border border-white text-[6px] text-white flex items-center justify-center font-sans font-extrabold" title="Current Level">C</span>
+                        )}
+                        {isProposed && !isCurrent && (
+                          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-yellow-450 border border-white text-[6px] text-slate-955 flex items-center justify-center font-sans font-extrabold" title="Proposed Level">P</span>
+                        )}
                       </button>
                     );
                   })}
                 </div>
+
+                {/* VIP CONFIRMATION GATE */}
+                {adjustVipLevel !== (selectedUserForEdit.profile?.vipLevel || 0) && (
+                  <div className="p-3 bg-amber-50 rounded-xl border border-amber-250 mt-1.5 space-y-2.5 animate-in slide-in-from-top-1 duration-150">
+                    <div className="flex items-start space-x-2">
+                      <div className="p-1.5 bg-amber-100 text-amber-800 rounded-lg shrink-0 mt-0.5">
+                        <Award className="w-4 h-4 animate-bounce" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-amber-800 uppercase tracking-wider">CONFIRY VIP RE-ALIGNMENT</p>
+                        <p className="text-[10px] text-amber-700 font-semibold leading-relaxed">
+                          You are altering this client's category from <strong className="font-extrabold font-mono">VIP {selectedUserForEdit.profile?.vipLevel || 0}</strong> to <strong className="font-extrabold font-mono">VIP {adjustVipLevel}</strong>. This changes their transaction coefficients and system perks.
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex space-x-2 pt-1 border-t border-amber-200">
+                      <button
+                        type="button"
+                        onClick={() => handleUpdateVip(adjustVipLevel)}
+                        disabled={actionLoading === 'update-vip'}
+                        className="flex-1 py-1 px-3 bg-[#0A3D91] hover:bg-[#072f70] text-[10px] font-black text-white uppercase tracking-wider rounded-lg flex items-center justify-center space-x-1 cursor-pointer transition-all active:scale-98"
+                      >
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                        <span>Authorize VIP Shift</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAdjustVipLevel(selectedUserForEdit.profile?.vipLevel || 0)}
+                        className="py-1 px-3 bg-white hover:bg-slate-100 text-[10px] font-bold text-slate-600 border border-slate-200 rounded-lg cursor-pointer transition-all"
+                      >
+                        Reset
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Account properties summary */}
