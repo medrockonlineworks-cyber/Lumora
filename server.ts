@@ -8,7 +8,7 @@ import {
 } from "./src/types";
 
 // Initialize Firebase Admin SDK
-import { initializeApp, getApps, App } from "firebase-admin/app";
+import { initializeApp, getApps, App, cert } from "firebase-admin/app";
 import { getFirestore, Firestore } from "firebase-admin/firestore";
 import firebaseConfig from "./firebase-applet-config.json";
 
@@ -24,9 +24,26 @@ function getFirestoreDb(): Firestore | null {
     if (apps.length > 0) {
       firebaseApp = apps[0]!;
     } else {
-      firebaseApp = initializeApp({
-        projectId: firebaseConfig.projectId,
-      });
+      const saEnv = process.env.FIREBASE_SERVICE_ACCOUNT;
+      if (saEnv) {
+        try {
+          const serviceAccount = JSON.parse(saEnv);
+          firebaseApp = initializeApp({
+            credential: cert(serviceAccount),
+            projectId: firebaseConfig.projectId,
+          });
+          console.log("Firebase Admin SDK initialized using FIREBASE_SERVICE_ACCOUNT environment variable.");
+        } catch (saErr) {
+          console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT environment variable, falling back to default initializer:", saErr);
+          firebaseApp = initializeApp({
+            projectId: firebaseConfig.projectId,
+          });
+        }
+      } else {
+        firebaseApp = initializeApp({
+          projectId: firebaseConfig.projectId,
+        });
+      }
     }
     firestoreDb = getFirestore(firebaseApp, firebaseConfig.firestoreDatabaseId);
     console.log("Firebase Admin SDK initialized successfully.");
