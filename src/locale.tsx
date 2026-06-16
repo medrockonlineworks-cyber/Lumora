@@ -176,6 +176,7 @@ export interface Translations {
   navEarnings: string;
   navAiAssistant: string;
   navProfile: string;
+  navCard?: string;
   
   // VIP System
   vipPlans: string;

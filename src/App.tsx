@@ -8,6 +8,7 @@ import HomeTab from './components/HomeTab';
 import InvestmentsTab from './components/InvestmentsTab';
 import EarningsTab from './components/EarningsTab';
 import CustomerServiceTab from './components/CustomerServiceTab';
+import CardTab from './components/CardTab';
 import ProfileTab from './components/ProfileTab';
 import LoginScreen from './components/LoginScreen';
 import AgreementsPage from './components/AgreementsPage';
@@ -488,6 +489,13 @@ function MainAppContent() {
                 <EarningsTab 
                   investments={investments}
                   profile={enrichedProfile}
+                />
+              )}
+
+              {activeTab === 'card' && (
+                <CardTab 
+                  profile={enrichedProfile!}
+                  onRefreshProfile={fetchDashboardData}
                 />
               )}
 

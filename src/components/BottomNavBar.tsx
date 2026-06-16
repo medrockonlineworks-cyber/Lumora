@@ -1,4 +1,4 @@
-import { Home, Rocket, Coins, MessageSquare, User } from 'lucide-react';
+import { Home, Rocket, Coins, CreditCard, User } from 'lucide-react';
 import { useLanguage } from '../locale';
 import { motion } from 'motion/react';
 
@@ -17,7 +17,7 @@ export default function BottomNavBar({ activeTab, setActiveTab, isAdmin, setShow
     { id: 'home', label: t.navHome || 'Home', icon: Home },
     { id: 'investments', label: t.navInvestments || 'Invest', icon: Rocket },
     { id: 'earnings', label: t.navEarnings || 'Yield', icon: Coins },
-    { id: 'assistant', label: t.navAiAssistant || 'CS', icon: MessageSquare },
+    { id: 'card', label: t.navCard || 'Card', icon: CreditCard },
     { id: 'profile', label: t.navProfile || 'Profile', icon: User },
   ];
 

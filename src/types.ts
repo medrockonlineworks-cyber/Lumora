@@ -214,3 +214,37 @@ export interface EligibilityCheck {
   verifiedReferralCount: number;
 }
 
+export interface LumoraCard {
+  id: string;
+  userId: string;
+  cardNumber: string;
+  cvv: string;
+  expiryDate: string;
+  cardHolderName: string;
+  billingAddress: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+    phone: string;
+  };
+  balance: number; // in USD
+  status: 'active' | 'frozen' | 'expired' | 'pending';
+  lastRechargeDate?: string;
+  applicationDate?: string;
+  rechargeCount?: number;
+}
+
+export interface CardTransaction {
+  id: string;
+  userId: string;
+  cardId: string;
+  type: 'card_issued' | 'card_recharge' | 'online_purchase' | 'refund' | 'card_freeze' | 'card_unfreeze';
+  amount: number; // in USD
+  amountEtb?: number;
+  date: string;
+  description: string;
+  status: 'completed' | 'failed' | 'pending';
+}
+

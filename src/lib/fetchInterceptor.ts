@@ -3,7 +3,8 @@
 
 import { 
   User, Profile, Investment, Deposit, Withdrawal, 
-  MyTransaction, Notification, Referral, ChatMessage, Agreement, AppSettings, Loan 
+  MyTransaction, Notification, Referral, ChatMessage, Agreement, AppSettings, Loan,
+  LumoraCard, CardTransaction
 } from '../types';
 
 interface LumoraDB {
@@ -19,6 +20,8 @@ interface LumoraDB {
   agreements: Agreement[];
   settings: AppSettings;
   loans: Loan[];
+  cards?: LumoraCard[];
+  cardTransactions?: CardTransaction[];
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -120,7 +123,9 @@ function getInitialDB(): LumoraDB {
     chatHistory: {},
     agreements: AGREEMENTS,
     settings: DEFAULT_SETTINGS,
-    loans: []
+    loans: [],
+    cards: [],
+    cardTransactions: []
   };
 }
 
@@ -131,6 +136,8 @@ function loadLocalDB(): LumoraDB {
     try {
       const parsed = JSON.parse(data) as LumoraDB;
       if (!parsed.loans) parsed.loans = [];
+      if (!parsed.cards) parsed.cards = [];
+      if (!parsed.cardTransactions) parsed.cardTransactions = [];
       db = parsed;
     } catch {
       db = getInitialDB();
@@ -1546,6 +1553,323 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
         n.read = true;
       }
     });
+    saveLocalDB(db);
+    return respondJSON(200, { success: true });
+  }
+
+  // ==================== LUMORA CARD ENDPOINTS ====================
+  // Exchange rate definitions:
+  const USD_TO_ETB = 120;
+
+  // 40. GET /api/cards
+  if (pathname === '/api/cards' && method === 'GET') {
+    const queryPart = url.includes('?') ? url.split('?')[1] : '';
+    const searchParams = new URLSearchParams(queryPart);
+    const targetUserId = searchParams.get('userId');
+    if (!targetUserId) return respondJSON(400, { error: "Missing userId query param." });
+    
+    if (!db.cards) db.cards = [];
+    if (!db.cardTransactions) db.cardTransactions = [];
+
+    const userCard = db.cards.find(c => c.userId === targetUserId);
+    const userCardTrans = db.cardTransactions.filter(t => t.userId === targetUserId);
+    
+    return respondJSON(200, { card: userCard || null, transactions: userCardTrans });
+  }
+
+  // 41. POST /api/cards/apply
+  if (pathname === '/api/cards/apply' && method === 'POST') {
+    const { userId, walletType } = body;
+    const profile = db.profiles.find(p => p.userId === userId);
+    if (!profile) return respondJSON(404, { error: "Profile not found" });
+
+    // Validate Status and Suspended
+    if (profile.idVerificationStatus !== 'verified') {
+      return respondJSON(403, { error: "National ID verification (KYC) is required." });
+    }
+    if (profile.vipLevel < 3) {
+      return respondJSON(403, { error: "VIP Level 3 or higher is required." });
+    }
+    
+    // Check if account is suspended
+    const user = db.users.find(u => u.id === userId);
+    if (user && user.status === 'suspended') {
+      return respondJSON(403, { error: "Account is suspended. Contact Support." });
+    }
+
+    if (!db.cards) db.cards = [];
+    const checkCard = db.cards.find(c => c.userId === userId);
+    if (checkCard) {
+      return respondJSON(400, { error: "You already have an active or pending card application." });
+    }
+
+    // Required deductions
+    const feeUsd = 3;
+    const initialFundUsd = 10;
+    const totalUsd = feeUsd + initialFundUsd;
+    const totalEtb = totalUsd * USD_TO_ETB;
+
+    if (profile.depositBalance === undefined) profile.depositBalance = profile.walletBalance || 0;
+    if (profile.incomeBalance === undefined) profile.incomeBalance = 0;
+
+    const chosenWallet = walletType === 'income' ? 'income' : 'deposit';
+    if (chosenWallet === 'income') {
+      if (profile.incomeBalance < totalEtb) {
+        return respondJSON(400, { error: `Insufficient pool balance. You need ${totalEtb.toLocaleString()} ETB ($${totalUsd}) but only have ${profile.incomeBalance.toLocaleString()} ETB in your Income Pool.` });
+      }
+      profile.incomeBalance -= totalEtb;
+    } else {
+      if (profile.depositBalance < totalEtb) {
+        return respondJSON(400, { error: `Insufficient pool balance. You need ${totalEtb.toLocaleString()} ETB ($${totalUsd}) but only have ${profile.depositBalance.toLocaleString()} ETB in your Deposit Pool.` });
+      }
+      profile.depositBalance -= totalEtb;
+    }
+    profile.walletBalance = profile.depositBalance + profile.incomeBalance;
+
+    // Deducts fee and funds
+    const cardId = "card-" + Math.random().toString(36).substr(2, 9);
+    
+    // Generate card details
+    const randomCardNo = "5545 4296 " + Math.floor(1000 + Math.random() * 9000) + " " + Math.floor(1000 + Math.random() * 9000);
+    const randomCvv = String(Math.floor(100 + Math.random() * 900));
+    
+    const newCard: LumoraCard = {
+      id: cardId,
+      userId,
+      cardNumber: randomCardNo,
+      cvv: randomCvv,
+      expiryDate: "06/31",
+      cardHolderName: profile.fullName.toUpperCase(),
+      billingAddress: {
+        street: "16192 Coastal Highway",
+        city: "Lewes",
+        state: "Delaware (DE)",
+        zipCode: "19958",
+        country: "United States",
+        phone: profile.phone
+      },
+      balance: initialFundUsd,
+      status: 'pending',
+      applicationDate: new Date().toISOString()
+    };
+
+    db.cards.push(newCard);
+
+    // Push transaction records
+    if (!db.cardTransactions) db.cardTransactions = [];
+    db.cardTransactions.push({
+      id: "ctx-" + Math.random().toString(36).substr(2, 9),
+      userId,
+      cardId,
+      type: 'card_issued',
+      amount: feeUsd,
+      amountEtb: feeUsd * USD_TO_ETB,
+      date: new Date().toISOString(),
+      description: `LUMORA CARD $${feeUsd} Issuance Fee (Deducted from ${chosenWallet === 'income' ? 'Income' : 'Deposit'} Pool: ${ (feeUsd * USD_TO_ETB).toLocaleString() } ETB)`,
+      status: 'completed'
+    });
+
+    db.cardTransactions.push({
+      id: "ctx-" + Math.random().toString(36).substr(2, 9),
+      userId,
+      cardId,
+      type: 'card_recharge',
+      amount: initialFundUsd,
+      amountEtb: initialFundUsd * USD_TO_ETB,
+      date: new Date().toISOString(),
+      description: `Initial funding card recharge of $${initialFundUsd} (Deducted from ${chosenWallet === 'income' ? 'Income' : 'Deposit'} Pool: ${ (initialFundUsd * USD_TO_ETB).toLocaleString() } ETB)`,
+      status: 'completed'
+    });
+
+    db.notifications.push({
+      id: "not-" + Math.random().toString(36).substr(2, 9),
+      userId,
+      title: "LUMORA Card Application Submitted",
+      message: `Your Virtual MasterCard application has been successfully received. A $3 issuance fee and $10 initial funding have been reserved. Pending administrator activation.`,
+      read: false,
+      date: new Date().toISOString()
+    });
+
+    saveLocalDB(db);
+    return respondJSON(200, { success: true, card: newCard });
+  }
+
+  // 42. POST /api/cards/recharge
+  if (pathname === '/api/cards/recharge' && method === 'POST') {
+    const { userId, amount, walletType } = body;
+    const reqAmount = Number(amount);
+    if (!reqAmount || reqAmount < 10) {
+      return respondJSON(400, { error: "Minimum funding amount is $10 USD (1,200 ETB)." });
+    }
+
+    const profile = db.profiles.find(p => p.userId === userId);
+    if (!profile) return respondJSON(404, { error: "Profile not found" });
+
+    if (!db.cards) db.cards = [];
+    const card = db.cards.find(c => c.userId === userId);
+    if (!card) return respondJSON(404, { error: "Card not found. Please apply first." });
+    if (card.status !== 'active') {
+      return respondJSON(400, { error: `Card must be active to fund. Current status: ${card.status}` });
+    }
+
+    const costEtb = reqAmount * USD_TO_ETB;
+    if (profile.depositBalance === undefined) profile.depositBalance = profile.walletBalance || 0;
+    if (profile.incomeBalance === undefined) profile.incomeBalance = 0;
+
+    const chosenWallet = walletType === 'income' ? 'income' : 'deposit';
+    if (chosenWallet === 'income') {
+      if (profile.incomeBalance < costEtb) {
+        return respondJSON(400, { error: `Insufficient pool. You need ${costEtb.toLocaleString()} ETB ($${reqAmount}) but only have ${profile.incomeBalance.toLocaleString()} ETB inside your Income Pool.` });
+      }
+      profile.incomeBalance -= costEtb;
+    } else {
+      if (profile.depositBalance < costEtb) {
+        return respondJSON(400, { error: `Insufficient pool. You need ${costEtb.toLocaleString()} ETB ($${reqAmount}) but only have ${profile.depositBalance.toLocaleString()} ETB inside your Deposit Pool.` });
+      }
+      profile.depositBalance -= costEtb;
+    }
+    profile.walletBalance = profile.depositBalance + profile.incomeBalance;
+
+    card.balance += reqAmount;
+    card.lastRechargeDate = new Date().toISOString();
+    card.rechargeCount = (card.rechargeCount || 0) + 1;
+
+    if (!db.cardTransactions) db.cardTransactions = [];
+    db.cardTransactions.push({
+      id: "ctx-" + Math.random().toString(36).substr(2, 9),
+      userId,
+      cardId: card.id,
+      type: 'card_recharge',
+      amount: reqAmount,
+      amountEtb: costEtb,
+      date: new Date().toISOString(),
+      description: `Recharged card balance with $${reqAmount} USD (Deducted: ${costEtb.toLocaleString()} ETB from ${chosenWallet === 'income' ? 'Income' : 'Deposit'} Pool)`,
+      status: 'completed'
+    });
+
+    db.notifications.push({
+      id: "not-" + Math.random().toString(36).substr(2, 9),
+      userId,
+      title: "LUMORA Card Recharged",
+      message: `Your Virtual MasterCard has been successfully funded with $${reqAmount} USD (deducted ${costEtb.toLocaleString()} ETB). New Card Balance: $${card.balance.toFixed(2)} USD.`,
+      read: false,
+      date: new Date().toISOString()
+    });
+
+    saveLocalDB(db);
+    return respondJSON(200, { success: true, card });
+  }
+
+  // 43. POST /api/cards/freeze
+  if (pathname === '/api/cards/freeze' && method === 'POST') {
+    const { userId, action } = body;
+    if (!db.cards) db.cards = [];
+    const card = db.cards.find(c => c.userId === userId);
+    if (!card) return respondJSON(404, { error: "Card not found" });
+
+    if (action === 'freeze') {
+      card.status = 'frozen';
+    } else {
+      card.status = 'active';
+    }
+
+    if (!db.cardTransactions) db.cardTransactions = [];
+    db.cardTransactions.push({
+      id: "ctx-" + Math.random().toString(36).substr(2, 9),
+      userId,
+      cardId: card.id,
+      type: action === 'freeze' ? 'card_freeze' : 'card_unfreeze',
+      amount: 0,
+      date: new Date().toISOString(),
+      description: `Card was ${action === 'freeze' ? 'Frozen' : 'Unfrozen'} by Cardholder`,
+      status: 'completed'
+    });
+
+    db.notifications.push({
+      id: "not-" + Math.random().toString(36).substr(2, 9),
+      userId,
+      title: action === 'freeze' ? "LUMORA Card Frozen" : "LUMORA Card Unfrozen",
+      message: `Your Virtual MasterCard status has been updated to: ${card.status.toUpperCase()}.`,
+      read: false,
+      date: new Date().toISOString()
+    });
+
+    saveLocalDB(db);
+    return respondJSON(200, { success: true, card });
+  }
+
+  // 44. GET /api/admin/cards
+  if (pathname === '/api/admin/cards' && method === 'GET') {
+    if (!db.cards) db.cards = [];
+    if (!db.cardTransactions) db.cardTransactions = [];
+
+    const enrichedCards = db.cards.map(c => {
+      const user = db.users.find(u => u.id === c.userId);
+      const profile = db.profiles.find(p => p.userId === c.userId);
+      return {
+        ...c,
+        user: user ? { id: user.id, fullName: user.fullName, phone: user.phone, status: user.status } : null,
+        profile: profile ? { vipLevel: profile.vipLevel, idVerificationStatus: profile.idVerificationStatus } : null
+      };
+    });
+
+    return respondJSON(200, { cards: enrichedCards, transactions: db.cardTransactions });
+  }
+
+  // 45. POST /api/admin/cards/action
+  if (pathname === '/api/admin/cards/action' && method === 'POST') {
+    const { cardId, action } = body;
+    if (!db.cards) db.cards = [];
+    const card = db.cards.find(c => c.id === cardId);
+    if (!card) return respondJSON(404, { error: "Card not found" });
+
+    const userId = card.userId;
+    const profile = db.profiles.find(p => p.userId === userId);
+
+    if (action === 'approve') {
+      card.status = 'active';
+      db.notifications.push({
+        id: "not-" + Math.random().toString(36).substr(2, 9),
+        userId,
+        title: "LUMORA Card Approved",
+        message: `Congratulations! Your Virtual Mastercard has been approved by the administrator and is fully Active. Details are visible in your Card Tab.`,
+        read: false,
+        date: new Date().toISOString()
+      });
+    } else if (action === 'reject') {
+      // Refund the initial funding amount of $10 to Deposit Wallet
+      if (profile) {
+        const refundEtb = 10 * USD_TO_ETB;
+        if (profile.depositBalance === undefined) profile.depositBalance = profile.walletBalance || 0;
+        profile.depositBalance += refundEtb;
+        profile.walletBalance += refundEtb;
+        
+        db.transactions.push({
+          id: "tx-" + Math.random().toString(36).substr(2, 9),
+          userId,
+          type: 'bonus',
+          amount: refundEtb,
+          description: `Refund for Rejected Card initial funding reserve`,
+          date: new Date().toISOString()
+        });
+      }
+
+      db.notifications.push({
+        id: "not-" + Math.random().toString(36).substr(2, 9),
+        userId,
+        title: "LUMORA Card Rejected",
+        message: `Your Virtual Mastercard application was declined. Your reserved initial funding ($10 / ${ (10 * USD_TO_ETB).toLocaleString() } ETB) has been refunded to your Deposit Pool.`,
+        read: false,
+        date: new Date().toISOString()
+      });
+      // Remove card from database on explicit rejection
+      db.cards = db.cards.filter(c => c.id !== cardId);
+    } else if (action === 'freeze') {
+      card.status = 'frozen';
+    } else if (action === 'unfreeze') {
+      card.status = 'active';
+    }
+
     saveLocalDB(db);
     return respondJSON(200, { success: true });
   }

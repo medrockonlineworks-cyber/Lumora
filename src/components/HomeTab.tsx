@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Coins, ArrowUpRight, ArrowDownRight, TrendingUp, MessageSquare, Building, ChevronRight, ShieldCheck, ArrowRight, UserCheck, Gift } from 'lucide-react';
+import { Coins, ArrowUpRight, ArrowDownRight, TrendingUp, MessageSquare, Building, ChevronRight, ShieldCheck, ArrowRight, UserCheck, Gift, CreditCard, Lock, Sparkles, Plus } from 'lucide-react';
 import { useLanguage } from '../locale';
 import { Profile, MyTransaction, Investment } from '../types';
 import { motion } from 'motion/react';
@@ -29,6 +29,30 @@ export default function HomeTab({
   investments
 }: HomeTabProps) {
   const { language, t, et } = useLanguage();
+
+  const [userCard, setUserCard] = useState<any | null>(null);
+  const [loadingCard, setLoadingCard] = useState(true);
+
+  const fetchUserCard = async () => {
+    if (!profile?.userId) return;
+    try {
+      const res = await fetch(`/api/cards?userId=${profile.userId}`);
+      const data = await res.json();
+      if (res.ok && data.card) {
+        setUserCard(data.card);
+      } else {
+        setUserCard(null);
+      }
+    } catch (err) {
+      // Silent error
+    } finally {
+      setLoadingCard(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserCard();
+  }, [profile?.userId]);
 
   const [isCheckingIn, setIsCheckingIn] = useState(false);
   const [msg, setMsg] = useState<{ text: string; isError: boolean } | null>(null);
@@ -636,6 +660,74 @@ export default function HomeTab({
           </>
         );
       })()}
+
+      {/* LUMORA CARD QUICK-ACCESS FINTECH WIDGET */}
+      <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-[0_2px_12px_rgba(10,61,145,0.02)] space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2.5 text-left">
+            <div className="p-2.5 bg-blue-50 text-blue-600 rounded-2xl border border-blue-100">
+              <CreditCard className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="font-display font-black text-xs text-[#0A3D91] uppercase tracking-wider">
+                LUMORA Virtual Mastercard
+              </h4>
+              <p className="text-[8.5px] text-slate-450 uppercase tracking-widest font-black mt-0.5">
+                Separate USD Spending Balance
+              </p>
+            </div>
+          </div>
+
+          {userCard ? (
+            <span className={`px-2.5 py-0.5 text-[8.5px] font-black uppercase tracking-wider rounded-full shadow-3xs border ${
+              userCard.status === 'active' 
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-150'
+                : userCard.status === 'frozen'
+                ? 'bg-rose-50 text-rose-700 border-rose-150'
+                : 'bg-amber-50 text-amber-700 border-amber-150 animate-pulse'
+            }`}>
+              {userCard.status}
+            </span>
+          ) : (
+            <span className="px-2 py-0.5 bg-[#2563EB]/10 border border-[#2563EB]/25 text-[#2563EB] rounded-full text-[8.5px] font-black uppercase tracking-widest">
+              VIP 3+ KYC
+            </span>
+          )}
+        </div>
+
+        {userCard ? (
+          <div className="grid grid-cols-2 gap-3 p-3.5 bg-slate-50 border border-slate-150 rounded-2xl">
+            <div className="text-left font-sans">
+              <span className="text-[8px] text-slate-400 font-extrabold uppercase tracking-wider block">Card Balance</span>
+              <span className="text-sm font-black text-slate-900 block mt-1">
+                ${userCard.balance?.toFixed(2)} <span className="text-[9px] text-[#0A3D91] font-bold">USD</span>
+              </span>
+            </div>
+
+            <div className="text-right font-sans">
+              <span className="text-[8px] text-slate-400 font-extrabold uppercase tracking-wider block">Cardholder</span>
+              <span className="text-xs font-black text-slate-700 block mt-1 truncate max-w-[120px] ml-auto uppercase">
+                {userCard.cardHolderName}
+              </span>
+            </div>
+          </div>
+        ) : (
+          <p className="text-[10px] text-slate-650 font-bold leading-relaxed text-left">
+            Issue your premium blue-and-white virtual card. Load USD separately from your Income or Deposit wallets to buy subscriptions, pay overseas invoices, or build credit.
+          </p>
+        )}
+
+        {/* Action Button */}
+        <button
+          onClick={() => setActiveTab('card')}
+          className="w-full py-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-205 rounded-2xl flex items-center justify-between px-4.5 group active:scale-[0.99] transition-all cursor-pointer shadow-3xs"
+        >
+          <span className="text-[9.5px] font-black uppercase tracking-wider text-slate-700">
+            {userCard ? "Manage Card & Transactions" : "Apply For Virtual Card ($3)"}
+          </span>
+          <ChevronRight className="w-4 h-4 text-slate-450 group-hover:translate-x-0.5 transition-transform" />
+        </button>
+      </div>
 
       {/* INSTITUTIONAL WARNING COMPLIANCE BAR */}
       <div className="p-4 rounded-3xl bg-amber-500/5 border border-amber-500/20 text-xs text-amber-900 leading-relaxed flex items-start space-x-3.5 shadow-3xs">
