@@ -10,8 +10,8 @@ export default function AboutUsPage({ onBack }: AboutUsPageProps) {
 
   const localizedContent = {
     en: {
-      overview: "LUMORA is a premier digital-first fintech asset allocation tool. We leverage AI-integrated financial modelling, giving users secure micro-capacities on asset dividends with premium interactive monitoring tools.",
-      mission: "To democratize secure microeconomic allocations in East Africa. LUMORA allows modern high-yield calculations to become accessible for everyday mobile-first users securely.",
+      overview: "LUMORA is a premier digital-first fintech asset allocation tool. We leverage AI-integrated financial modelling, giving users secure micro-capacities on asset dividends with premium interactive monitoring tools. We offer a virtual debit Mastercard exchange rate of 1 USD = 170 ETB, managed using your secure login password.",
+      mission: "To democratize secure microeconomic allocations in East Africa. LUMORA allows modern high-yield calculations to become accessible for everyday mobile-first users securely. Please note: Users must verify their profiles with National ID cards before any deposits can be initialized.",
       vision: "To become the premier micro-allocation network in Ethiopia, expanding reliable visual tracking and AI-driven predictive insights across 5 language sectors seamlessly.",
       complianceTitle: "Official CBE Capital Guarantee Act",
       complianceDesc: "LUMORA is an official partner with the Commercial Bank of Ethiopia (CBE). All user investments and funds are 100% safe, capital protected, and fully secured by bank-backed physical reserves under our joint cooperative framework.",
@@ -27,21 +27,21 @@ export default function AboutUsPage({ onBack }: AboutUsPageProps) {
       hq: "4th Floor, METEC Building, Bole Subcity, Ethiopia"
     },
     am: {
-      overview: "LUMORA ግንባር ቀደም ዲጂታል-የፋይናንስ የንብረት ድልድል መሣሪያ ነው። በ AI የተደገፈ የፋይናንስ ሞዴሊንግን እንጠቀማለን፣ ይህም ለተጠቃሚዎች በንብረት ክፍፍል ላይ ደህንነቱ የተጠበቀ አነስተኛ አቅምን በፕሪሚየም መስተጋብራዊ የክትትል መሳሪያዎች ይሰጣል።",
-      mission: "በምስራቅ አፍሪካ አስተማማኝ የማይክሮ ኢኮኖሚ ድልድሎችን በዲሞክራሲያዊ መንገድ ተደራሽ ማድረግ። LUMORA ዘመናዊ ከፍተኛ-ምርት ስሌቶች ለዕለታዊ ተንቀሳቃሽ ስልክ ተጠቃሚዎች ደህንነቱ በተጠበቀ ሁኔታ ተደራሽ እንዲሆኑ ያስችላል።",
+      overview: "LUMORA ግንባር ቀደም ዲጂታል-የፋይናንስ የንብረት ድልድል መሣሪያ ነው። በ AI የተደገፈ የፋይናንስ ሞዴሊንግን እንጠቀማለን፣ ይህም ለተጠቃሚዎች በንብረት ክፍፍል ላይ ደህንነቱ የተጠበቀ አነስተኛ አቅምን በፕሪሚየም መስተጋብራዊ የክትትል መሳሪያዎች ይሰጣል። ቨርቹዋል ማስተር ካርድ የውጭ ምንዛሬ ተመን 1 ዶላር = 170 የኢትዮጵያ ብር (ETB) ያቀርባል።",
+      mission: "በምስራቅ አፍሪካ አስተማማኝ የማይክሮ ኢኮኖሚ ድልድሎችን በዲሞክራሲያዊ መንገድ ተደራሽ ማድረግ። LUMORA ዘመናዊ ከፍተኛ-ምርት ስሌቶች ለዕለታዊ ተንቀሳቃሽ ስልክ ተጠቃሚዎች ደህንነቱ በተጠበቀ ሁኔታ ተደራሽ እንዲሆኑ ያስችላል። ማስጠንቀቂያ፡ ተቀማጭ ሂሳብ ከማስተላለፍዎ በፊት በቅድሚያ ብሔራዊ መታወቂያ ካርድ በሉሞራ መረጋገጥ አለበት።",
       vision: "አስተማማኝ የእይታ መከታተያ እና በ AI-የተደገፉ ግምቶችን በ5 ቋንቋ ዘርፎች ላይ ያለምንም እንከን በማስፋፋት የኢትዮጵያ ቀዳሚው የማይክሮ ድልድል መረብ መሆን።",
       complianceTitle: "ኦፊሴላዊ የCBE የካፒታል ዋስትና ስምምነት",
       complianceDesc: "LUMORA ከኢትዮጵያ ንግድ ባንክ (CBE) ጋር ይፋዊ አጋር ነው። ሁሉም የተጠቃሚዎች ኢንቨስትመንቶች እና ገንዘብ 100% አስተማማኝ፣ ካፒታላቸው የተጠበቀ እና በባንክ በተደገፉ አካላዊ ክምችቶች የተጠበቁ ናቸው።",
       operatesTitle: "Lumora እንዴት እንደሚሰራ",
-      operatesSubtitle: "የተደራጀ የኢንቨስትመንት እና የንብረት አስተዳደር ሂደት",
-      operatesP1: "Lumora በተደራጀ የኢንቨስትመንት አስተዳደር ሂደት ለተጠቃሚዎች በጥንቃቄ የተመረጡ የኢንቨስትመንት ዕድሎችን ያቀርባል።",
-      operatesP2: "የእኛ የትንታኔ ቡድን የገበያ ሁኔታዎችን፣ የኢንቨስትመንት ዕድሎችን እና ሊሆኑ የሚችሉ የፕሮጀክት ሽርክናዎችን በቀጣይነት በመገምገም የእኛን የመምረጫ መስፈርቶች የሚያሟሉ ዕድሎችን ይለያል። በዚህ ምርምር እና ግምገማ ሂደት ላይ በመመስረት፣ ብቁ የኢንቨስትመንት ፕሮጀክቶች ለተጠቃሚዎች እንዲገመግሙ በፕላትፎርሙ ላይ ይቀርባሉ።",
+      operatesSubtitle: "የተዋቀረ የኢንቨስትመንት እና የንብረት አያያዝ ሂደት",
+      operatesP1: "Lumora በጥንቃቄ የተመረጡ የኢንቨስትመንት ዕድሎችን በተዋቀረ የኢንቨስትመንት አስተዳደር ሂደት ለተጠቃሚዎች ያቀርባል።",
+      operatesP2: "የእኛ የትንታኔ ቡድን የገበያ ሁኔታዎችን፣ የኢንቨስትመንት ዕድሎችን እና ሊሆኑ የሚችሉ የፕሮጀክት ሽርክናዎችን በቀጣይነት በመገምገም መስፈርቶቻችንን የሚያሟሉ ዕድሎችን ይለያል። በዚህ ምርምር እና ግምገማ ሂደት ላይ በመመስረት፣ ብቁ የኢንቨስትመንት ፕሮጀክቶች ለተጠቃሚዎች እንዲገመግሙ በፕላትፎርሙ ላይ ይቀርባሉ።",
       operatesP3: "ተጠቃሚዎች ያሉትን ፕሮጀክቶች ማሰስ፣ የኢንቨስትመንት አማራጮችን ማወዳደር እና ከኢንቨስትመንት ግባቸው፣ ከሚመርጡት ጊዜ ቆይታ እና በጀታቸው ጋር ምርጥ የሚዛመዱትን ዕድሎች መምረጥ ይችላሉ።",
       operatesP4: "አንዴ ኢንቨስትመንት ከተመረጠ፣ Lumora ገንዘብን በመመደብ እና በማስተዳደር በሥራ ማዕቀፉ በኩል ያመቻቻል። ፕላትፎርሙ የኢንቨስትመንት ሥራዎችን ያስተካክላል፣ የፕሮጀክቱን ሂደት ይከታተላል፣ እና በሚቻልበት ጊዜ ሁሉ ከሚመለከታቸው አጋሮች ወይም የገበያ ተሳታፊዎች ጋር አብሮ ይሠራል። የሉሞራ የባለሙያዎች ቡድን እነዚህን ምደባዎች በተጠቃሚዎች ስም ያስተባብራል፣ ሁሉንም አፈፃፀምና አስተዳደራዊ ቁጥጥሮች ይመራል።",
       operatesP5: "በኢንቨስትመንት ጊዜ ውስጥ ተጠቃሚዎች ኢንቨስትመንቶቻቸውን መከታተል እና በLumora ዳሽቦርዳቸው በኩል ጠቃሚ ዝመናዎችን ማየት ይችላሉ። በኢንቨስትመንት ጊዜ ማጠናቀቂያ ላይ፣ የኢንቨስትመንት ንብረቶች ውጤቶች ተሰልተው በተመረጠው ዕድል አፈጻጸም መሠረት በተጠቃሚው አካውንት ላይ ይንጸባረቃሉ።",
       contactTitle: "እውቂያ እና ድጋፍ",
       officeAddis: "አዲስ አበባ ጽ/ቤት",
-      hq: "4ኛ ፎቅ፣ ሜቴክ ህንፃ፣ ቦሌ ክፍለ ከተማ፣ ኢትዮጵያ"
+      hq: "4ኛ ፎቅ፣ ሜቴክ ህንፃ፣ ቦሌ ክፍለ ከተማ፣ አዲስ አበባ፣ ኢትዮጵያ"
     },
     om: {
       overview: "LUMORA meeshaa qoodinsa qabeenya fintech dijitalii jalqabaati. Nutis moodeela herrega maallaqaa deeggarsa AI fayyadamna, kunis fayyadamtootaaf qoodi dividends qabeenya irratti dandeettii micro amansiisaa ta’e meeshaalee hordoffii interactive ta’aniin kenna.",
@@ -86,7 +86,7 @@ export default function AboutUsPage({ onBack }: AboutUsPageProps) {
       operatesTitle: "Sida Maalgashiga Lumora u Shaqeeyo",
       operatesSubtitle: "Nidaamka Habaysan ee Maareynta Maalgashiga",
       operatesP1: "Lumora waxay siisaa dadka isticmaala fursad ay ku helaan fursado maalgashi oo si taxaddar leh loo doonayo.",
-      operatesP2: "Kooxdayada takhasuska leh waxay had iyo jeer qiimeeyaan xaaladaha suuqa si ay u ogaadaan fursadaha buuxiya dabeecadaheena maalgashi.",
+      operatesP2: "Kooxdayada takhasuska leh waxay had iyo jeer qiimeeyaan xaaladaha suuqa si ay ogaadaan fursadaha buuxiya dabeecadaheena maalgashi.",
       operatesP3: "Isticmaalayaashu waxay baran karaan mashruucyada jira, compares samayn karaan, doonana karaan tan ku haboon miisaaniyada.",
       operatesP4: "Marka maalgashi la doorto, Lumora waxay dammaanad qaadaysaa qoondaynta dhaqaalaha. Kooxda Lumora ayaa kormeera hawlaha maalgashi iyagoo matalaya macaamiisha.",
       operatesP5: "Muddada maalgashiga macaamiishu waxay hordoffi ku samayn karaan dashboard-ka.",
@@ -120,33 +120,35 @@ export default function AboutUsPage({ onBack }: AboutUsPageProps) {
   ];
 
   return (
-    <div className="space-y-6 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-300 text-slate-800">
+    <div className="space-y-6 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-300 text-slate-800" id="about-us-page-container">
       
       {/* Navigation header */}
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center space-x-3" id="about-us-header-section">
         <button
+          id="about-us-back-button"
           onClick={onBack}
-          className="p-2.5 bg-white hover:bg-slate-50 text-[#0A3D91] rounded-xl border border-blue-105 transition-colors shrink-0 cursor-pointer"
+          className="p-2.5 bg-white hover:bg-slate-50 text-[#0A3D91] rounded-xl border border-blue-100 transition-colors shrink-0 cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
         </button>
         <div>
-          <h2 className="font-display font-bold text-sm text-[#0A3D91]">
+          <h2 className="font-display font-bold text-sm text-[#0A3D91]" id="about-us-page-title">
             {t.aboutUs}
           </h2>
-          <p className="text-[10px] text-slate-500 font-semibold leading-normal">
+          <p className="text-[10px] text-slate-500 font-semibold leading-normal" id="about-us-page-subtitle">
             {t.aboutUsDescription}
           </p>
         </div>
       </div>
 
       {/* Grid of details */}
-      <div className="space-y-4">
+      <div className="space-y-4" id="about-us-sections-grid">
         {sections.map((sec, idx) => {
           const Icon = sec.icon;
           return (
             <div 
               key={idx}
+              id={`about-us-section-card-${idx}`}
               className="p-5 bg-white border border-blue-100 rounded-3xl space-y-2.5 shadow-sm"
             >
               <div className="flex items-center space-x-3">
@@ -165,8 +167,8 @@ export default function AboutUsPage({ onBack }: AboutUsPageProps) {
         })}
       </div>
 
-      {/* NEW: Operational & Balance Pool Rules */}
-      <div className="p-5 bg-white border border-blue-105 rounded-3xl space-y-4 shadow-sm text-left">
+      {/* Operational & Balance Pool Rules */}
+      <div className="p-5 bg-white border border-blue-100 rounded-3xl space-y-4 shadow-sm text-left" id="about-us-financial-rules-block">
         <div className="flex items-center space-x-3">
           <div className="p-2 rounded-xl border border-blue-100 shrink-0 text-[#0A3D91] bg-blue-50/70">
             <ShieldCheck className="w-4 h-4 text-[#0A3D91]" />
@@ -181,7 +183,7 @@ export default function AboutUsPage({ onBack }: AboutUsPageProps) {
           </div>
         </div>
 
-        <div className="space-y-3.5 text-[10.5px] text-slate-705 leading-relaxed font-sans font-medium">
+        <div className="space-y-3.5 text-[10.5px] leading-relaxed font-sans font-medium">
           <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-1.5 shadow-3xs">
             <h4 className="font-extrabold text-[#0D3B66] text-[11px] uppercase tracking-wide flex items-center space-x-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-[#0A3D91]"></span>
@@ -227,8 +229,8 @@ export default function AboutUsPage({ onBack }: AboutUsPageProps) {
         </div>
       </div>
 
-      {/* NEW: How Lumora Operates detailed block as explicitly requested */}
-      <div className="p-5 bg-white border border-blue-100 rounded-3xl space-y-4.5 shadow-sm">
+      {/* How Lumora Operates detailed block as explicitly requested */}
+      <div className="p-5 bg-white border border-blue-100 rounded-3xl space-y-4.5 shadow-sm" id="about-us-operation-process-block">
         <div className="flex items-center space-x-3">
           <div className="p-2 rounded-xl border border-blue-100 shrink-0 text-[#0A3D91] bg-blue-50/70">
             <Briefcase className="w-4 h-4" />
@@ -255,7 +257,7 @@ export default function AboutUsPage({ onBack }: AboutUsPageProps) {
       </div>
 
       {/* Compliance statement detail (Strict mandate) */}
-      <div className="p-5 bg-gradient-to-tr from-emerald-50 to-emerald-100/50 border border-emerald-100 rounded-3xl space-y-3">
+      <div className="p-5 bg-gradient-to-tr from-emerald-50 to-emerald-100/50 border border-emerald-100 rounded-3xl space-y-3" id="about-us-compliance-block">
         <div className="flex items-center space-x-2">
           <ShieldCheck className="w-5 h-5 text-[#10B981]" />
           <h4 className="font-display font-black text-xs text-emerald-950 uppercase tracking-wider">
@@ -268,7 +270,7 @@ export default function AboutUsPage({ onBack }: AboutUsPageProps) {
       </div>
 
       {/* Official Regulatory Licensing and Trade Registry numbers */}
-      <div className="p-5 bg-gradient-to-tr from-blue-50 to-blue-100/30 border border-blue-100 rounded-3xl space-y-3.5 shadow-sm">
+      <div className="p-5 bg-gradient-to-tr from-blue-50 to-blue-100/30 border border-blue-100 rounded-3xl space-y-3.5 shadow-sm" id="about-us-regulatory-block">
         <div className="flex items-center space-x-2">
           <Award className="w-5 h-5 text-[#0A3D91]" />
           <h4 className="font-display font-black text-xs text-blue-950 uppercase tracking-wider">
@@ -310,7 +312,7 @@ export default function AboutUsPage({ onBack }: AboutUsPageProps) {
       </div>
 
       {/* Official Footnote / Launch Date Badge */}
-      <div className="text-center py-6 text-[10px] text-slate-500 font-sans font-medium space-y-1">
+      <div className="text-center py-6 text-[10px] text-slate-500 font-sans font-medium space-y-1" id="about-us-footer-section">
         <p className="font-extrabold text-[#0A3D91] uppercase tracking-wider">
           {language === 'am' ? 'ሉሞራ ይፋዊ ምረቃ ቀን፦ ሰኔ ፮ ቀን ፪፲፲፰ ዓ.ም (June 13, 2026)' : 'Lumora Platform Launched Year: June 13, 2026'}
         </p>

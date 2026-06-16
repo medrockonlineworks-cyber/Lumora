@@ -15,17 +15,17 @@ export default function WalkthroughModal({ userId, onClose }: WalkthroughModalPr
   const steps = [
     {
       id: 'verification',
-      title: 'ACCOUNT SECURED',
-      subtitle: 'ID Submitted & Pending Audit',
+      title: 'IDENTITY AUDIT FIRST',
+      subtitle: 'Complete National ID Check',
       icon: CheckCircle2,
       color: 'from-sky-400 to-sky-600',
       textColor: 'text-sky-600',
       bgGlow: 'bg-sky-400/20',
-      description: 'Congratulations! Your secure National ID has been successfully submitted to our database. Our security division is currently checking your documents for verification.',
+      description: 'To maintain full regulatory compliance, all users must submit a photo of both sides of their National ID card. This identity check is strictly required before any deposit submissions are enabled.',
       bullets: [
-        'ID inspection generally finishes within 1-2 hours.',
-        'Feel free to explore all features while verification is in progress.',
-        'Your direct cashouts will be unlocked instantly upon audit approval.'
+        'ID inspection is audited by administrators in under 2 hours.',
+        'Deposit features are unlocked instantly upon status approval.',
+        'Biometric profile coordinates are secured by state-grade protocols.'
       ]
     },
     {
@@ -68,9 +68,24 @@ export default function WalkthroughModal({ userId, onClose }: WalkthroughModalPr
       bgGlow: 'bg-sky-400/20',
       description: 'Adding secure capital balance to your wallet takes just a minute. Navigate to the Deposit menu, choose an amount, and execute a bank transfer.',
       bullets: [
-        'The absolute minimum deposit threshold is 5,000 ETB.',
+        'Complete ID verification FIRST to unlock deposit capabilities.',
         'Transfer funds to our verified Commercial Bank of Ethiopia (CBE) list.',
-        'Take a clean screenshot of the transfer slip and upload it for immediate credit.'
+        'Upload your transfer screenshot for administrator audit within 2 hours.'
+      ]
+    },
+    {
+      id: 'card',
+      title: 'VIRTUAL DEBIT MASTERCARD',
+      subtitle: 'Seamless Global Spend Card',
+      icon: ShieldCheck,
+      color: 'from-sky-400 to-sky-600',
+      textColor: 'text-sky-600',
+      bgGlow: 'bg-sky-400/20',
+      description: 'Get your official Lumora Virtual Mastercard loaded instantly. Manage global spending at our locked institutional exchange rate of 1 USD = 170 ETB.',
+      bullets: [
+        'No SMS OTP controls required—secure your card using your login password.',
+        'Spend directly from your high-yield Income or Deposit balance.',
+        'Freeze or unfreeze your active card in real-time with one single click.'
       ]
     },
     {

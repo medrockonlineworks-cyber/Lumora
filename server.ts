@@ -1433,6 +1433,10 @@ async function startServer() {
       return res.status(404).json({ error: "User profile not found" });
     }
 
+    if (profile.idVerificationStatus !== 'verified') {
+      return res.status(403).json({ error: "Security Restriction: Deposits are not allowed until your account is fully ID Verified. Please submit and verify your identity documents first." });
+    }
+
     const newDeposit: Deposit = {
       id: "dep-" + Math.random().toString(36).substr(2, 9),
       userId,

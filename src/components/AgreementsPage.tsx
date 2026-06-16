@@ -24,7 +24,7 @@ Welcome to LUMORA. Please review our revised platform guidelines:
 1. **User Identity & Bank Registration**: To maintain compliance with financial frameworks in Ethiopia, user registration does not auto-populate default credentials. Users must designate their own legitimate Commercial Bank of Ethiopia (CBE) bank details and configure a secure 4-digit payment PIN to authorize active withdrawals.
 2. **Unified Financial Limits**: A minimum transaction threshold of 5,000 ETB for CBE deposit submissions and 600 ETB for cashouts is enforced to ensure efficient processing and settlement.
 3. **Real-Time Ledger Integration**: All balance adjustments, VIP level elevations, deposits, and cashouts synchronize in real-time under a 3-second secure consensus. All transfers are manually audited on the admin portal.
-4. **Security & Identity Validation**: To authorize active cashouts and access micro-loans, users must verify their profile by uploading clean photos of both sides of their National ID cards.`
+4. **Security, ID Check & Compliance**: CBE deposits, micro-loans, and active cashouts are strictly blocked until your account identity audit is completed. All users must supply a valid photo of both sides of their National ID to unlock these features.`
       },
       "investment-policies": {
         title: "Investment Policies & Rules",
@@ -33,24 +33,25 @@ Welcome to LUMORA. Please review our revised platform guidelines:
 Platform micro-finance structural rules in detail:
 
 1. **High-Yield Plan Activation**: Investment plans are activated immediately upon balance confirmation (Min 5,000 ETB), automatically starting synced daily yields spanning VIP levels. Interest cycles schedule payouts every 24 hours.
-2. **CBE Transfer and Auditing**: Deposits are routed directly to the treasury audit desk via CBE app screenshots. Administrators evaluate submissions, and credits reflect live on user dashboards in under 2 hours.
+2. **CBE Transfer, Auditing & ID Lock**: Accounts must be fully verified (using National ID cards) to make deposit submissions. Deposits are routed directly to the treasury audit desk via CBE app screenshots. Administrators evaluate submissions, and credits reflect live on user dashboards in under 2 hours.
 3. **Cashout Settlements**: Users cash out using secure designated accounts. Approved cashouts are dispersed within 0 to 42 hours to prevent settlement issues and ensure sustainable liquidity.`
       },
       "risk-disclosure": {
         title: "About Us",
         content: `### About Us & How Lumora Works
 
-**Welcome to Lumora** – Ethiopia's premier peer-to-peer automated micro-finance and high-yield liquidity channel.
+**Welcome to Lumora** – Ethiopia's premier peer-to-peer automated micro-finance and high-yield liquidity channel. We offer a virtual debit Mastercard exchange rate of 1 USD = 170 ETB.
 
 We connect local commerce and infrastructure project liquidity pools directly to user micro-investments, facilitating high-yield, stable growth with institutional accuracy.
 
 #### How It Works:
 
-1. **Deposit Micro-Capital**: Copy our official Commercial Bank of Ethiopia (CBE) account number from the Deposit Dialog. Transfer your starting capital (minimum 5,000 ETB) from your CBE Birr App, note down your reference code, and capture a clear screenshot of the receipt.
-2. **Submit Proof**: Enter your deposited amount, paste the CBE reference code, upload your receipt screenshot, and submit. The administrators will audit and credit your account within 2 hours.
-3. **Activate High-Yield Plans**: Invest your wallet balance into VIP tiers ranging from VIP 0 to VIP 15. Your plan activates immediately, compounding interest payouts every 24 hours.
-4. **Secure Dynamic Cashouts**: Navigate to the Cashout menu. First, configure your personal phone number, active Ethiopian bank card details, and a secret 4-digit transaction PIN. Authorize cashouts (minimum 600 ETB) safely using this PIN.
-5. **Identity Integrity**: Verify your account by uploading photos of both sides of your National ID. This unlocks access to VIP active withdrawals and institutional loan options.`
+1. **Identity Integrity Clearance**: Submit a clean photo of both sides of your National ID card. Approval usually resolves within 1-2 hours and is strictly required before any deposits are permitted.
+2. **Deposit Micro-Capital**: Copy our official Commercial Bank of Ethiopia (CBE) account number from the Deposit Dialog. Transfer your starting capital (minimum 5,000 ETB) from your CBE Birr App, note down your reference code, and capture a clear screenshot of the receipt.
+3. **Submit Proof**: Enter your deposited amount, paste the CBE reference code, upload your receipt screenshot, and submit. The administrators will audit and credit your account within 2 hours.
+4. **Activate High-Yield Plans**: Invest your wallet balance into VIP tiers ranging from VIP 0 to VIP 15. Your plan activates immediately, compounding interest payouts every 24 hours.
+5. **Secure virtual Mastercard**: Apply for and load a virtual Mastercard instantly. No OTP authentication required—simply verify transactions in real-time using your main account login password.
+6. **Secure Dynamic Cashouts**: Navigate to the Cashout menu. First, configure your personal phone number, active Ethiopian bank card details, and a secret 4-digit transaction PIN. Authorize cashouts (minimum 600 ETB) safely using this PIN.`
       }
     },
     am: {
@@ -62,7 +63,7 @@ We connect local commerce and infrastructure project liquidity pools directly to
 
 1. **የባንክ ምዝገባ**: ተጠቃሚዎች የራሳቸውን የኢትዮጵያ ንግድ ባንክ (CBE) ዝርዝሮችን መመዝገብ እና ደህንነቱ የተጠበቀ ባለ ባለ 4-አሃዝ የክፍያ ፒን ኮድ ማዘጋጀት አለባቸው።
 2. **ግብይት ገደቦች**: ዝቅተኛው ተቀማጭ ገንዘብ 5000 ETB እና አነስተኛው የገንዘብ ማውጣት 600 ETB ነው።
-3. **የመለያ ማረጋገጫ**: ገንዘብ ለማውጣት እና ብድር ለማግኘት የብሔራዊ መታወቂያ ካርድ ዝርዝር ማረጋገጥ ግዴታ ነው።`
+3. **የመለያ ማረጋገጫ ግዴታ**: ግብይት ወይም ተቀማጭ ሂሳብ ለማስገባት በቅድሚያ የብሔራዊ መታወቂያ ካርድ በሉሞራ መረጋገጥ አለበት።`
       },
       "investment-policies": {
         title: "የኢንቨስትመንት መመሪያዎች እና ደንቦች",
@@ -71,21 +72,24 @@ We connect local commerce and infrastructure project liquidity pools directly to
 የመድረክ መዋቅራዊ ደንቦች በዝርዝር፡
 
 1. **ዕቅድ ማንቃት**: የኢንቨስትመንት ዕዕቅዶች ቀሪ ሂሳብ በኢትዮጵያ ንግድ ባንክ (CBE) በኩል እንደተረጋገጠ ወዲያውኑ ይነቃሉ።
-2. **ዕለታዊ ዑደት**: ንቁ ዑደቶች በየ 24 ሰዓቱ የወለድ ክፍያዎችን በራስ-ሰር ያካሂዳሉ።
-3. **የገንዘብ ማውጣት**: የጸደቁ የገንዘብ ማውጣቶች ከ 2 እስከ 6 ሰዓታት ውስጥ ወደ ሂሳብዎ ይገባሉ።`
+2. **CBE ተቀማጭ ማረጋገጫ (መታወቂያ ያስፈልጋል)**: ማንኛውም ተጠቃሚ ተቀማጭ ገንዘብ ከማስተላለፉ በፊት መታወቂያው መጽደቅ አለበት።
+3. **ዕለታዊ ዑደት**: ንቁ ዑደቶች በየ 24 ሰዓቱ የወለድ ክፍያዎችን በራስ-ሰር ያካሂዳሉ።
+4. **የገንዘብ ማውጣት**: የጸደቁ የገንዘብ ማውጣቶች ከ 2 እስከ 6 ሰዓታት ውስጥ ወደ ሂሳብዎ ይገባሉ።`
       },
       "risk-disclosure": {
         title: "ስለ እኛ (About Us)",
         content: `### ስለ እኛ እና ሉሞራ እንዴት እንደሚሰራ
 
-**እንኳን ወደ ሉሞራ በደህና መጡ** — በኢትዮጵያ ግንባር ቀደም የሆነው በራስ ሰር የሚሰራ አነስተኛ ኢንቨስትመንት እና የፋይናንስ መድረክ።
+**እንኳን ወደ ሉሞራ በደህና መጡ** — በኢትዮጵያ ግንባር ቀደም የሆነው በራስ ሰር የሚሰራ አነስተኛ ኢንቨስትመንት እና የፋይናንስ መድረክ። የቨርቹዋል ማስተር ካርድ የውጭ ምንዛሬ ተመን 1 ዶላር = 170 የኢትዮጵያ ብር (ETB) ያቀርባል።
 
 #### እንዴት እንደሚሰራ፡
 
-1. **ግብይት ያስገቡ**: የኢትዮጵያ ንግድ ባንክ (CBE) ሂሳብ ቁጥራችንን በመውሰድ በባንክ መተግበሪያዎ (CBE Birr) ያስተላልፉ።
-2. **ማረጋገጫ ይላኩ**: የተላለፈበትን ደረሰኝ እና የማጣቀሻ ቁጥር (Reference Code) ያስገቡ። አስተዳዳሪዎች በ 2 ሰዓታት ውስጥ ያረጋግጣሉ።
-3. **ዕቅዶችን ያግብሩ**: ቀሪ ሂሳብዎን ከቪአይፒ 0 እስከ ቪአይፒ 15 ባለው ዕቅድ ውስጥ ኢንቨስት ያድርጉ።
-4. **ገንዘብ ያውጡ**: ባለ ባለ 4-አሃዝ የክፍያ ፒን ቁጥርዎን በመጠቀም በቀላሉ ገንዘብ ማውጣት ይችላሉ።`
+1. **መታወቂያ ማረጋገጥ**: አስቀድመው የብሔራዊ መታወቂያ ካርድዎን ፎቶ ያስገቡ። ይህ ተቀማጭ ገንዘብ ለማድረግ ወይም ብድር ለማግኘት የግድ ያስፈልጋል።
+2. **ግብይት ያስገቡ**: የኢትዮጵያ ንግድ ባንክ (CBE) ሂሳብ ቁጥራችንን በመውሰድ በባንክ መተግበሪያዎ (CBE Birr) ያስተላልፉ።
+3. **ማረጋገጫ ይላኩ**: የተላለፈበትን ደረሰኝ እና የማጣቀሻ ቁጥር (Reference Code) ያስገቡ። አስተዳዳሪዎች በ 2 ሰዓታት ውስጥ ያረጋግጣሉ።
+4. **ዕቅዶችን ያግብሩ**: ቀሪ ሂሳብዎን ከቪአይፒ 0 እስከ ቪአይፒ 15 ባለው ዕቅድ ውስጥ ኢንቨስት ያድርጉ።
+5. **ቨርቹዋል ማስተር ካርድ**: ቨርቹዋል ማስተርካርድ ያለምንም ኦቲፒ (OTP) በሉሞራ መግቢያ የይለፍ ቃልዎ በቀላሉ ያግብሩ።
+6. **የቀን ወለድና ትርፍ**: በየ 24 ሰዓቱ የሚመነጨውን ትርፍ በቀላሉ ባለ ባለ 4-አሃዝ የክፍያ ፒን ቁጥርዎን በመጠቀም ማውጣት ይችላሉ።`
       }
     },
     om: {

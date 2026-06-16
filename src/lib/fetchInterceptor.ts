@@ -522,6 +522,10 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     const profile = db.profiles.find(p => p.userId === userId);
     if (!profile) return respondJSON(404, { error: "Profile not found" });
 
+    if (profile.idVerificationStatus !== 'verified') {
+      return respondJSON(403, { error: "Security Restriction: Deposits are not allowed until your account is fully ID Verified. Please submit and verify your identity documents first." });
+    }
+
     const trimmedRef = (bankReference || "").trim();
     if (trimmedRef) {
       const duplicateRef = db.deposits.find(d => d.bankReference && d.bankReference.trim().toUpperCase() === trimmedRef.toUpperCase());
@@ -1437,13 +1441,15 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     const txt = message.toLowerCase();
     let reply = "Hello! I am Lumora's AI Biometrics & Finance Audit Assistant. How can I facilitate your institutional CBE clearance or VIP investment unlocks today?";
     if (txt.includes('deposit') || txt.includes('payment') || txt.includes('cbe')) {
-      reply = "To submit a CBE bank deposit: Unlock your active tab 'Investments', choose a VIP level tier starting at 5000 ETB, and submit the physical bank receipt photo with the reference FAN ID. Verification processes within 2 hours.";
+      reply = "To submit a CBE bank deposit: You must first complete your National ID card verification under the Profile tab. Once fully verified, unlock your active tab 'Investments', choose a VIP level tier starting at 5,000 ETB, transfer to our CBE coordinates, and submit the bank receipt photo. Audit processes usually complete in under 2 hours.";
     } else if (txt.includes('withdraw') || txt.includes('cashout') || txt.includes('pin')) {
-      reply = "Your cashout withdrawals are dispatched to the Commercial Bank of Ethiopia (CBE) hourly. To submit, configure your bank destination coordinates and type your secure 4-digit security PIN.";
+      reply = "Your cashout withdrawals are dispatched to the Commercial Bank of Ethiopia (CBE) hourly. To submit, ensure your bank destination is designated, and enter your secure 4-digit payment PIN to authorize.";
+    } else if (txt.includes('card') || txt.includes('mastercard') || txt.includes('visa')) {
+      reply = "Lumora offers an instant Virtual Debit Mastercard with an institutional rate of 1 USD = 170 ETB. Activation and refund logs are fully automated. To secure and complete online transactions, no SMS OTP is needed—simply authorize charges using your main account login password.";
     } else if (txt.includes('interest') || txt.includes('earn') || txt.includes('profit')) {
-      reply = "Accrued interest on all Lumora VIP levels yields from 5.6% up to 11.5% daily. All earnings are state-protected, guaranteed, and directly available for withdrawal.";
-    } else if (txt.includes('security') || txt.includes('safe') || txt.includes('biometric') || txt.includes('selfie')) {
-      reply = "Lumora uses cutting-edge biometric facial verification and 68-point pupil matrix analysis to secure state compliance and guard customer assets against spoofing.";
+      reply = "Accrued interest on all Lumora VIP levels yields from 3.5% up to 11.5% daily. All earnings are state-protected, guaranteed, and directly available for withdrawal.";
+    } else if (txt.includes('security') || txt.includes('safe') || txt.includes('biometric') || txt.includes('selfie') || txt.includes('verification')) {
+      reply = "Lumora uses cutting-edge biometric facial verification and National ID checklist auditing to maintain financial integrity. All deposits are strictly blocked until your account identity check completes successfully.";
     }
 
     const botMsg: ChatMessage = {
@@ -1481,9 +1487,11 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     let reply = "Hello! I am your Lumora AI Assistant. How can I help you with our VIP investment plans, CBE deposits, or withdrawals today?";
     
     if (txt.includes('deposit') || txt.includes('payment') || txt.includes('cbe') || txt.includes('transfer')) {
-      reply = "To deposit funds into Lumora:\n\n1. Go to the Home tab and click **DEPOSIT**, or select a VIP Plan first.\n2. Transfer the desired amount to our official CBE Account:\n   • **Bank**: Commercial Bank of Ethiopia (CBE)\n   • **Account Name**: Leykun\n   • **Account Number**: `1000419524747`\n3. Click 'I have paid', upload your transaction/receipt screenshot, and submit.\n4. Verification usually takes 0 to 42 hours (average is under 2 hours).";
+      reply = "To deposit funds into Lumora:\n\n• **CRITICAL CRITERIA**: Your account MUST be fully ID Verified under the Profile tab before you can make deposit submissions.\n\n1. Go to the Home tab and click **DEPOSIT**, or select a VIP Plan first.\n2. Transfer the desired amount to our official CBE Account:\n   • **Bank**: Commercial Bank of Ethiopia (CBE)\n   • **Account Name**: Leykun\n   • **Account Number**: `1000419524747`\n3. Click 'I have paid', upload your transaction/receipt screenshot, and submit.\n4. Verification usually takes 0 to 42 hours (average is under 2 hours).";
     } else if (txt.includes('withdraw') || txt.includes('cashout') || txt.includes('minimum withdrawal')) {
       reply = "Lumora Withdrawal Rules:\n\n• **Minimum Withdrawal**: 600 ETB\n• **Fee**: 10% fee for Income Pool withdrawals (5% Tax + 5% Handling), 5% handling fee for Deposit Pool withdrawals.\n• **Payout Speed**: Requests are processed and dispatched within 0 to 42 hours.\n• Ensure you have configured your CBE account details and typed your secure 4-digit PIN in your Profile tab.";
+    } else if (txt.includes('card') || txt.includes('mastercard') || txt.includes('dollar') || txt.includes('rates')) {
+      reply = "Lumora Virtual MasterCard features:\n\n• **Exchange Rate**: Fixed at **1 USD = 170 ETB**.\n• **Card Fee**: $3 USD issuance fee.\n• **Recharge Fee**: $1 USD transaction fee per funding recharge.\n• **Strict No-OTP Audits**: No phone OTP required! Users authorize online charges securely in real-time using their main account login password.";
     } else if (txt.includes('plan') || txt.includes('vip') || txt.includes('interest') || txt.includes('rate') || txt.includes('return')) {
       reply = "Lumora offers 15 premium VIP Levels for investment:\n\n" +
               "• **VIP 1**: Invest 5,000 ETB, earn **3.50% daily** (total ~13,750 ETB, 50 days)\n" +

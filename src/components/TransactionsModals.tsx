@@ -482,28 +482,48 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
 
         {/* --- 1. CBE DEPOSIT DIALOG CONTENT --- */}
         {type === 'deposit' && (
-          <div className="space-y-4 animate-in fade-in duration-200">
-            
-            {/* Elegant Step-by-Step Deposit Guide */}
-            <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-105 rounded-2xl space-y-2 text-left">
-              <div className="flex items-center space-x-2 text-[#0A3D91]">
-                <Info className="w-4.5 h-4.5 shrink-0" />
-                <span className="text-xs font-black uppercase tracking-wider">
-                  How to Deposit & Submit Proof
-                </span>
+          profile.idVerificationStatus !== 'verified' ? (
+            <div className="space-y-4 py-4 text-center animate-in fade-in duration-200">
+              <div className="mx-auto w-12 h-12 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 animate-pulse">
+                <ShieldAlert className="w-5 h-5 stroke-[2.2]" />
               </div>
-              <ol className="text-[10.5px] text-slate-600 leading-relaxed space-y-1.5 list-decimal pl-4.5 font-sans">
-                <li>
-                  <strong>Transfer Funds:</strong> Copy our Commercial Bank of Ethiopia (CBE) Account Number below and transfer your desired investment amount (Min 5,000 ETB) from your CBE App.
-                </li>
-                <li>
-                  <strong>Reference & Receipt:</strong> Copy the CBE transaction reference code and take a clear screenshot of your transfer receipt confirmation page.
-                </li>
-                <li>
-                  <strong>Submit Proof Below:</strong> Enter your deposited amount, type your CBE transaction reference code, upload your receipt screenshot, and click <strong>"Submit CBE Deposit Proof"</strong> to process credit activation.
-                </li>
-              </ol>
+              <h4 className="font-display font-black text-xs text-slate-900 uppercase">Verification Required</h4>
+              <p className="text-[11px] text-slate-500 leading-relaxed max-w-xs mx-auto font-sans font-medium">
+                To comply with regional financial regulations, we have disabled CBE depositing for non-verified members. Please complete your identity validation audit inside your profile workspace first.
+              </p>
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="w-full py-3 bg-[#0A3D91] hover:bg-[#072a66] text-white rounded-2xl font-sans font-black text-xs uppercase tracking-wider transition-all shadow-md shadow-blue-500/10 cursor-pointer"
+                >
+                  Confirm & Go Back
+                </button>
+              </div>
             </div>
+          ) : (
+            <div className="space-y-4 animate-in fade-in duration-200">
+              
+              {/* Elegant Step-by-Step Deposit Guide */}
+              <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-105 rounded-2xl space-y-2 text-left">
+                <div className="flex items-center space-x-2 text-[#0A3D91]">
+                  <Info className="w-4.5 h-4.5 shrink-0" />
+                  <span className="text-xs font-black uppercase tracking-wider">
+                    How to Deposit & Submit Proof
+                  </span>
+                </div>
+                <ol className="text-[10.5px] text-slate-600 leading-relaxed space-y-1.5 list-decimal pl-4.5 font-sans">
+                  <li>
+                    <strong>Transfer Funds:</strong> Copy our Commercial Bank of Ethiopia (CBE) Account Number below and transfer your desired investment amount (Min 5,000 ETB) from your CBE App.
+                  </li>
+                  <li>
+                    <strong>Reference & Receipt:</strong> Copy the CBE transaction reference code and take a clear screenshot of your transfer receipt confirmation page.
+                  </li>
+                  <li>
+                    <strong>Submit Proof Below:</strong> Enter your deposited amount, type your CBE transaction reference code, upload your receipt screenshot, and click <strong>"Submit CBE Deposit Proof"</strong> to process credit activation.
+                  </li>
+                </ol>
+              </div>
             
             {/* Bank details info card */}
             <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-3xl space-y-2.5">
@@ -666,7 +686,8 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
             </button>
 
           </div>
-        )}
+        )
+      )}
 
         {/* --- 2. CBE WITHDRAWAL DIALOG CONTENT --- */}
         {type === 'withdrawal' && (
