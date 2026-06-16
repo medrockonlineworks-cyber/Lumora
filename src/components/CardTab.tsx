@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { 
   CreditCard, Info, ArrowUpRight, ShieldCheck, 
   Lock, RefreshCw, Layers, History, HelpCircle, 
-  MapPin, CheckCircle2, AlertCircle, Coins, Wallet, Flame
+  MapPin, CheckCircle2, AlertCircle, Coins, Wallet, Flame,
+  Copy, Check
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useLanguage } from '../locale';
@@ -37,6 +38,15 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
 
   // View card number reveal status
   const [revealCard, setRevealCard] = useState(false);
+
+  // Copy state
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  const handleCopy = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(label);
+    setTimeout(() => setCopiedField(null), 1500);
+  };
 
   const USD_TO_ETB = 120; // Matches fetchInterceptor
   const isVipEligible = profile.vipLevel >= 3;
@@ -612,46 +622,107 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
 
               {/* BILLING AND INFO DETAILS SECTION */}
               <div className="bg-white border border-slate-100 p-6 rounded-[2.2rem] shadow-sm space-y-4">
-                <div className="flex items-center space-x-2 border-b border-slate-50 pb-2.5 text-left">
-                  <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
-                    <MapPin className="w-4 h-4" />
+                <div className="flex items-center justify-between border-b border-slate-50 pb-2.5">
+                  <div className="flex items-center space-x-2 text-left">
+                    <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+                      <MapPin className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-[11px] font-black text-[#0A3D91] uppercase tracking-wider font-sans">Sovereign Billing Address</h4>
+                      <p className="text-[8.5px] text-slate-450 uppercase tracking-widest font-bold mt-0.5 font-sans">Required for online merchant checks</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-[11px] font-black text-[#0A3D91] uppercase tracking-wider">Sovereign Billing Address</h4>
-                    <p className="text-[8.5px] text-slate-450 uppercase tracking-widest font-bold mt-0.5">Required for online merchant checks</p>
-                  </div>
+
+                  <button
+                    onClick={() => {
+                      const fullAddress = `Street Address: 16192 Coastal Highway\nCity: Lewes\nState: Delaware (DE)\nZip Code: 19958\nCountry: United States\nRegistered Phone: ${profile.phone}`;
+                      handleCopy(fullAddress, 'full_address');
+                    }}
+                    className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl text-[8.5px] font-black uppercase tracking-wider text-slate-700 flex items-center space-x-1 transition-all active:scale-95 cursor-pointer font-sans"
+                  >
+                    {copiedField === 'full_address' ? (
+                      <>
+                        <Check className="w-3 h-3 text-emerald-600 animate-pulse" />
+                        <span className="text-emerald-600">Copied Email block!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3 text-slate-500" />
+                        <span>Copy Block</span>
+                      </>
+                    )}
+                  </button>
                 </div>
 
                 {/* Billing fields table */}
                 <div className="grid grid-cols-2 gap-3 text-left font-sans text-xs">
+                  {[
+                    { key: 'street_address', label: 'Street Address', value: '16192 Coastal Highway' },
+                    { key: 'city', label: 'City', value: 'Lewes' },
+                    { key: 'state', label: 'State', value: 'Delaware (DE)' },
+                    { key: 'zip_code', label: 'Zip Code', value: '19958' },
+                    { key: 'country', label: 'Country', value: 'United States' },
+                    { key: 'registered_phone', label: 'Registered Phone', value: profile.phone || 'N/A' },
+                  ].map((field) => (
+                    <div 
+                      key={field.key}
+                      onClick={() => handleCopy(field.value, field.key)}
+                      className="p-3 bg-slate-50/50 hover:bg-slate-50 border border-slate-100/70 hover:border-slate-200 rounded-xl relative group cursor-pointer transition-all flex items-center justify-between"
+                      title="Click to copy field"
+                    >
+                      <div className="truncate pr-4">
+                        <span className="text-[8px] text-slate-400 font-extrabold uppercase tracking-wider block">{field.label}</span>
+                        <span className="font-heavy text-slate-800 block truncate">{field.value}</span>
+                      </div>
+                      
+                      <div className="shrink-0 p-1 bg-white border border-slate-150 rounded-lg group-hover:scale-105 transition-transform flex items-center justify-center">
+                        {copiedField === field.key ? (
+                          <Check className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#2563EB] transition-colors" />
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* VIRTUAL MASTERCARD DETAILS SECTION */}
+              <div className="bg-white border border-slate-100 p-6 rounded-[2.2rem] shadow-sm space-y-4">
+                <div className="flex items-center space-x-2 border-b border-slate-50 pb-2.5 text-left font-sans">
+                  <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
+                    <CreditCard className="w-4 h-4" />
+                  </div>
                   <div>
-                    <span className="text-[8px] text-slate-400 font-extrabold uppercase tracking-wider block">Street Address</span>
-                    <span className="font-heavy text-slate-800 block">16192 Coastal Highway</span>
+                    <h4 className="text-[11px] font-black text-emerald-800 uppercase tracking-wider">Virtual Card Specifications</h4>
+                    <p className="text-[8.5px] text-slate-450 uppercase tracking-widest font-bold mt-0.5">Compliant international merchant rules</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 text-left font-sans text-xs">
+                  <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100/50">
+                    <span className="text-[8px] text-slate-401 font-extrabold uppercase tracking-wider block text-slate-450">Card Association</span>
+                    <span className="font-heavy text-slate-800 block mt-0.5">Mastercard International</span>
                   </div>
 
-                  <div>
-                    <span className="text-[8px] text-slate-400 font-extrabold uppercase tracking-wider block">City</span>
-                    <span className="font-heavy text-slate-800 block">Lewes</span>
+                  <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100/50">
+                    <span className="text-[8px] text-slate-401 font-extrabold uppercase tracking-wider block text-slate-450">Gateway Protocol</span>
+                    <span className="font-heavy text-slate-800 block mt-0.5">3D Secure v2 Identity Check</span>
                   </div>
 
-                  <div>
-                    <span className="text-[8px] text-slate-400 font-extrabold uppercase tracking-wider block">State</span>
-                    <span className="font-heavy text-slate-800 block">Delaware (DE)</span>
+                  <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100/50">
+                    <span className="text-[8px] text-slate-401 font-extrabold uppercase tracking-wider block text-slate-450">Foreign Exchange Markup</span>
+                    <span className="font-heavy text-[#10B981] block mt-0.5">0.00% Sovereign Benefit</span>
                   </div>
 
-                  <div>
-                    <span className="text-[8px] text-slate-400 font-extrabold uppercase tracking-wider block">Zip Code</span>
-                    <span className="font-heavy text-slate-800 block">19958</span>
+                  <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-105/50">
+                    <span className="text-[8px] text-slate-401 font-extrabold uppercase tracking-wider block text-slate-450">Single Transaction Limit</span>
+                    <span className="font-heavy text-slate-800 block mt-0.5">$2,500.00 USD</span>
                   </div>
 
-                  <div>
-                    <span className="text-[8px] text-slate-400 font-extrabold uppercase tracking-wider block">Country</span>
-                    <span className="font-heavy text-slate-800 block">United States</span>
-                  </div>
-
-                  <div>
-                    <span className="text-[8px] text-slate-400 font-extrabold uppercase tracking-wider block">Registered Phone</span>
-                    <span className="font-heavy text-slate-800 block">{profile.phone}</span>
+                  <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-105/50 col-span-2">
+                    <span className="text-[8px] text-slate-401 font-extrabold uppercase tracking-wider block text-slate-450">Officially Authorized Merchants</span>
+                    <span className="font-heavy text-slate-605 block text-[9.5px] mt-0.5">Amazon, ChatGPT Plus, Netflix, AliExpress, Google Play Store & major global portals</span>
                   </div>
                 </div>
               </div>

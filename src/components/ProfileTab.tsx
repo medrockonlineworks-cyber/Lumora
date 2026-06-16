@@ -259,6 +259,8 @@ export default function ProfileTab({
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [loadingReferrals, setLoadingReferrals] = useState(false);
   const [isPrepaidCardFlipped, setIsPrepaidCardFlipped] = useState(false);
+  const [showReferralList, setShowReferralList] = useState(true);
+  const [showLoanSimulator, setShowLoanSimulator] = useState(true);
 
   useEffect(() => {
     let active = true;
@@ -1030,336 +1032,89 @@ export default function ProfileTab({
             </div>
           </div>
         )}
-          
-          {/* Dynamic Referral Tracking Section (Skyblue & White styling with localized metadata) */}
-          <div className="pt-4 border-t border-slate-150/60 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-1.5 text-sky-600">
-                <Users className="w-4 h-4 text-sky-500 animate-pulse" />
-                <span className="text-[10px] font-sans font-black uppercase tracking-wider text-sky-600">
-                  {language === 'am' ? 'የተጋበዙ አጋሮች መከታተያ' :
-                   language === 'om' ? 'Hordoffii Hiriyoota Affeeraman' :
-                   language === 'ti' ? 'ተጠቃሚ ዝርዝር መከታተሊ' :
-                   language === 'so' ? 'Hordonka Casuumayasha' :
-                   'Referrals & Bonus Tracking'}
-                </span>
-                {loadingReferrals && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-ping" />
-                )}
-              </div>
+
+        {/* Dynamic Referral Tracking Section (Skyblue & White styling with localized metadata) */}
+        <div className="pt-4 border-t border-slate-150/60 space-y-3">
+          <div 
+            onClick={() => setShowReferralList(!showReferralList)}
+            className="flex items-center justify-between cursor-pointer select-none hover:bg-slate-55 p-1.5 rounded-xl transition-all"
+            title="Click to expand or collapse referrals"
+          >
+            <div className="flex items-center space-x-1.5 text-sky-600">
+              <Users className="w-4 h-4 text-sky-500 animate-pulse" />
+              <span className="text-[10px] font-sans font-black uppercase tracking-wider text-sky-600">
+                {language === 'am' ? 'የተጋበዙ አጋሮች መከታተያ' :
+                 language === 'om' ? 'Hordoffii Hiriyoota Affeeraman' :
+                 language === 'ti' ? 'ተጠቃሚ ዝርዝር መከታተሊ' :
+                 language === 'so' ? 'Hordonka Casuumayasha' :
+                 'Referrals & Bonus Tracking'}
+              </span>
+              {loadingReferrals && (
+                <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-ping" />
+              )}
+            </div>
+            <div className="flex items-center space-x-2">
               <span className="text-[9.5px] font-sans font-black bg-sky-50 text-sky-600 px-2 py-0.5 rounded-lg border border-sky-100">
                 {referrals.length} {language === 'am' ? 'አባላት' : 'partners'}
               </span>
-            </div>
-
-            {referrals.length === 0 ? (
-              <div className="p-4.5 text-center bg-sky-50/30 rounded-2xl border border-sky-100/65 space-y-1">
-                <p className="text-[11px] font-black text-slate-700 uppercase tracking-wide">
-                  {language === 'am' ? 'እስካሁን የተቀላቀለ አጋር የለም' :
-                   language === 'om' ? 'Kallattiratti hin argamne' :
-                   language === 'ti' ? 'እስካ ሕዚ ዝተመዝገበ የለን' :
-                   language === 'so' ? 'Weli wax shuraako ah ma jiraan' :
-                   'No active team members detected'}
-                </p>
-                <p className="text-[10px] text-slate-500 font-bold leading-relaxed max-w-[280px] mx-auto">
-                  {language === 'am' ? 'የግብዣ ኮድዎን ወይም አገናኝዎን ለጓደኞችዎ በማካፈል 10% ፈጣን ኮሚሽን መከታተል ይጀምሩ።' :
-                   language === 'om' ? 'Koodii ykn link keessan hiriyootaaf hirmaachisuun komishinii 10% sassaabaa.' :
-                   language === 'ti' ? 'ናይ መወዳእታ ኮድኩም ምስ ፈተውትኹም ብምክፋል 10% ተጠቃሚ ኩኑ።' :
-                   language === 'so' ? 'U la wadaag code-kaaga asxaabta si aad u kasbato 10% gunno toos ah.' :
-                   'Share your unique link or code to track and instantly earn 10% on their approved deposits.'}
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
-                {referrals.map((ref) => {
-                  const maskedPhone = ref.referredPhone 
-                    ? ref.referredPhone.replace(/(\d{3})\d+(\d{3})/, "$1****$2") 
-                    : "099****123";
-                  const formattedDate = ref.registrationDate 
-                    ? new Date(ref.registrationDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) 
-                    : 'June 2026';
-                  
-                  return (
-                    <div 
-                      key={ref.id} 
-                      className="p-3 bg-gradient-to-r from-sky-50/20 to-sky-50/40 border border-sky-100/60 rounded-2xl flex items-center justify-between"
-                    >
-                      <div className="space-y-1 min-w-0 flex-1 mr-3 text-left">
-                        <div className="flex items-center space-x-1.5">
-                          <span className="font-display font-black text-[11px] text-slate-800 truncate">
-                            {ref.referredName}
-                          </span>
-                          <span className="text-[8px] bg-sky-50 text-sky-600 border border-sky-150/50 font-black px-1.5 py-0.5 rounded-lg uppercase tracking-wider scale-90 origin-left">
-                            VIP {ref.referredVipLevel}
-                          </span>
-                        </div>
-                        <div className="flex items-center space-x-2 text-[9px] text-slate-500 font-bold font-mono">
-                          <span>{maskedPhone}</span>
-                          <span className="text-slate-300">•</span>
-                          <span>{formattedDate}</span>
-                        </div>
-                      </div>
-
-                      <div className="text-right shrink-0">
-                        <span className="text-[8.5px] text-slate-500 font-black block uppercase tracking-wide">
-                          {language === 'am' ? 'ጉርሻ' : 'Bonus'}
-                        </span>
-                        <span className="font-display font-extrabold text-xs text-emerald-600 font-mono">
-                          +{Number(ref.rewardEarned || 0).toLocaleString()} ETB
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-      </div>
-
-      {/* CARD 3: LUMORA Prepaid Mastercard for International Payment */}
-      <div className="p-6 rounded-[2.2rem] bg-white border border-slate-100 shadow-sm space-y-6">
-        
-        {/* Card Header section */}
-        <div className="flex items-center justify-between border-b border-slate-50 pb-3">
-          <div className="flex items-center space-x-2.5">
-            <div className="p-2.5 bg-amber-50 text-amber-600 rounded-2xl">
-              <CreditCard className="w-4.5 h-4.5" />
-            </div>
-            <div>
-              <h4 className="font-display font-black text-xs text-[#0A3D91] uppercase tracking-wider leading-none">
-                {cardTrans.title}
-              </h4>
-              <p className="text-[8.5px] text-slate-700 font-black uppercase tracking-widest mt-1">
-                {cardTrans.subtitle}
-              </p>
-            </div>
-          </div>
-          
-          <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-amber-550/10 text-amber-700 border border-amber-550/20 text-[8.5px] font-black uppercase tracking-wide animate-pulse">
-            <span className="w-1.5 h-1.5 bg-amber-600 rounded-full"></span>
-            <span>{cardTrans.comingSoon}</span>
-          </span>
-        </div>
-
-        {/* Dynamic Interactive Credit Card rendering */}
-        <div className="flex flex-col items-center">
-          <p className="text-[9px] text-slate-450 uppercase tracking-widest font-extrabold pb-2.5 cursor-help select-none flex items-center space-x-1">
-            <Info className="w-3 h-3 text-slate-400" />
-            <span>Click card to view details</span>
-          </p>
-
-          <div 
-            onClick={() => setIsPrepaidCardFlipped(!isPrepaidCardFlipped)}
-            className="w-full max-w-[340px] aspect-[1.586/1] cursor-pointer group perspective select-none touch-none"
-          >
-            <div className={`relative w-full h-full rounded-2xl shadow-xl transition-all duration-500 transform-style-3d ${isPrepaidCardFlipped ? 'rotate-y-180' : ''}`}>
-              
-              {/* FRONT SIDE */}
-              <div className="absolute inset-0 w-full h-full rounded-2xl bg-gradient-to-br from-slate-950 via-[#0d1c36] to-slate-900 p-5 border-2 border-slate-800/80 flex flex-col justify-between overflow-hidden shadow-2xl backface-hidden">
-                {/* Micro glass shimmer glow lines */}
-                <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-r from-transparent via-white/5 to-transparent rotate-45 transform group-hover:translate-x-full duration-1000 transition-transform pointer-events-none" />
-                <div className="absolute bottom-[-20%] right-[-10%] w-36 h-36 bg-[#0180FE]/10 rounded-full blur-2xl pointer-events-none" />
-                
-                {/* Top bank identifier & Card Type */}
-                <div className="flex justify-between items-start">
-                  <div className="flex flex-col items-start leading-none">
-                    <span className="font-display font-black text-xs text-white tracking-wider flex items-center space-x-1">
-                      <span>LUMORA</span>
-                      <span className="text-amber-400 font-sans italic text-[8px] tracking-widest uppercase">PREPAID</span>
-                    </span>
-                    <span className="text-[7px] text-[#0180FE] font-black uppercase tracking-widest mt-1">SOVEREIGN WORLD</span>
-                  </div>
-
-                  <div className="px-2.5 py-1 bg-amber-400 rounded-lg text-slate-950 text-[7.5px] font-black uppercase tracking-widest shadow-sm">
-                    {language === 'am' ? 'በቅርቡ' : 'SOON'}
-                  </div>
-                </div>
-
-                {/* EMV Microchip & Contactless Waves */}
-                <div className="flex items-center space-x-3 mt-1.5">
-                  {/* Decorative gold microchip */}
-                  <div className="w-8.5 h-6.5 rounded-lg bg-gradient-to-br from-amber-200 via-yellow-400 to-amber-500 p-0.5 border border-amber-100/50 flex flex-col justify-between shadow-sm relative overflow-hidden">
-                    <div className="w-full h-px bg-slate-950/20 absolute top-1/3 left-0" />
-                    <div className="w-full h-px bg-slate-950/20 absolute top-2/3 left-0" />
-                    <div className="w-px h-full bg-slate-950/20 absolute left-1/3 top-0" />
-                    <div className="w-px h-full bg-slate-950/20 absolute left-2/3 top-0" />
-                  </div>
-
-                  {/* Contactless symbol lines */}
-                  <div className="flex flex-col space-y-0.5 select-none opacity-60">
-                    <div className="w-1.5 h-1.5 border-r border-t border-white rounded-tr-md transform rotate-45"></div>
-                    <div className="w-2.5 h-2.5 border-r border-t border-white rounded-tr-md transform rotate-45 -mt-1 ml-0.5"></div>
-                    <div className="w-3.5 h-3.5 border-r border-t border-white rounded-tr-md transform rotate-45 -mt-1.5 ml-1"></div>
-                  </div>
-                </div>
-
-                {/* Card Number display */}
-                <div className="mt-2 text-center">
-                  <span className="font-mono text-base font-extrabold text-[#F8FAFC] tracking-[0.25em] drop-shadow-md">
-                    5545 4296 8899 7722
-                  </span>
-                </div>
-
-                {/* Card Footer: Holder, Expiry, MasterCard overlapping circles */}
-                <div className="flex justify-between items-end border-t border-white/10 pt-2.5">
-                  <div className="text-left leading-none max-w-[180px]">
-                    <span className="text-[6.5px] text-slate-450 uppercase block font-sans font-black tracking-wider mb-1">CARDHOLDER NAME</span>
-                    <span className="text-[10px] font-black text-slate-100 uppercase tracking-widest truncate block">
-                      {profile.fullName || 'LUMORA CLIENT'}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center space-x-4">
-                    <div className="text-center leading-none">
-                      <span className="text-[6.5px] text-slate-450 uppercase block font-sans font-black tracking-wider mb-1">EXPIRY</span>
-                      <span className="text-[9.5px] font-black text-slate-100 font-mono tracking-wider">06/31</span>
-                    </div>
-
-                    {/* Classic MasterCard Overlapping Brand Circles with elegant gradients */}
-                    <div className="flex -space-x-2.5 relative select-none">
-                      <div className="w-6.5 h-6.5 rounded-full bg-gradient-to-br from-rose-500 to-red-600 border border-rose-450 opacity-95"></div>
-                      <div className="w-6.5 h-6.5 rounded-full bg-gradient-to-br from-amber-400 to-yellow-500 border border-amber-350 opacity-90"></div>
-                      {/* Master symbol center blending overlay */}
-                      <div className="absolute inset-y-0 left-1.5 w-3.5 rounded-r-sm mix-blend-overlay"></div>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-
-              {/* BACK SIDE */}
-              <div className="absolute inset-0 w-full h-full rounded-2xl bg-gradient-to-br from-slate-950 via-[#0d1c36] to-slate-900 border-2 border-slate-800/80 flex flex-col justify-between overflow-hidden shadow-2xl backface-hidden rotate-y-180">
-                
-                {/* Top space with black Magnetic Stripe */}
-                <div className="w-full">
-                  <div className="h-4.5 bg-transparent" />
-                  <div className="h-9 w-full bg-neutral-950" />
-                </div>
-
-                {/* Signature Panel and CVV */}
-                <div className="px-5 space-y-1">
-                  <div className="flex justify-between items-center text-[6px] text-slate-400 font-sans tracking-wide uppercase px-1">
-                    <span>AUTHORIZED SIGNATURE</span>
-                    <span>SECURITY CODE (CVV)</span>
-                  </div>
-                  
-                  {/* Signature field mockup */}
-                  <div className="flex items-center">
-                    <div className="flex-1 h-6 bg-slate-100 rounded-l-md pl-3 flex items-center bg-gradient-to-r from-slate-100 to-slate-200">
-                      <span className="font-display italic font-black text-[9px] text-[#0A3D91] select-none uppercase tracking-widest">
-                        {profile.fullName || 'Verified Client'}
-                      </span>
-                    </div>
-                    <div className="w-10 h-6 bg-slate-300 rounded-r-md flex items-center justify-center font-mono font-black italic text-slate-900 border-l border-slate-400 text-[10px]">
-                      ***
-                    </div>
-                  </div>
-                </div>
-
-                {/* Legal compliance tiny text and logo */}
-                <div className="p-5 pt-0 text-[6.5px] text-slate-400 leading-normal text-left space-y-2 border-t border-white/5 mt-2">
-                  <p className="font-serif">
-                    This prepaid sovereign card is issued by LUMORA Capital in partnership with registered global monetary brokers under MasterCard license. Continuous synchronization of dynamic yield and deposits via the Commercial Bank of Ethiopia (CBE) blockchain ledger system.
-                  </p>
-                  <div className="flex justify-between items-center text-[5.5px] uppercase tracking-widest font-mono text-[#0180FE] font-black">
-                    <span>LUMORA SOVEREIGN PORTFOLIO INC</span>
-                    <span>ISSUED Q3-2026</span>
-                  </div>
-                </div>
-
-              </div>
-
-            </div>
-          </div>
-        </div>
-
-        {/* Perks list block */}
-        <div className="space-y-3.5 pt-2">
-          <p className="text-[10px] font-black text-[#0A3D91] uppercase tracking-widest">
-            {cardTrans.featuresTitle}
-          </p>
-
-          <div className="grid gap-3 font-sans">
-            <div className="p-3 bg-slate-50 border border-slate-150 rounded-2xl flex items-start space-x-3 text-left">
-              <div className="p-2 bg-[#0A3D91]/10 text-[#0A3D91] rounded-xl mt-0.5">
-                <Coins className="w-4 h-4 text-[#0A3D91]" />
-              </div>
-              <div className="leading-tight">
-                <h5 className="text-[10.5px] font-black text-slate-950 uppercase tracking-wide">
-                  {cardTrans.feature1}
-                </h5>
-                <p className="text-[10px] text-slate-500 font-bold leading-normal pt-0.5">
-                  {cardTrans.feature1Desc}
-                </p>
-              </div>
-            </div>
-
-            <div className="p-3 bg-indigo-50/20 border border-indigo-150/40 rounded-2xl flex items-start space-x-3 text-left">
-              <div className="p-2 bg-indigo-50 text-[#0180FE] rounded-xl mt-0.5">
-                <Globe className="w-4 h-4 text-[#0180FE]" />
-              </div>
-              <div className="leading-tight">
-                <h5 className="text-[10.5px] font-black text-slate-950 uppercase tracking-wide">
-                  {cardTrans.feature2}
-                </h5>
-                <p className="text-[10px] text-slate-500 font-bold leading-normal pt-0.5">
-                  {cardTrans.feature2Desc}
-                </p>
-              </div>
-            </div>
-
-            <div className="p-3 bg-amber-50/20 border border-amber-150/40 rounded-2xl flex items-start space-x-3 text-left">
-              <div className="p-2 bg-amber-50 text-amber-600 rounded-xl mt-0.5">
-                <ExternalLink className="w-4 h-4 text-amber-600" />
-              </div>
-              <div className="leading-tight">
-                <h5 className="text-[10.5px] font-black text-slate-950 uppercase tracking-wide">
-                  {cardTrans.feature3}
-                </h5>
-                <p className="text-[10px] text-slate-500 font-bold leading-normal pt-0.5">
-                  {cardTrans.feature3Desc}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Priority Waitlist Progress tracker */}
-        <div className="p-4 bg-slate-900 text-white rounded-[2rem] border border-slate-800 text-left font-sans space-y-3 shadow-md relative overflow-hidden">
-          <div className="absolute right-[-10%] bottom-[-10%] w-24 h-24 bg-amber-400/5 rounded-full blur-xl pointer-events-none" />
-          
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <span className="text-[7.5px] text-[#0180FE] block uppercase tracking-widest font-black">
-                {cardTrans.betaRegistry}
+              <span className="text-[8.5px] font-sans font-black uppercase tracking-wider px-2 py-0.5 bg-slate-100 text-slate-600 border border-slate-200 rounded-lg flex items-center space-x-1">
+                <span>
+                  {showReferralList 
+                    ? (language === 'am' ? 'ደብቅ' : language === 'om' ? 'Dhoksi' : language === 'ti' ? 'ሕባእ' : language === 'so' ? 'Qari' : 'Hide')
+                    : (language === 'am' ? 'አሳይ' : language === 'om' ? 'Agarsiisi' : language === 'ti' ? 'ኣርኢ' : language === 'so' ? 'Tus' : 'Show')}
+                </span>
+                {showReferralList ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
               </span>
-              <p className="text-[10px] font-black text-white leading-none">
-                {cardTrans.queuePos}
-              </p>
             </div>
-            
-            <span className="px-2.5 py-1 bg-amber-400 text-slate-950 text-[8.5px] font-black uppercase tracking-wider rounded-full shadow-xs shrink-0 pl-3">
-              👑 {cardTrans.queueBadge}
-            </span>
           </div>
 
-          {/* Progress element */}
-          <div className="space-y-1.5 pt-1">
-            <div className="flex justify-between items-center text-[7.5px] font-mono tracking-wider text-slate-400 font-extrabold uppercase">
-              <span>ALPHA INFRASTRUCTURE ACTIVE</span>
-              <span>BETA SLOT UNLOCKED 98%</span>
-            </div>
-            
-            <div className="relative w-full h-2 rounded-full bg-slate-800 border border-slate-700/50 overflow-hidden">
-              <div 
-                className="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-[#0180FE] via-indigo-500 to-amber-400 rounded-full animate-pulse shadow-md"
-                style={{ width: '98%' }}
-              />
-            </div>
-          </div>
+          {showReferralList && (
+            <>
+              {referrals.length === 0 ? (
+                <div className="p-4.5 text-center bg-sky-50/30 rounded-2xl border border-sky-100/65 space-y-1">
+                  <p className="text-[11px] font-black text-slate-700 uppercase tracking-wide">
+                    {language === 'am' ? 'እስካሁን የተቀላቀለ አጋር የለም' :
+                     language === 'om' ? 'Kallattiratti hin argamne' :
+                     language === 'ti' ? 'እስካ ሕዚ ዝተመዝገበ የለን' :
+                     language === 'so' ? 'Weli wax shuraako ah ma jiraan' :
+                     'No active team members detected'}
+                  </p>
+                  <p className="text-[10px] text-slate-500 font-bold leading-relaxed max-w-[280px] mx-auto">
+                    {language === 'am' ? 'የግብዣ ኮድዎን ወይም አገናኝዎን ለጓደኞችዎ በማካፈል 10% ፈጣን ኮሚሽን መከታተል ይጀምሩ።' :
+                     language === 'om' ? 'Koodii ykn link keessan hiriyootaaf hirmaachisuun komishinii 10% sassaabaa.' :
+                     language === 'ti' ? 'ናይ መጋበዚ ኮድኩም ወይ ሊንክ ምስ የዕሩፍትኹም ብምክፋል ካብ 10% ቅጽበታዊ ኮሚሽን ምውህላል ጀምሩ።' :
+                     language === 'so' ? 'La wadaag saaxiibadaada koodka ama linkiga casuumadaada si aad u bilowdo dakhli 10% ah.' :
+                     'Share your invitation code or referral link with friends to start earning 10% instant commission.'}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
+                  {referrals.map((ref) => (
+                    <div key={ref.id} className="p-3 bg-slate-50 border border-slate-150 rounded-xl flex items-center justify-between font-sans">
+                      <div>
+                        <div className="flex items-center space-x-1.5">
+                          <p className="text-xs font-black text-slate-900 uppercase">{ref.referredName}</p>
+                          <span className="text-[7.5px] font-mono font-black px-1.5 py-0.5 bg-amber-500/10 text-amber-700 border border-amber-500/20 rounded">
+                            VIP {ref.referredVipLevel || 1}
+                          </span>
+                        </div>
+                        <p className="text-[9.5px] font-semibold text-slate-500 font-mono mt-0.5">{ref.referredPhone}</p>
+                        <p className="text-[8px] font-mono font-bold text-slate-400 mt-0.5 uppercase">
+                          Joined: {ref.registrationDate ? new Date(ref.registrationDate).toLocaleDateString() : 'N/A'}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-xs font-black text-emerald-600 font-mono">+{ref.rewardEarned?.toLocaleString() || 0} ETB</span>
+                        <p className="text-[8px] font-mono text-slate-400 uppercase font-extrabold mt-0.5">Bonus reward</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
         </div>
-
       </div>
 
       {/* CARD 4: Institutional Liquidity Loans Simulator Block */}
@@ -1397,24 +1152,42 @@ export default function ProfileTab({
               </p>
             </div>
           </div>
-          <span className="text-[8.5px] inline-flex items-center space-x-1.5 bg-indigo-50 text-indigo-800 font-black px-2.5 py-1 rounded-xl uppercase tracking-wider">
-            <span>
-              {language === 'am' ? 'ወለድ፡' :
-               language === 'om' ? 'Dhaala:' :
-               language === 'ti' ? 'ወለድ፡' :
-               language === 'so' ? 'Ribada:' :
-               'Interest:'}
+          <div className="flex items-center space-x-2 shrink-0">
+            <span className="text-[8.5px] inline-flex items-center space-x-1.5 bg-indigo-50 text-indigo-800 font-black px-2.5 py-1 rounded-xl uppercase tracking-wider hidden sm:inline-flex">
+              <span>
+                {language === 'am' ? 'ወለድ፡' :
+                 language === 'om' ? 'Dhaala:' :
+                 language === 'ti' ? 'ወለድ፡' :
+                 language === 'so' ? 'Ribada:' :
+                 'Interest:'}
+              </span>
+              <strong>
+                1.5%{' '}
+                {language === 'am' ? 'ቋሚ' :
+                 language === 'om' ? 'Flat' :
+                 language === 'ti' ? 'ቀዋሚ' :
+                 language === 'so' ? 'Siman' :
+                 'Flat'}
+              </strong>
             </span>
-            <strong>
-              1.5%{' '}
-              {language === 'am' ? 'ቋሚ' :
-               language === 'om' ? 'Flat' :
-               language === 'ti' ? 'ቀዋሚ' :
-               language === 'so' ? 'Siman' :
-               'Flat'}
-            </strong>
-          </span>
+
+            <button
+              type="button"
+              onClick={() => setShowLoanSimulator(!showLoanSimulator)}
+              className="p-1.5 px-2.5 hover:bg-slate-55 border border-slate-205 text-slate-700 hover:text-slate-900 rounded-xl transition-all text-[9.5px] font-black uppercase tracking-wider cursor-pointer flex items-center space-x-1 shrink-0 select-none"
+            >
+              <span>
+                {showLoanSimulator 
+                  ? (language === 'am' ? 'ደብቅ' : language === 'om' ? 'Dhoksi' : language === 'ti' ? 'ሕባእ' : language === 'so' ? 'Qari' : 'Hide')
+                  : (language === 'am' ? 'አሳይ' : language === 'om' ? 'Agarsiisi' : language === 'ti' ? 'ኣርኢ' : language === 'so' ? 'Tus' : 'Show')}
+              </span>
+              {showLoanSimulator ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+            </button>
+          </div>
         </div>
+
+        {showLoanSimulator && (
+          <>
  
         <p className="text-[11.5px] text-slate-900 leading-relaxed font-bold">
           {language === 'am' ? 'በLUMORA ሊኩይዲቲ አካውንቶች የተደገፈ ተቋማዊ ካፒታልን ይክፈቱ። ክፍያዎች በ24 ሰዓታት ውስጥ በቀጥታ ወደተረጋገጠው የCBE አካውንትዎ ይላካሉ። ብቁ ደረጃ፡ ቪአይፒ 3።' :
@@ -1619,6 +1392,8 @@ export default function ProfileTab({
               )}
             </button>
           </form>
+        )}
+          </>
         )}
 
       </div>
