@@ -1823,6 +1823,49 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     return respondJSON(200, { success: true, card });
   }
 
+  // 43b. POST /api/cards/purchase (interactive merchant testing)
+  if (pathname === '/api/cards/purchase' && method === 'POST') {
+    const { userId, amount, merchant } = body;
+    const reqAmount = Number(amount);
+
+    if (!db.cards) db.cards = [];
+    const card = db.cards.find(c => c.userId === userId);
+    if (!card) return respondJSON(404, { error: "Card not found. Please apply first." });
+    if (card.status !== 'active') {
+      return respondJSON(400, { error: `Card must be active to complete transactions. Current status: ${card.status}` });
+    }
+    if (card.balance < reqAmount) {
+      return respondJSON(400, { error: `Insufficient card balance. Current balance is $${card.balance.toFixed(2)} USD.` });
+    }
+
+    card.balance -= reqAmount;
+
+    if (!db.cardTransactions) db.cardTransactions = [];
+    const txId = "ctx-" + Math.random().toString(36).substr(2, 9);
+    db.cardTransactions.push({
+      id: txId,
+      userId,
+      cardId: card.id,
+      type: 'online_purchase',
+      amount: -reqAmount,
+      date: new Date().toISOString(),
+      description: `Merchant Payment to ${merchant}`,
+      status: 'completed'
+    });
+
+    db.notifications.push({
+      id: "not-" + Math.random().toString(36).substr(2, 9),
+      userId,
+      title: "Online Card Authorized",
+      message: `Authorized purchase of $${reqAmount.toFixed(2)} USD at ${merchant}. Remaining balance: $${card.balance.toFixed(2)} USD.`,
+      read: false,
+      date: new Date().toISOString()
+    });
+
+    saveLocalDB(db);
+    return respondJSON(200, { success: true, card });
+  }
+
   // 44. GET /api/admin/cards
   if (pathname === '/api/admin/cards' && method === 'GET') {
     if (!db.cards) db.cards = [];

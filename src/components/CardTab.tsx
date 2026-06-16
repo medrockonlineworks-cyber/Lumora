@@ -336,48 +336,28 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
       return;
     }
     
-    // Call client-side intercept simulation
     try {
       setSubmitting(true);
       setError(null);
       
-      // Let's modify card locally in the in-memory DB or send transaction log
-      const res = await fetch('/api/cards', { method: 'GET', headers: { 'Accept': 'application/json' } });
-      const dbAll = localStorage.getItem('lumora_local_db');
-      if (dbAll) {
-        const parsed = JSON.parse(dbAll);
-        const dbCard = parsed.cards?.find((c: any) => c.userId === profile.userId);
-        if (dbCard && dbCard.status === 'active' && dbCard.balance >= purchaseAmtUsd) {
-          dbCard.balance -= purchaseAmtUsd;
-          
-          if (!parsed.cardTransactions) parsed.cardTransactions = [];
-          parsed.cardTransactions.push({
-            id: "ctx-" + Math.random().toString(36).substr(2, 9),
-            userId: profile.userId,
-            cardId: dbCard.id,
-            type: 'online_purchase',
-            amount: -purchaseAmtUsd,
-            date: new Date().toISOString(),
-            description: `Payment to ${merchant}`,
-            status: 'completed'
-          });
-
-          parsed.notifications.push({
-            id: "not-" + Math.random().toString(36).substr(2, 9),
-            userId: profile.userId,
-            title: "Online card merchant payment authorization successful",
-            message: `Authorized purchase of $${purchaseAmtUsd.toFixed(2)} USD at ${merchant}. Your balance is $${dbCard.balance.toFixed(2)} USD.`,
-            read: false,
-            date: new Date().toISOString()
-          });
-
-          localStorage.setItem('lumora_local_db', JSON.stringify(parsed));
-          setSuccessMsg(`Simulated successful purchase at ${merchant} of $${purchaseAmtUsd.toFixed(2)} USD!`);
-          loadCardData();
-        }
+      const res = await fetch('/api/cards/purchase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: profile.userId,
+          amount: purchaseAmtUsd,
+          merchant
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSuccessMsg(`Authorized purchase of $${purchaseAmtUsd.toFixed(2)} USD at ${merchant}!`);
+        loadCardData();
+      } else {
+        setError(data.error || "Simulation failed");
       }
     } catch (err) {
-      setError("Offline simulation failed");
+      setError("Simulation API call failed");
     } finally {
       setSubmitting(false);
     }
@@ -639,6 +619,41 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
                   <ShieldCheck className="w-4 text-blue-600 shrink-0" />
                   <p className="text-[10px] text-slate-550 leading-snug font-semibold text-blue-800">
                     Your reserved initial funding balance is completely safe and fully refundable if compliance declines activation.
+                  </p>
+                </div>
+
+                <div className="pt-2" id="testing-approval-block">
+                  <button
+                    id="instant-self-approve-card-btn"
+                    onClick={async () => {
+                      try {
+                        setSubmitting(true);
+                        setError(null);
+                        const res = await fetch('/api/admin/cards/action', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ cardId: card.id, action: 'approve' })
+                        });
+                        const data = await res.json();
+                        if (res.ok) {
+                          setSuccessMsg("LUMORA MASTER CARD APPROVED INSTANTLY FOR TESTING!");
+                          loadCardData();
+                        } else {
+                          setError(data.error || "Could not auto-approve card");
+                        }
+                      } catch (e) {
+                        setError("Could not auto-approve card");
+                      } finally {
+                        setSubmitting(false);
+                      }
+                    }}
+                    disabled={submitting}
+                    className="w-full max-w-sm px-4 py-3 bg-[#0A3D91] hover:bg-[#082e6d] text-white font-sans font-black text-[10px] uppercase tracking-wider rounded-2xl cursor-pointer shadow-md shadow-blue-500/10 active:scale-[0.98] transition-all flex items-center justify-center space-x-1.5"
+                  >
+                    <span>⚡ Instant Admin Approval (Testing Mode)</span>
+                  </button>
+                  <p className="text-[8.5px] text-slate-450 mt-1.5 uppercase font-mono tracking-wider font-extrabold text-center select-none">
+                    Fast-Track Your Card Activation
                   </p>
                 </div>
               </div>
