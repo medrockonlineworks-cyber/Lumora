@@ -33,7 +33,8 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
 
   // Security checks state
   const [otpOpen, setOtpOpen] = useState(false);
-  const [otpCode, setOtpCode] = useState('');
+  const [passwordVal, setPasswordVal] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [otpPurpose, setOtpPurpose] = useState<'apply' | 'recharge' | 'freeze'>('apply');
 
   // View card number reveal status
@@ -224,7 +225,7 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
   const handleApply = async () => {
     if (!isFullyEligible) return;
     setOtpPurpose('apply');
-    setOtpCode('');
+    setPasswordVal('');
     setOtpOpen(true);
   };
 
@@ -236,7 +237,7 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
       const res = await fetch('/api/cards/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: profile.userId, walletType: applyWallet })
+        body: JSON.stringify({ userId: profile.userId, walletType: applyWallet, password: passwordVal })
       });
       const data = await res.json();
       if (res.ok) {
@@ -263,7 +264,7 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
       return;
     }
     setOtpPurpose('recharge');
-    setOtpCode('');
+    setPasswordVal('');
     setOtpOpen(true);
   };
 
@@ -278,7 +279,8 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
         body: JSON.stringify({ 
           userId: profile.userId, 
           amount: rechargeAmt, 
-          walletType: rechargeWallet 
+          walletType: rechargeWallet,
+          password: passwordVal
         })
       });
       const data = await res.json();
@@ -506,7 +508,7 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
                     </div>
                     <div>
                       <h4 className="text-[12px] font-black text-slate-900 uppercase">Card Issue Fee $3</h4>
-                      <p className="text-[10px] text-slate-450 font-bold mt-0.5">Equivalent: 360 ETB (Non-Refundable)</p>
+                      <p className="text-[10px] text-slate-450 font-bold mt-0.5">Equivalent: {(3 * usdToEtb).toLocaleString()} ETB (Non-Refundable)</p>
                     </div>
                   </div>
                   <span className="text-[10px] text-slate-450 font-black">ONE-TIME</span>
@@ -520,7 +522,7 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
                     </div>
                     <div>
                       <h4 className="text-[12px] font-black text-slate-900 uppercase">Minimum Funding $10</h4>
-                      <p className="text-[10px] text-slate-450 font-bold mt-0.5">Loads directly into your separate card balance: 1,200 ETB</p>
+                      <p className="text-[10px] text-slate-450 font-bold mt-0.5">Loads directly into your separate card balance: {(10 * usdToEtb).toLocaleString()} ETB</p>
                     </div>
                   </div>
                   <span className="text-[10px] text-slate-450 font-black uppercase">Initial</span>
@@ -531,7 +533,7 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
               {isFullyEligible ? (
                 <div className="bg-slate-50 p-4 border border-slate-150 rounded-3xl space-y-3">
                   <p className="text-[10.5px] font-black text-slate-950 uppercase tracking-wide text-left">
-                    Select Pool for Card Setup ($13 = 1,560 ETB):
+                    Select Pool for Card Setup ($13 = {(13 * usdToEtb).toLocaleString()} ETB):
                   </p>
                   
                   <div className="grid grid-cols-2 gap-3.5">
@@ -1074,7 +1076,7 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
         )}
       </AnimatePresence>
 
-      {/* SECURITY OTP POPUP */}
+      {/* SECURITY PASSWORD POPUP */}
       <AnimatePresence>
         {otpOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/50 backdrop-blur-xs">
@@ -1087,7 +1089,7 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
               <div className="flex items-center justify-between border-b border-slate-50 pb-2">
                 <span className="text-xs font-black text-[#0A3D91] uppercase tracking-wider flex items-center space-x-1">
                   <ShieldCheck className="w-4 h-4 text-[#2563EB]" />
-                  <span>Fintech MFA Verification</span>
+                  <span>Security Password Verification</span>
                 </span>
                 <button 
                   onClick={() => setOtpOpen(false)} 
@@ -1099,41 +1101,40 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
 
               <div className="space-y-3 font-sans">
                 <p className="text-[11px] text-slate-500 font-medium">
-                  To protect your funds, Lumora has bound this action under OTP authorization rules. We sent a secure demo verification pin to: <span className="font-bold text-slate-900">{profile.phone}</span>.
+                  To protect your funds, Lumora has bound this action under password authorization rules. Please enter your Lumora login password to verify your identity.
                 </p>
 
-                <div className="p-3 bg-amber-50 rounded-xl text-[10px] text-amber-800 font-bold flex items-center space-x-2">
-                  <span className="w-1.5 h-1.5 bg-amber-600 rounded-full shrink-0"></span>
-                  <span>Demo Master OTP: <span className="font-extrabold text-slate-900 bg-white px-2 py-0.5 rounded border border-amber-205 ml-1 select-all">1995</span></span>
-                </div>
-
                 <div>
-                  <label className="text-[8.5px] font-black text-slate-450 uppercase tracking-widest block mb-1">Enter 4-Digit Verification Code</label>
-                  <input 
-                    type="password"
-                    maxLength={4}
-                    value={otpCode}
-                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
-                    className="w-full bg-slate-50 border border-slate-150 rounded-2xl py-3.5 px-4 text-center text-lg font-mono font-black tracking-[1em] focus:outline-none focus:border-[#2563EB]"
-                    placeholder="••••"
-                  />
+                  <label className="text-[8.5px] font-black text-slate-450 uppercase tracking-widest block mb-1">Lumora Login Password</label>
+                  <div className="relative">
+                    <input 
+                      type={showPassword ? "text" : "password"}
+                      value={passwordVal}
+                      onChange={(e) => setPasswordVal(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-150 rounded-2xl py-3 px-4 text-left text-sm font-medium focus:outline-none focus:border-[#2563EB]"
+                      placeholder="Enter your account password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400 hover:text-slate-600 uppercase cursor-pointer"
+                    >
+                      {showPassword ? "Hide" : "Show"}
+                    </button>
+                  </div>
                 </div>
               </div>
 
               <button
                 onClick={() => {
-                  if (otpCode !== '1995') {
-                    setError("Security mismatch: Incorrect verification code.");
-                    return;
-                  }
                   if (otpPurpose === 'apply') {
                     confirmApply();
                   } else if (otpPurpose === 'recharge') {
                     confirmRecharge();
                   }
                 }}
-                disabled={otpCode.length !== 4 || submitting}
-                className="w-full inline-flex items-center justify-center space-x-1.5 bg-[#2563EB] text-white rounded-[1.8rem] py-3.5 font-sans font-black uppercase tracking-wider text-xs shadow-md shadow-blue-500/10 hover:brightness-105 active:scale-95 transition-all duration-100 cursor-pointer"
+                disabled={!passwordVal.trim() || submitting}
+                className="w-full inline-flex items-center justify-center space-x-1.5 bg-[#2563EB] text-white rounded-[1.8rem] py-3.5 font-sans font-black uppercase tracking-wider text-xs shadow-md shadow-blue-500/10 hover:brightness-105 active:scale-95 transition-all duration-100 cursor-pointer disabled:opacity-50"
               >
                 <span>Authorize & Pay</span>
               </button>

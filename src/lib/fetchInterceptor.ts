@@ -1581,7 +1581,12 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
 
   // 41. POST /api/cards/apply
   if (pathname === '/api/cards/apply' && method === 'POST') {
-    const { userId, walletType } = body;
+    const { userId, walletType, password } = body;
+    const user = db.users.find(u => u.id === userId);
+    if (!user || user.password !== password) {
+      return respondJSON(401, { error: "Security Mismatch: Incorrect Lumora login password." });
+    }
+
     const profile = db.profiles.find(p => p.userId === userId);
     if (!profile) return respondJSON(404, { error: "Profile not found" });
 
@@ -1594,7 +1599,6 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     }
     
     // Check if account is suspended
-    const user = db.users.find(u => u.id === userId);
     if (user && user.status === 'suspended') {
       return respondJSON(403, { error: "Account is suspended. Contact Support." });
     }
@@ -1699,7 +1703,12 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
 
   // 42. POST /api/cards/recharge
   if (pathname === '/api/cards/recharge' && method === 'POST') {
-    const { userId, amount, walletType } = body;
+    const { userId, amount, walletType, password } = body;
+    const user = db.users.find(u => u.id === userId);
+    if (!user || user.password !== password) {
+      return respondJSON(401, { error: "Security Mismatch: Incorrect Lumora login password." });
+    }
+
     const reqAmount = Number(amount);
     
     const currentUsdToEtb = await getLiveExchangeRate();
