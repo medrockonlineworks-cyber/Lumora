@@ -79,7 +79,7 @@ function getInitialDB(): LumoraDB {
     users: [
       {
         id: "user-0kw1ojisk",
-        fullName: "Alem",
+        fullName: "HENOK AYELIGN",
         phone: "0926193920",
         email: "leykunjemaneh3@gmail.com",
         password: "000000",
@@ -92,7 +92,7 @@ function getInitialDB(): LumoraDB {
     profiles: [
       {
         userId: "user-0kw1ojisk",
-        fullName: "Alem",
+        fullName: "HENOK AYELIGN",
         phone: "0926193920",
         email: "leykunjemaneh3@gmail.com",
         vipLevel: 15,
@@ -109,7 +109,7 @@ function getInitialDB(): LumoraDB {
         idVerificationStatus: "verified",
         bankName: "Commercial Bank of Ethiopia (CBE)",
         accountNumber: "10004400772625",
-        accountHolderName: "Alem",
+        accountHolderName: "HENOK AYELIGN",
         transactionPin: "4321",
         idSelfie: ""
       }

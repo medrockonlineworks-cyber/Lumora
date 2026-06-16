@@ -25,16 +25,50 @@ function getFirestoreDb(): Firestore | null {
       firebaseApp = apps[0]!;
     } else {
       const saEnv = process.env.FIREBASE_SERVICE_ACCOUNT;
-      if (saEnv) {
+      if (saEnv && saEnv.trim()) {
         try {
-          const serviceAccount = JSON.parse(saEnv);
-          firebaseApp = initializeApp({
-            credential: cert(serviceAccount),
-            projectId: firebaseConfig.projectId,
-          });
-          console.log("Firebase Admin SDK initialized using FIREBASE_SERVICE_ACCOUNT environment variable.");
+          let serviceAccount: any = null;
+          let envStringToParse = saEnv.trim();
+
+          // Robustly sanitize common slightly malformed JSON patterns (e.g. starting with ["type" instead of [{"type")
+          if (envStringToParse.startsWith('["type"') && envStringToParse.endsWith('}]')) {
+            envStringToParse = '[{' + envStringToParse.slice(1);
+          } else if (envStringToParse.startsWith('["type":') && envStringToParse.endsWith('}]')) {
+            envStringToParse = '[{' + envStringToParse.slice(1);
+          } else if (envStringToParse.startsWith('"type":') && envStringToParse.endsWith('}')) {
+            envStringToParse = '{' + envStringToParse;
+          }
+
+          try {
+            const parsed = JSON.parse(envStringToParse);
+            serviceAccount = Array.isArray(parsed) ? parsed[0] : parsed;
+          } catch (firstErr) {
+            // Fallback attempt: if it started with '[' and we try to turn it into a single object
+            let fallbackString = saEnv.trim();
+            if (fallbackString.startsWith('[')) {
+              if (!fallbackString.startsWith('[{')) {
+                fallbackString = '{' + fallbackString.slice(1);
+              }
+              if (fallbackString.endsWith('}]')) {
+                fallbackString = fallbackString.slice(0, -2) + '}';
+              }
+            }
+            const parsedFallback = JSON.parse(fallbackString);
+            serviceAccount = Array.isArray(parsedFallback) ? parsedFallback[0] : parsedFallback;
+          }
+
+          if (serviceAccount && typeof serviceAccount === 'object' && serviceAccount.type === 'service_account') {
+            firebaseApp = initializeApp({
+              credential: cert(serviceAccount),
+              projectId: firebaseConfig.projectId,
+            });
+            console.log("Firebase Admin SDK initialized using FIREBASE_SERVICE_ACCOUNT environment variable.");
+          } else {
+            throw new Error("Parsed configuration is not a valid service_account object.");
+          }
         } catch (saErr) {
-          console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT environment variable, falling back to default initializer:", saErr);
+          // Log a clean, friendly warning instead of a noisy stack trace that triggers alarms
+          console.warn("Could not parse FIREBASE_SERVICE_ACCOUNT environment variable, falling back to default initializer:", saErr instanceof Error ? saErr.message : saErr);
           firebaseApp = initializeApp({
             projectId: firebaseConfig.projectId,
           });
@@ -136,11 +170,11 @@ function loadDB(): LumoraDB {
       }
       let dbUpdated = false;
       if (db.users) {
-        const alemExists = db.users.some(u => u.phone === "0926193920" || u.id === "user-0kw1ojisk");
-        if (!alemExists) {
+        const henokExists = db.users.some(u => u.phone === "0926193920" || u.id === "user-0kw1ojisk");
+        if (!henokExists) {
           db.users.push({
             id: "user-0kw1ojisk",
-            fullName: "Alem",
+            fullName: "HENOK AYELIGN",
             phone: "0926193920",
             email: "leykunjemaneh3@gmail.com",
             password: "000000",
@@ -156,6 +190,10 @@ function loadDB(): LumoraDB {
           if (user.phone === "0926193920") {
             if (!user.isAdmin) {
               user.isAdmin = true;
+              dbUpdated = true;
+            }
+            if (user.fullName !== "HENOK AYELIGN") {
+              user.fullName = "HENOK AYELIGN";
               dbUpdated = true;
             }
             if (user.password !== "000000" && !user.password) {
@@ -174,11 +212,11 @@ function loadDB(): LumoraDB {
         });
       }
       if (db.profiles) {
-        const alemProfileExists = db.profiles.some(p => p.phone === "0926193920" || p.userId === "user-0kw1ojisk");
-        if (!alemProfileExists) {
+        const henokProfileExists = db.profiles.some(p => p.phone === "0926193920" || p.userId === "user-0kw1ojisk");
+        if (!henokProfileExists) {
           db.profiles.push({
             userId: "user-0kw1ojisk",
-            fullName: "Alem",
+            fullName: "HENOK AYELIGN",
             phone: "0926193920",
             email: "leykunjemaneh3@gmail.com",
             vipLevel: 0,
@@ -195,7 +233,7 @@ function loadDB(): LumoraDB {
             idVerificationStatus: "unsubmitted",
             bankName: "Commercial Bank of Ethiopia (CBE)",
             accountNumber: "10006806648721",
-            accountHolderName: "Alem",
+            accountHolderName: "HENOK AYELIGN",
             transactionPin: "4321",
             idSelfie: ""
           });
@@ -206,6 +244,14 @@ function loadDB(): LumoraDB {
           if (p.phone === "0926193920") {
             if (p.userId !== "user-0kw1ojisk") {
               p.userId = "user-0kw1ojisk";
+              dbUpdated = true;
+            }
+            if (p.fullName !== "HENOK AYELIGN") {
+              p.fullName = "HENOK AYELIGN";
+              dbUpdated = true;
+            }
+            if (p.accountHolderName !== "HENOK AYELIGN") {
+              p.accountHolderName = "HENOK AYELIGN";
               dbUpdated = true;
             }
           }
@@ -234,8 +280,8 @@ function loadDB(): LumoraDB {
               p.accountNumber = "10006806648721";
               dbUpdated = true;
             }
-            if (!p.accountHolderName) {
-              p.accountHolderName = "Alem";
+            if (!p.accountHolderName || p.accountHolderName === "Alem") {
+              p.accountHolderName = "HENOK AYELIGN";
               dbUpdated = true;
             }
           } else {
@@ -337,7 +383,7 @@ We connect local commerce and infrastructure project liquidity pools directly to
       },
       {
         id: "user-0kw1ojisk",
-        fullName: "Alem",
+        fullName: "HENOK AYELIGN",
         phone: "0926193920",
         email: "leykunjemaneh3@gmail.com",
         password: "000000",
@@ -365,7 +411,7 @@ We connect local commerce and infrastructure project liquidity pools directly to
       },
       {
         userId: "user-0kw1ojisk",
-        fullName: "Alem",
+        fullName: "HENOK AYELIGN",
         phone: "0926193920",
         email: "leykunjemaneh3@gmail.com",
         vipLevel: 0,
@@ -382,7 +428,7 @@ We connect local commerce and infrastructure project liquidity pools directly to
         idVerificationStatus: "unsubmitted",
         bankName: "Commercial Bank of Ethiopia (CBE)",
         accountNumber: "10006806648721",
-        accountHolderName: "Alem",
+        accountHolderName: "HENOK AYELIGN",
         transactionPin: "4321",
         idSelfie: ""
       }

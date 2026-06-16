@@ -13,7 +13,7 @@
     },
     {
       "id": "user-0kw1ojisk",
-      "fullName": "Alem",
+      "fullName": "HENOK AYELIGN",
       "phone": "0926193920",
       "email": "leykunjemaneh3@gmail.com",
       "password": "000000",
@@ -44,11 +44,13 @@
       "idSelfie": "",
       "bankName": "",
       "accountNumber": "",
-      "accountHolderName": ""
+      "accountHolderName": "",
+      "incomeBalance": 0,
+      "depositBalance": 20000000
     },
     {
       "userId": "user-0kw1ojisk",
-      "fullName": "Alem",
+      "fullName": "HENOK AYELIGN",
       "phone": "0926193920",
       "email": "leykunjemaneh3@gmail.com",
       "vipLevel": 0,
@@ -65,9 +67,11 @@
       "idVerificationStatus": "unsubmitted",
       "bankName": "Commercial Bank of Ethiopia (CBE)",
       "accountNumber": "10006806648721",
-      "accountHolderName": "Alem",
+      "accountHolderName": "HENOK AYELIGN",
       "transactionPin": "4321",
-      "idSelfie": ""
+      "idSelfie": "",
+      "incomeBalance": 0,
+      "depositBalance": 0
     }
   ],
   "investments": [],
@@ -90,7 +94,7 @@
       "title": "Investment Policies & Rules",
       "category": "policies",
       "uploadedAt": "2026-06-03T12:00:00Z",
-      "content": "### Investment Policies & Rules\n\nPlatform micro-finance structural rules in detail:\n\n1. **High-Yield Plan Activation**: Investment plans are activated immediately upon balance confirmation (Min 5,000 ETB), automatically starting synced daily yields spanning VIP levels. Interest cycles schedule payouts every 24 hours.\n2. **CBE Transfer and Auditing**: Deposits are routed directly to the treasury audit desk via CBE app screenshots. Administrators evaluate submissions, and credits reflect live on user dashboards in under 2 hours.\n3. **Cashout Settlements**: Users cash out using secure designated accounts. Approved cashouts are dispersed within 2 to 6 hours to prevent settlement issues and ensure sustainable liquidity."
+      "content": "### Investment Policies & Rules\n\nPlatform micro-finance structural rules in detail:\n\n1. **High-Yield Plan Activation**: Investment plans are activated immediately upon balance confirmation (Min 5,000 ETB), automatically starting synced daily yields spanning VIP levels. Interest cycles schedule payouts every 24 hours.\n2. **CBE Transfer and Auditing**: Deposits are routed directly to the treasury audit desk via CBE app screenshots. Administrators evaluate submissions, and credits reflect live on user dashboards in under 2 hours.\n3. **Cashout Settlements**: Users cash out using secure designated accounts. Approved cashouts are dispersed within 0 to 42 hours to prevent settlement issues and ensure sustainable liquidity."
     },
     {
       "id": "risk-disclosure",
@@ -106,5 +110,6 @@
     "cbeAccountNumber": "1000419524747",
     "referralBonusPercentage": 10
   },
-  "loans": []
+  "loans": [],
+  "eligibilityChecks": []
 }
