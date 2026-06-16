@@ -915,13 +915,18 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                             <p className="text-[10.5px] text-slate-500 font-mono mt-0.5">{usr.phone} • REGISTRATION DATE: {new Date(usr.registrationDate).toLocaleDateString()}</p>
                           </div>
                           
-                          <div className="flex flex-wrap items-center gap-1">
+                          <div className="flex flex-wrap items-center gap-1.5">
                             <span className={`p-1 px-2.5 rounded-full text-[9px] font-mono font-black uppercase tracking-wider ${
                               prof.idVerificationStatus === 'pending' ? 'bg-amber-100 text-amber-700 border border-amber-200' :
                               prof.idVerificationStatus === 'verified' ? 'bg-emerald-100 text-emerald-700 border border-emerald-250' : 'bg-rose-100 text-rose-700'
                             }`}>
                               REVIEWS STATUS: {prof.idVerificationStatus || 'unsubmitted'}
                             </span>
+                            {prof.fanNumber && (
+                              <span className="p-1 px-2.5 rounded-full text-[9px] font-mono font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                National ID (FAN): {prof.fanNumber}
+                              </span>
+                            )}
                           </div>
                         </div>
 
@@ -1171,6 +1176,12 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                                 }`}>
                                   LIMITS: {usr.status || 'active'}
                                 </span>
+
+                                {prof.fanNumber && (
+                                  <span className="p-1 px-2 rounded-full text-[9px] font-mono font-black uppercase bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                    FAN: {prof.fanNumber}
+                                  </span>
+                                )}
                               </div>
 
                               {prof.idVerificationStatus === 'pending' ? (
@@ -1730,6 +1741,15 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
               <div className="flex space-x-2">
                 <button
                   onClick={() => {
+                    setRejectionModal(null);
+                    setRejectionReason('');
+                  }}
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 font-extrabold text-[10.5px] text-slate-700 uppercase tracking-wider rounded-xl transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
                     const { type, id } = rejectionModal;
                     if (type === 'deposit') handleDepositAction(id, 'reject', rejectionReason);
                     if (type === 'withdrawal') handleWithdrawalAction(id, 'reject', rejectionReason);
@@ -1737,18 +1757,9 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                     if (type === 'id-verify') handleIdVerifyAction(id, 'reject', rejectionReason);
                   }}
                   disabled={!rejectionReason.trim()}
-                  className="flex-1 py-2.5 bg-rose-555 hover:bg-rose-600 font-extrabold text-[10.5px] text-white uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:opacity-50"
+                  className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 font-extrabold text-[10.5px] text-white uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:opacity-50"
                 >
-                  Confirm Rejection
-                </button>
-                <button
-                  onClick={() => {
-                    setRejectionModal(null);
-                    setRejectionReason('');
-                  }}
-                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 font-extrabold text-[10.5px] text-slate-700 uppercase tracking-wider rounded-xl transition-all cursor-pointer"
-                >
-                  Cancel
+                  Send the Reason
                 </button>
               </div>
             </motion.div>

@@ -1558,8 +1558,10 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
   }
 
   // ==================== LUMORA CARD ENDPOINTS ====================
-  // Exchange rate definitions:
-  const USD_TO_ETB = 120;
+  // Helper for exchange rate
+  const getLiveExchangeRate = async (): Promise<number> => {
+    return 170; // Fixed rate of 1$ = 170 ETB as requested by the user
+  };
 
   // 40. GET /api/cards
   if (pathname === '/api/cards' && method === 'GET') {
@@ -1604,10 +1606,11 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     }
 
     // Required deductions
+    const currentUsdToEtb = await getLiveExchangeRate();
     const feeUsd = 3;
     const initialFundUsd = 10;
     const totalUsd = feeUsd + initialFundUsd;
-    const totalEtb = totalUsd * USD_TO_ETB;
+    const totalEtb = totalUsd * currentUsdToEtb;
 
     if (profile.depositBalance === undefined) profile.depositBalance = profile.walletBalance || 0;
     if (profile.incomeBalance === undefined) profile.incomeBalance = 0;
@@ -1615,12 +1618,12 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     const chosenWallet = walletType === 'income' ? 'income' : 'deposit';
     if (chosenWallet === 'income') {
       if (profile.incomeBalance < totalEtb) {
-        return respondJSON(400, { error: `Insufficient pool balance. You need ${totalEtb.toLocaleString()} ETB ($${totalUsd}) but only have ${profile.incomeBalance.toLocaleString()} ETB in your Income Pool.` });
+        return respondJSON(400, { error: `Insufficient pool balance. You need ${totalEtb.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ETB ($${totalUsd}) but only have ${profile.incomeBalance.toLocaleString()} ETB in your Income Pool.` });
       }
       profile.incomeBalance -= totalEtb;
     } else {
       if (profile.depositBalance < totalEtb) {
-        return respondJSON(400, { error: `Insufficient pool balance. You need ${totalEtb.toLocaleString()} ETB ($${totalUsd}) but only have ${profile.depositBalance.toLocaleString()} ETB in your Deposit Pool.` });
+        return respondJSON(400, { error: `Insufficient pool balance. You need ${totalEtb.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ETB ($${totalUsd}) but only have ${profile.depositBalance.toLocaleString()} ETB in your Deposit Pool.` });
       }
       profile.depositBalance -= totalEtb;
     }
@@ -1663,9 +1666,9 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       cardId,
       type: 'card_issued',
       amount: feeUsd,
-      amountEtb: feeUsd * USD_TO_ETB,
+      amountEtb: feeUsd * currentUsdToEtb,
       date: new Date().toISOString(),
-      description: `LUMORA CARD $${feeUsd} Issuance Fee (Deducted from ${chosenWallet === 'income' ? 'Income' : 'Deposit'} Pool: ${ (feeUsd * USD_TO_ETB).toLocaleString() } ETB)`,
+      description: `LUMORA CARD $${feeUsd} Issuance Fee (Deducted from ${chosenWallet === 'income' ? 'Income' : 'Deposit'} Pool: ${ (feeUsd * currentUsdToEtb).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) } ETB at rate $1 = ${currentUsdToEtb.toFixed(2)} ETB)`,
       status: 'completed'
     });
 
@@ -1675,9 +1678,9 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       cardId,
       type: 'card_recharge',
       amount: initialFundUsd,
-      amountEtb: initialFundUsd * USD_TO_ETB,
+      amountEtb: initialFundUsd * currentUsdToEtb,
       date: new Date().toISOString(),
-      description: `Initial funding card recharge of $${initialFundUsd} (Deducted from ${chosenWallet === 'income' ? 'Income' : 'Deposit'} Pool: ${ (initialFundUsd * USD_TO_ETB).toLocaleString() } ETB)`,
+      description: `Initial funding card recharge of $${initialFundUsd} (Deducted from ${chosenWallet === 'income' ? 'Income' : 'Deposit'} Pool: ${ (initialFundUsd * currentUsdToEtb).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) } ETB at rate $1 = ${currentUsdToEtb.toFixed(2)} ETB)`,
       status: 'completed'
     });
 
@@ -1698,8 +1701,14 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
   if (pathname === '/api/cards/recharge' && method === 'POST') {
     const { userId, amount, walletType } = body;
     const reqAmount = Number(amount);
+    
+    const currentUsdToEtb = await getLiveExchangeRate();
+    const rechargeFeeUsd = 1; // $1.00 USD transaction fee
+    const totalUsdCharged = reqAmount + rechargeFeeUsd;
+    const costEtb = totalUsdCharged * currentUsdToEtb;
+
     if (!reqAmount || reqAmount < 10) {
-      return respondJSON(400, { error: "Minimum funding amount is $10 USD (1,200 ETB)." });
+      return respondJSON(400, { error: `Minimum funding amount is $10 USD (${(10 * currentUsdToEtb).toLocaleString(undefined, {maximumFractionDigits: 0})} ETB).` });
     }
 
     const profile = db.profiles.find(p => p.userId === userId);
@@ -1712,19 +1721,18 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       return respondJSON(400, { error: `Card must be active to fund. Current status: ${card.status}` });
     }
 
-    const costEtb = reqAmount * USD_TO_ETB;
     if (profile.depositBalance === undefined) profile.depositBalance = profile.walletBalance || 0;
     if (profile.incomeBalance === undefined) profile.incomeBalance = 0;
 
     const chosenWallet = walletType === 'income' ? 'income' : 'deposit';
     if (chosenWallet === 'income') {
       if (profile.incomeBalance < costEtb) {
-        return respondJSON(400, { error: `Insufficient pool. You need ${costEtb.toLocaleString()} ETB ($${reqAmount}) but only have ${profile.incomeBalance.toLocaleString()} ETB inside your Income Pool.` });
+        return respondJSON(400, { error: `Insufficient pool. You need ${costEtb.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ETB ($${totalUsdCharged.toFixed(2)}) but only have ${profile.incomeBalance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ETB inside your Income Pool.` });
       }
       profile.incomeBalance -= costEtb;
     } else {
       if (profile.depositBalance < costEtb) {
-        return respondJSON(400, { error: `Insufficient pool. You need ${costEtb.toLocaleString()} ETB ($${reqAmount}) but only have ${profile.depositBalance.toLocaleString()} ETB inside your Deposit Pool.` });
+        return respondJSON(400, { error: `Insufficient pool. You need ${costEtb.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ETB ($${totalUsdCharged.toFixed(2)}) but only have ${profile.depositBalance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ETB inside your Deposit Pool.` });
       }
       profile.depositBalance -= costEtb;
     }
@@ -1743,7 +1751,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       amount: reqAmount,
       amountEtb: costEtb,
       date: new Date().toISOString(),
-      description: `Recharged card balance with $${reqAmount} USD (Deducted: ${costEtb.toLocaleString()} ETB from ${chosenWallet === 'income' ? 'Income' : 'Deposit'} Pool)`,
+      description: `Recharged card balance with $${reqAmount} USD + $1.00 USD transaction fee at fixed rate 1 USD = ${currentUsdToEtb.toFixed(2)} ETB (Total: ${costEtb.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ETB from ${chosenWallet === 'income' ? 'Income' : 'Deposit'} Pool)`,
       status: 'completed'
     });
 
@@ -1751,7 +1759,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       id: "not-" + Math.random().toString(36).substr(2, 9),
       userId,
       title: "LUMORA Card Recharged",
-      message: `Your Virtual MasterCard has been successfully funded with $${reqAmount} USD (deducted ${costEtb.toLocaleString()} ETB). New Card Balance: $${card.balance.toFixed(2)} USD.`,
+      message: `Your Virtual MasterCard has been successfully funded with $${reqAmount} USD. An institutional transaction fee of $1.00 USD was applied at the fixed rate of ${currentUsdToEtb.toFixed(2)} ETB (total deducted: ${costEtb.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ETB). New Card Balance: $${card.balance.toFixed(2)} USD.`,
       read: false,
       date: new Date().toISOString()
     });
@@ -1837,9 +1845,10 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
         date: new Date().toISOString()
       });
     } else if (action === 'reject') {
+      const currentUsdToEtb = await getLiveExchangeRate();
       // Refund the initial funding amount of $10 to Deposit Wallet
       if (profile) {
-        const refundEtb = 10 * USD_TO_ETB;
+        const refundEtb = 10 * currentUsdToEtb;
         if (profile.depositBalance === undefined) profile.depositBalance = profile.walletBalance || 0;
         profile.depositBalance += refundEtb;
         profile.walletBalance += refundEtb;
@@ -1854,11 +1863,12 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
         });
       }
 
+      const currentUsdToEtbNotify = await getLiveExchangeRate();
       db.notifications.push({
         id: "not-" + Math.random().toString(36).substr(2, 9),
         userId,
         title: "LUMORA Card Rejected",
-        message: `Your Virtual Mastercard application was declined. Your reserved initial funding ($10 / ${ (10 * USD_TO_ETB).toLocaleString() } ETB) has been refunded to your Deposit Pool.`,
+        message: `Your Virtual Mastercard application was declined. Your reserved initial funding ($10 / ${ (10 * currentUsdToEtbNotify).toLocaleString() } ETB) has been refunded to your Deposit Pool.`,
         read: false,
         date: new Date().toISOString()
       });

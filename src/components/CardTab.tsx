@@ -3,7 +3,7 @@ import {
   CreditCard, Info, ArrowUpRight, ShieldCheck, 
   Lock, RefreshCw, Layers, History, HelpCircle, 
   MapPin, CheckCircle2, AlertCircle, Coins, Wallet, Flame,
-  Copy, Check
+  Copy, Check, Download
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useLanguage } from '../locale';
@@ -48,10 +48,10 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
     setTimeout(() => setCopiedField(null), 1500);
   };
 
-  const USD_TO_ETB = 120; // Matches fetchInterceptor
+  const [usdToEtb, setUsdToEtb] = useState(170);
   const isVipEligible = profile.vipLevel >= 3;
   const isKycEligible = profile.idVerificationStatus === 'verified';
-  const hasMinFunds = (profile.depositBalance ?? 0) >= (13 * USD_TO_ETB) || (profile.incomeBalance ?? 0) >= (13 * USD_TO_ETB);
+  const hasMinFunds = (profile.depositBalance ?? 0) >= (13 * usdToEtb) || (profile.incomeBalance ?? 0) >= (13 * usdToEtb);
   const isFullyEligible = isVipEligible && isKycEligible;
 
   // Load user card and transactions
@@ -73,6 +73,146 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
       setLoading(false);
     }
   };
+
+  const handleDownloadCard = () => {
+    if (!card) return;
+    const canvas = document.createElement('canvas');
+    canvas.width = 1018;
+    canvas.height = 644;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Draw background linear gradient
+    const gradient = ctx.createLinearGradient(0, 0, 1018, 644);
+    gradient.addColorStop(0, '#1E3A8A');
+    gradient.addColorStop(0.5, '#10B981');
+    gradient.addColorStop(1, '#3B82F6');
+    ctx.fillStyle = gradient;
+    
+    // Draw rounded rect card frame
+    ctx.beginPath();
+    const radius = 48;
+    ctx.roundRect(0, 0, 1018, 644, radius);
+    ctx.fill();
+
+    // Subtle ambient glow layers
+    const glow1 = ctx.createRadialGradient(1018, 0, 10, 1018, 0, 400);
+    glow1.addColorStop(0, 'rgba(255, 255, 255, 0.08)');
+    glow1.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    ctx.fillStyle = glow1;
+    ctx.beginPath();
+    ctx.roundRect(0, 0, 1018, 644, radius);
+    ctx.fill();
+
+    const glow2 = ctx.createRadialGradient(0, 644, 20, 0, 644, 300);
+    glow2.addColorStop(0, 'rgba(16, 185, 129, 0.2)');
+    glow2.addColorStop(1, 'rgba(16, 185, 129, 0)');
+    ctx.fillStyle = glow2;
+    ctx.beginPath();
+    ctx.roundRect(0, 0, 1018, 644, radius);
+    ctx.fill();
+
+    // LUMORA LOGO TEXT
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '900 36px sans-serif';
+    ctx.fillText('LUMORA', 64, 96);
+
+    // VIRTUAL BADGE BOX
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.beginPath();
+    ctx.roundRect(240, 60, 140, 44, 8);
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.fillStyle = '#E0F2FE';
+    ctx.font = '800 18px sans-serif';
+    ctx.fillText('VIRTUAL', 260, 88);
+
+    // Subtitle below logo
+    ctx.fillStyle = 'rgba(219, 234, 254, 0.8)';
+    ctx.font = '600 16px sans-serif';
+    ctx.fillText('USD PLATFORM SETTLEMENTS', 64, 136);
+
+    // Active Card Status Badge
+    const statusText = (card.status || 'ACTIVE').toUpperCase();
+    const isFrozen = card.status === 'frozen';
+    ctx.fillStyle = isFrozen ? '#EF4444' : '#10B981';
+    ctx.beginPath();
+    ctx.roundRect(830, 56, 124, 44, 22);
+    ctx.fill();
+
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '900 16px sans-serif';
+    const sWidth = ctx.measureText(statusText).width;
+    ctx.fillText(statusText, 830 + (124 - sWidth) / 2, 84);
+
+    // Card Number Text
+    ctx.fillStyle = '#F8FAFC';
+    ctx.font = '900 42px monospace';
+    const cNum = card.cardNumber || "5545 4296 0000 0000";
+    const numWidth = ctx.measureText(cNum).width;
+    ctx.fillText(cNum, (1018 - numWidth) / 2, 330);
+
+    // Cardholder labels and text
+    ctx.fillStyle = 'rgba(219, 234, 254, 0.9)';
+    ctx.font = '700 14px sans-serif';
+    ctx.fillText('CARDHOLDER', 64, 480);
+
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '900 24px sans-serif';
+    ctx.fillText((card.cardHolderName || profile.fullName || 'HENOK AYELIGN').toUpperCase(), 64, 526);
+
+    // CVV
+    ctx.fillStyle = 'rgba(219, 234, 254, 0.9)';
+    ctx.font = '700 14px sans-serif';
+    ctx.fillText('CVV', 520, 480);
+
+    ctx.fillStyle = '#F1F5F9';
+    ctx.font = '900 22px monospace';
+    ctx.fillText(card.cvv || '101', 520, 526);
+
+    // EXPIRY DATE
+    ctx.fillStyle = 'rgba(219, 234, 254, 0.9)';
+    ctx.font = '700 14px sans-serif';
+    ctx.fillText('EXPIRY', 680, 480);
+
+    ctx.fillStyle = '#F1F5F9';
+    ctx.font = '900 22px monospace';
+    ctx.fillText(card.expiryDate || '12/29', 680, 526);
+
+    // Overlapping red / amber circles for Mastercard layout
+    ctx.save();
+    ctx.globalAlpha = 0.95;
+    ctx.fillStyle = '#DC2626';
+    ctx.beginPath();
+    ctx.arc(860, 506, 32, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.globalAlpha = 0.90;
+    ctx.fillStyle = '#F59E0B';
+    ctx.beginPath();
+    ctx.arc(904, 506, 32, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Trigger local client browser download
+    try {
+      const dataUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = `lumora_mastercard_${card.cardHolderName.toLowerCase().replace(/\s+/g, '_')}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error("Failed to generate download url", err);
+    }
+  };
+
+  useEffect(() => {
+    setUsdToEtb(170); // Fixed exchange rate of 1 USD = 170 ETB as requested
+  }, []);
 
   useEffect(() => {
     if (profile.userId) {
@@ -578,6 +718,25 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
                   </div>
                 </div>
 
+                {/* Helper action links below card frame */}
+                <div className="flex justify-between items-center max-w-[340px] mx-auto w-full px-1 pt-1.5 pb-2">
+                  <button 
+                    onClick={() => setRevealCard(!revealCard)} 
+                    className="text-[10.5px] text-[#0A3D91] font-extrabold hover:underline flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5 text-[#0A3D91]" />
+                    <span>{revealCard ? 'Hide details' : 'Reveal details'}</span>
+                  </button>
+
+                  <button 
+                    onClick={handleDownloadCard} 
+                    className="text-[10.5px] text-[#059669] font-extrabold hover:underline flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Download className="w-3.5 h-3.5 text-[#059669]" />
+                    <span>Save to Gallery</span>
+                  </button>
+                </div>
+
                 {/* Balance Details Display */}
                 <div className="grid grid-cols-2 gap-3.5 p-4 bg-slate-50 border border-slate-150 rounded-2xl">
                   <div className="text-left leading-tight">
@@ -846,9 +1005,24 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
                     />
                     <span className="absolute right-4.5 top-1/2 -translate-y-1/2 text-[9.5px] font-black text-slate-450 uppercase">USD</span>
                   </div>
-                  <p className="text-[9px] text-[#0A3D91] font-bold mt-1 text-right">
-                    Equivalent Cost: {(Number(rechargeAmt) * USD_TO_ETB || 0).toLocaleString()} ETB (Rate $1 = 120 ETB)
-                  </p>
+                  <div className="bg-slate-50 border border-slate-150 p-3 rounded-2xl space-y-1.5 mt-2 text-[10px] shadow-3xs">
+                    <div className="flex justify-between text-slate-500 font-medium">
+                      <span>Recharge Amount:</span>
+                      <span className="font-extrabold text-slate-800">${Number(rechargeAmt || 0).toFixed(2)} USD</span>
+                    </div>
+                    <div className="flex justify-between text-slate-500 font-medium pb-1.5 border-b border-dashed border-slate-200">
+                      <span>Transaction Fee:</span>
+                      <span className="font-extrabold text-indigo-700">$1.00 USD</span>
+                    </div>
+                    <div className="flex justify-between text-slate-500 font-medium pt-1">
+                      <span>Real-time Rate:</span>
+                      <span className="font-bold text-slate-700">1 USD = {usdToEtb.toFixed(2)} ETB</span>
+                    </div>
+                    <div className="flex justify-between text-[#0A3D91] font-black pt-0.5 text-[11px]">
+                      <span>Total Debit Cost:</span>
+                      <span>{(((Number(rechargeAmt || 0) + 1) * usdToEtb) || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ETB</span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* 2. Wallet choice */}
