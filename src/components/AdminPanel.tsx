@@ -68,6 +68,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   const [selectedUserForEdit, setSelectedUserForEdit] = useState<any | null>(null);
   const [adjustAmount, setAdjustAmount] = useState('');
   const [adjustType, setAdjustType] = useState<'add' | 'subtract'>('add');
+  const [adjustTargetWallet, setAdjustTargetWallet] = useState<'deposit' | 'income'>('deposit');
   const [adjustVipLevel, setAdjustVipLevel] = useState<number>(0);
   const [showBalanceConfirm, setShowBalanceConfirm] = useState(false);
   
@@ -247,7 +248,8 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
         body: JSON.stringify({ 
           targetUserId: selectedUserForEdit.id, 
           amount, 
-          type: adjustType 
+          type: adjustType,
+          targetWallet: adjustTargetWallet
         })
       });
       if (res.ok) {
@@ -258,10 +260,14 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
           ...prev,
           profile: {
             ...prev.profile,
-            walletBalance: updatedUserRaw.profile.walletBalance
+            walletBalance: updatedUserRaw.profile.walletBalance,
+            depositBalance: updatedUserRaw.profile.depositBalance,
+            incomeBalance: updatedUserRaw.profile.incomeBalance,
+            totalDeposits: updatedUserRaw.profile.totalDeposits,
+            totalEarnings: updatedUserRaw.profile.totalEarnings
           }
         } : null);
-        showToast(`Balance adjusted successfully by ${amount} ETB`, "success");
+        showToast(`Balance adjusted successfully by ${amount} ETB in ${adjustTargetWallet === 'income' ? 'Income Pool' : 'Deposit Pool'}`, "success");
         fetchAllAdminData();
       } else {
         showToast("Failed to adjust account balance.", "error");
@@ -787,7 +793,19 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                           <td className="p-3">
                             <div className="bg-slate-50 border border-slate-150 p-2 rounded-xl text-[10px] max-w-[210px]">
                               <p className="font-bold text-slate-700">{wit.bankName || "Commercial Bank of Ethiopia (CBE)"}</p>
-                              <p className="font-mono text-[9px] text-[#0A3D91] font-black mt-1 uppercase tracking-widest">{wit.accountNumber}</p>
+                              <div className="flex items-center space-x-1.5 mt-1">
+                                <span className="font-mono text-[9px] text-[#0A3D91] font-black tracking-widest">{wit.accountNumber}</span>
+                                {wit.accountNumber && (
+                                  <button
+                                    type="button"
+                                    onClick={() => copyToClipboard(wit.accountNumber || '', 'Account Number')}
+                                    className="p-0.5 rounded text-slate-405 hover:text-[#0A3D91] hover:bg-slate-200/50 transition active:scale-90 cursor-pointer shrink-0"
+                                    title="Copy Account Number"
+                                  >
+                                    <Copy className="w-3 h-3" />
+                                  </button>
+                                )}
+                              </div>
                               <p className="text-[9.5px] text-slate-400 font-semibold uppercase mt-0.5">{wit.accountHolderName || wit.userName}</p>
                             </div>
                           </td>
@@ -1688,17 +1706,28 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                 {/* SECTION 4: Financial Ledger & VIP Realignment */}
                 <div className="space-y-4">
                   {/* Ledger stats */}
-                  <div className="grid grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-150">
-                    <div className="text-center">
-                      <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Wallet Balance</p>
+                  <div className="grid grid-cols-2 gap-2 text-center">
+                    <div className="bg-slate-50 p-2.5 rounded-2xl border border-slate-150">
+                      <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Deposit Pool</p>
+                      <p className="text-xs font-black text-[#0A3D91] mt-0.5 font-mono">{(selectedUserForEdit.profile?.depositBalance || 0).toLocaleString()} ETB</p>
+                    </div>
+                    <div className="bg-slate-50 p-2.5 rounded-2xl border border-slate-150">
+                      <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Income Pool</p>
+                      <p className="text-xs font-black text-amber-600 mt-0.5 font-mono">{(selectedUserForEdit.profile?.incomeBalance || 0).toLocaleString()} ETB</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 bg-slate-50 p-2.5 rounded-2xl border border-slate-150 text-center">
+                    <div>
+                      <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Total Wallet</p>
                       <p className="text-xs font-black text-[#0A3D91] mt-0.5 font-mono">{(selectedUserForEdit.profile?.walletBalance || 0).toLocaleString()} ETB</p>
                     </div>
-                    <div className="text-center border-x border-slate-150">
+                    <div className="border-x border-slate-150">
                       <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Total Deposits</p>
                       <p className="text-xs font-black text-emerald-600 mt-0.5 font-mono">{(selectedUserForEdit.profile?.totalDeposits || 0).toLocaleString()} ETB</p>
                     </div>
-                    <div className="text-center">
-                      <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Withdrawals cleared</p>
+                    <div>
+                      <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Cleared Cashouts</p>
                       <p className="text-xs font-black text-rose-500 mt-0.5 font-mono">{(selectedUserForEdit.profile?.totalWithdrawals || 0).toLocaleString()} ETB</p>
                     </div>
                   </div>
@@ -1707,35 +1736,48 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                   <div className="space-y-3 p-3 bg-[#0A3D91]/5 rounded-2xl border border-[#0A3D91]/10">
                     <p className="text-[10px] font-black text-[#0A3D91] uppercase tracking-widest">Adjust Wallet Balance Ledger</p>
                     
-                    <div className="flex space-x-2">
-                      <select
-                        value={adjustType}
-                        onChange={(e) => setAdjustType(e.target.value as any)}
-                        className="bg-white border border-slate-200 text-slate-900 rounded-xl px-2.5 py-2 text-xs font-extrabold focus:outline-none cursor-pointer"
-                      >
-                        <option value="add">Add Credit (+)</option>
-                        <option value="subtract">Subtract Debit (-)</option>
-                      </select>
-                      
-                      <div className="flex-1 relative">
-                        <input
-                          type="number"
-                          placeholder="Amount in ETB"
-                          value={adjustAmount}
-                          onChange={(e) => setAdjustAmount(e.target.value)}
-                          className="w-full bg-white border border-slate-200 text-slate-900 rounded-xl px-3.5 py-2 text-xs font-mono font-black placeholder:font-sans focus:outline-none focus:ring-1 focus:ring-[#0A3D91]"
-                        />
-                        <span className="absolute right-3.5 top-2.5 text-[10px] uppercase font-black text-slate-450 select-none">ETB</span>
-                      </div>
+                    <div className="flex flex-col gap-2.5">
+                      <div className="flex space-x-2">
+                        <select
+                          value={adjustType}
+                          onChange={(e) => setAdjustType(e.target.value as any)}
+                          className="bg-white border border-slate-200 text-slate-900 rounded-xl px-2.5 py-2 text-xs font-extrabold focus:outline-none cursor-pointer"
+                        >
+                          <option value="add">Add Credit (+)</option>
+                          <option value="subtract">Subtract Debit (-)</option>
+                        </select>
 
-                      <button
-                        type="button"
-                        onClick={handleAdjustBalance}
-                        disabled={actionLoading === 'adjust-balance' || !adjustAmount || isNaN(Number(adjustAmount)) || Number(adjustAmount) <= 0}
-                        className="px-4 py-2 bg-[#0A3D91] hover:bg-[#072f70] text-white text-[10.5px] uppercase font-black tracking-wider rounded-xl cursor-pointer transition-all active:scale-95 disabled:opacity-40 disabled:pointer-events-none shadow-3xs"
-                      >
-                        Authorize
-                      </button>
+                        <select
+                          value={adjustTargetWallet}
+                          onChange={(e) => setAdjustTargetWallet(e.target.value as any)}
+                          className="bg-white border border-slate-200 text-[#0A3D91] rounded-xl px-2.5 py-2 text-xs font-extrabold focus:outline-none cursor-pointer flex-1"
+                        >
+                          <option value="deposit">To Deposit Pool</option>
+                          <option value="income">To Income Pool</option>
+                        </select>
+                      </div>
+                      
+                      <div className="flex space-x-2">
+                        <div className="flex-1 relative">
+                          <input
+                            type="number"
+                            placeholder="Amount in ETB"
+                            value={adjustAmount}
+                            onChange={(e) => setAdjustAmount(e.target.value)}
+                            className="w-full bg-white border border-slate-200 text-slate-900 rounded-xl px-3.5 py-2 text-xs font-mono font-black placeholder:font-sans focus:outline-none focus:ring-1 focus:ring-[#0A3D91]"
+                          />
+                          <span className="absolute right-3.5 top-2.5 text-[10px] uppercase font-black text-slate-450 select-none">ETB</span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={handleAdjustBalance}
+                          disabled={actionLoading === 'adjust-balance' || !adjustAmount || isNaN(Number(adjustAmount)) || Number(adjustAmount) <= 0}
+                          className="px-5 py-2 bg-[#0A3D91] hover:bg-[#072f70] text-white text-[10.5px] uppercase font-black tracking-wider rounded-xl cursor-pointer transition-all active:scale-95 disabled:opacity-40 disabled:pointer-events-none shadow-3xs"
+                        >
+                          Authorize
+                        </button>
+                      </div>
                     </div>
 
                     {/* REAL-TIME PREVIEW */}
@@ -1750,21 +1792,46 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                         
                         <div className="text-xs font-black text-center py-1 flex items-center justify-center space-x-2 bg-black/20 rounded-lg">
                           <span className={adjustType === 'add' ? 'text-emerald-400 font-extrabold' : 'text-rose-400 font-extrabold'}>
-                            {adjustType === 'add' ? '+' : '-'} {Number(adjustAmount).toLocaleString()} ETB
+                            {adjustType === 'add' ? '+' : '-'} {Number(adjustAmount).toLocaleString()} ETB ({adjustTargetWallet === 'income' ? 'Income Pool' : 'Deposit Pool'})
                           </span>
                         </div>
 
                         <div className="grid grid-cols-2 gap-2 text-[9px] border-t border-white/5 pt-1.5 font-sans">
                           <div>
-                            <span className="text-slate-400 block pb-0.5 font-sans">CURRENT BALANCE</span>
+                            <span className="text-slate-400 block pb-0.5 font-sans">CURRENT WALLET</span>
                             <span className="font-mono font-bold text-slate-300">{(selectedUserForEdit.profile?.walletBalance || 0).toLocaleString()} ETB</span>
                           </div>
                           <div className="text-right">
-                            <span className="text-slate-400 block pb-0.5 font-sans">POST-AUDIT BALANCE</span>
+                            <span className="text-slate-400 block pb-0.5 font-sans">POST-AUDIT WALLET</span>
                             <span className={`font-mono font-black ${adjustType === 'add' ? 'text-emerald-400' : 'text-rose-400'}`}>
                               {Math.max(0, adjustType === 'add' 
                                 ? (selectedUserForEdit.profile?.walletBalance || 0) + Number(adjustAmount) 
                                 : (selectedUserForEdit.profile?.walletBalance || 0) - Number(adjustAmount)
+                              ).toLocaleString()} ETB
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 text-[9px] border-t border-white/5 pt-1.5 font-sans">
+                          <div>
+                            <span className="text-slate-400 block pb-0.5 font-sans">
+                              CURRENT {adjustTargetWallet === 'income' ? 'INCOME POOL' : 'DEPOSIT POOL'}
+                            </span>
+                            <span className="font-mono font-bold text-slate-300">
+                              {(adjustTargetWallet === 'income' 
+                                ? selectedUserForEdit.profile?.incomeBalance || 0 
+                                : selectedUserForEdit.profile?.depositBalance || 0
+                              ).toLocaleString()} ETB
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-slate-400 block pb-0.5 font-sans">
+                              POST-AUDIT {adjustTargetWallet === 'income' ? 'INCOME POOL' : 'DEPOSIT POOL'}
+                            </span>
+                            <span className={`font-mono font-black ${adjustType === 'add' ? 'text-emerald-400' : 'text-rose-400'}`}>
+                              {Math.max(0, adjustType === 'add' 
+                                ? (adjustTargetWallet === 'income' ? selectedUserForEdit.profile?.incomeBalance || 0 : selectedUserForEdit.profile?.depositBalance || 0) + Number(adjustAmount) 
+                                : (adjustTargetWallet === 'income' ? selectedUserForEdit.profile?.incomeBalance || 0 : selectedUserForEdit.profile?.depositBalance || 0) - Number(adjustAmount)
                               ).toLocaleString()} ETB
                             </span>
                           </div>

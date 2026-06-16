@@ -1074,29 +1074,46 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
   if (pathname === '/api/admin/users/adjust-balance' && method === 'POST') {
     const targetUserId = body.targetUserId || body.userId;
     const { amount, type } = body;
+    const targetWallet = body.targetWallet || body.pool || 'deposit';
     const profile = db.profiles.find(p => p.userId === targetUserId);
     if (!profile) return respondJSON(404, { error: "Profile not found" });
+
+    if (profile.depositBalance === undefined) profile.depositBalance = profile.walletBalance || 0;
+    if (profile.incomeBalance === undefined) profile.incomeBalance = 0;
 
     const delta = Number(amount);
     if (type === 'add') {
       profile.walletBalance += delta;
-      profile.totalDeposits += delta;
+      if (targetWallet === 'income') {
+        profile.incomeBalance += delta;
+        profile.totalEarnings = (profile.totalEarnings || 0) + delta;
+      } else {
+        profile.depositBalance += delta;
+        profile.totalDeposits = (profile.totalDeposits || 0) + delta;
+      }
+
       db.transactions.push({
         id: "tx-" + Math.random().toString(36).substr(2, 9),
         userId: targetUserId,
         type: 'deposit',
         amount: delta,
-        description: "Institutional credit adjustment authorized by Administrator",
+        description: `Institutional credit adjustment to ${targetWallet === 'income' ? 'Income Pool' : 'Deposit Pool'} authorized by Administrator`,
         date: new Date().toISOString()
       });
     } else {
       profile.walletBalance = Math.max(0, profile.walletBalance - delta);
+      if (targetWallet === 'income') {
+        profile.incomeBalance = Math.max(0, profile.incomeBalance - delta);
+      } else {
+        profile.depositBalance = Math.max(0, profile.depositBalance - delta);
+      }
+
       db.transactions.push({
         id: "tx-" + Math.random().toString(36).substr(2, 9),
         userId: targetUserId,
         type: 'withdrawal',
         amount: -delta,
-        description: "Institutional debit balance adjustment authorized by Administrator",
+        description: `Institutional debit adjustment to ${targetWallet === 'income' ? 'Income Pool' : 'Deposit Pool'} authorized by Administrator`,
         date: new Date().toISOString()
       });
     }
@@ -1104,10 +1121,12 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     db.notifications.push({
       id: "not-" + Math.random().toString(36).substr(2, 9),
       userId: targetUserId,
-      title: type === 'add' ? "Wallet Balance Credited" : "Wallet Balance Debited",
+      title: type === 'add' 
+        ? `Wallet Pool Credited (${targetWallet === 'income' ? 'Yield Earnings' : 'Deposit Ledger'})` 
+        : `Wallet Pool Debited (${targetWallet === 'income' ? 'Yield Earnings' : 'Deposit Ledger'})`,
       message: type === 'add'
-        ? `Your wallet balance has been credited with ${delta} ETB by an administrative manual deposit adjustment. Current balance: ${profile.walletBalance} ETB.`
-        : `Your wallet balance has been debited by ${delta} ETB by an administrative balance adjustment. Current balance: ${profile.walletBalance} ETB.`,
+        ? `Your ${targetWallet === 'income' ? 'Income Pool' : 'Deposit Pool'} has been credited with ${delta} ETB by an administrative manual adjustment. Current wallet total: ${profile.walletBalance} ETB.`
+        : `Your ${targetWallet === 'income' ? 'Income Pool' : 'Deposit Pool'} has been debited by ${delta} ETB by an administrative adjustment. Current wallet total: ${profile.walletBalance} ETB.`,
       read: false,
       date: new Date().toISOString()
     });

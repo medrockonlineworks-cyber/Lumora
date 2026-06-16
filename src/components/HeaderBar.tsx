@@ -80,6 +80,13 @@ export default function HeaderBar({
   const filteredNotifications = notifications.filter(n => {
     if (activeCategory === 'all') return true;
     return getNotificationCategory(n) === activeCategory;
+  }).sort((a, b) => {
+    // 1. Unread notifications first, read notifications second
+    if (!a.read && b.read) return -1;
+    if (a.read && !b.read) return 1;
+    
+    // 2. Newest date first within groups
+    return new Date(b.date).getTime() - new Date(a.date).getTime();
   });
 
   const handleLangSelect = (code: LanguageCode) => {
