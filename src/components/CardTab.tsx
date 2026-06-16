@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { 
   CreditCard, Info, ArrowUpRight, ShieldCheck, 
   Lock, RefreshCw, Layers, History, HelpCircle, 
-  MapPin, CheckCircle2, AlertCircle, Coins, Wallet, Flame,
+  MapPin, CheckCircle2, AlertCircle, Coins, Wallet, 
   Copy, Check, Download
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -328,41 +328,6 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
     }
   };
 
-  // Quick purchase simulation for interactive live preview testing
-  const simulatePurchase = async (purchaseAmtUsd: number, merchant: string) => {
-    if (!card || card.status !== 'active') return;
-    if (card.balance < purchaseAmtUsd) {
-      setError("Insufficient card balance for online transaction.");
-      return;
-    }
-    
-    try {
-      setSubmitting(true);
-      setError(null);
-      
-      const res = await fetch('/api/cards/purchase', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: profile.userId,
-          amount: purchaseAmtUsd,
-          merchant
-        })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setSuccessMsg(`Authorized purchase of $${purchaseAmtUsd.toFixed(2)} USD at ${merchant}!`);
-        loadCardData();
-      } else {
-        setError(data.error || "Simulation failed");
-      }
-    } catch (err) {
-      setError("Simulation API call failed");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   const activeWalletBalance = rechargeWallet === 'income' 
     ? (profile.incomeBalance ?? 0) 
     : (profile.depositBalance ?? 0);
@@ -621,41 +586,6 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
                     Your reserved initial funding balance is completely safe and fully refundable if compliance declines activation.
                   </p>
                 </div>
-
-                <div className="pt-2" id="testing-approval-block">
-                  <button
-                    id="instant-self-approve-card-btn"
-                    onClick={async () => {
-                      try {
-                        setSubmitting(true);
-                        setError(null);
-                        const res = await fetch('/api/admin/cards/action', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ cardId: card.id, action: 'approve' })
-                        });
-                        const data = await res.json();
-                        if (res.ok) {
-                          setSuccessMsg("LUMORA MASTER CARD APPROVED INSTANTLY FOR TESTING!");
-                          loadCardData();
-                        } else {
-                          setError(data.error || "Could not auto-approve card");
-                        }
-                      } catch (e) {
-                        setError("Could not auto-approve card");
-                      } finally {
-                        setSubmitting(false);
-                      }
-                    }}
-                    disabled={submitting}
-                    className="w-full max-w-sm px-4 py-3 bg-[#0A3D91] hover:bg-[#082e6d] text-white font-sans font-black text-[10px] uppercase tracking-wider rounded-2xl cursor-pointer shadow-md shadow-blue-500/10 active:scale-[0.98] transition-all flex items-center justify-center space-x-1.5"
-                  >
-                    <span>⚡ Instant Admin Approval (Testing Mode)</span>
-                  </button>
-                  <p className="text-[8.5px] text-slate-450 mt-1.5 uppercase font-mono tracking-wider font-extrabold text-center select-none">
-                    Fast-Track Your Card Activation
-                  </p>
-                </div>
               </div>
 
             </div>
@@ -900,38 +830,6 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
                     <span className="text-[8px] text-slate-401 font-extrabold uppercase tracking-wider block text-slate-450">Officially Authorized Merchants</span>
                     <span className="font-heavy text-slate-605 block text-[9.5px] mt-0.5">Amazon, ChatGPT Plus, Netflix, AliExpress, Google Play Store & major global portals</span>
                   </div>
-                </div>
-              </div>
-
-              {/* LIVE PREVIEW SIMULATOR PANEL */}
-              <div className="bg-slate-900 border border-slate-850 p-5 rounded-[2.2rem] text-white text-left space-y-3 shadow-md relative overflow-hidden">
-                <div className="absolute right-[-10%] top-[-10%] w-24 h-24 bg-blue-500/5 rounded-full blur-xl pointer-events-none" />
-                <div className="flex items-center space-x-2">
-                  <Flame className="w-4 h-4 text-amber-400" />
-                  <h4 className="text-[11px] font-black text-amber-400 uppercase tracking-widest">
-                    Interactive Merchant Playground
-                  </h4>
-                </div>
-                <p className="text-[10px] text-slate-400 font-medium">
-                  Test your active LUMORA Mastercard. This playground authorizes virtual secure debits instantly for testing purposes.
-                </p>
-
-                <div className="grid grid-cols-2 gap-2.5 pt-1.5">
-                  <button
-                    onClick={() => simulatePurchase(15, "Netflix Premium")}
-                    disabled={card.status !== 'active' || card.balance < 15}
-                    className="p-2.5 bg-slate-800 border border-slate-750 rounded-xl text-[9.5px] font-black text-slate-200 uppercase tracking-wider hover:bg-slate-750 transition-all cursor-pointer disabled:opacity-40"
-                  >
-                    📺 Pay Netflix $15
-                  </button>
-
-                  <button
-                    onClick={() => simulatePurchase(20, "ChatGPT Plus Server")}
-                    disabled={card.status !== 'active' || card.balance < 20}
-                    className="p-2.5 bg-slate-800 border border-slate-750 rounded-xl text-[9.5px] font-black text-slate-200 uppercase tracking-wider hover:bg-slate-755 transition-all cursor-pointer disabled:opacity-40"
-                  >
-                    🤖 ChatGPT Plus $20
-                  </button>
                 </div>
               </div>
 
