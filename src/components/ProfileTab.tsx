@@ -1735,9 +1735,8 @@ export default function ProfileTab({
       </div>
 
       {/* CARD 6: Interactive Transaction Ledger (Deposits & Withdrawals) */}
-      {(deposits.length > 0 || withdrawals.length > 0) && (
-        <div className="space-y-4 px-1">
-          {/* Header & Tabs */}
+      <div className="space-y-4 px-1">
+        {/* Header & Tabs */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
             <h4 className="font-display font-black text-xs text-slate-700 tracking-wider uppercase">
               Financial Records
@@ -1851,7 +1850,6 @@ export default function ProfileTab({
             )}
           </div>
         </div>
-      )}
 
       {/* CARD 7: Sign Out Triggers (Secondary Elegant Frame) */}
       <div className="pt-2 px-1">
