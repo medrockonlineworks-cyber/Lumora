@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useLanguage, LanguageCode, languages } from '../locale';
-import { Profile, Withdrawal, Loan, Referral, Investment } from '../types';
+import { Profile, Withdrawal, Loan, Referral, Investment, Deposit } from '../types';
 import LoanCalculator from './LoanCalculator';
 import LumoraLogo from './LumoraLogo';
 
@@ -15,6 +15,7 @@ interface ProfileTabProps {
   profile: Profile;
   todayEarnings?: number;
   withdrawals: Withdrawal[];
+  deposits: Deposit[];
   loans: Loan[];
   onSubmitLoan: (amount: number, nationalId: string, tenureMonths: number) => Promise<{ success: boolean; error?: string }>;
   onLogout: () => void;
@@ -101,6 +102,7 @@ export default function ProfileTab({
   profile, 
   todayEarnings,
   withdrawals, 
+  deposits = [],
   loans,
   onSubmitLoan,
   onLogout, 
@@ -320,6 +322,7 @@ export default function ProfileTab({
 
   // Avatar Selection and self upload states
   const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [activeLedgerTab, setActiveLedgerTab] = useState<'deposits' | 'cashouts'>('deposits');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState('');
 
@@ -1731,42 +1734,121 @@ export default function ProfileTab({
         )}
       </div>
 
-      {/* CARD 6: Interactive Cashout Logger Receipts list */}
-      {withdrawals.length > 0 && (
-        <div className="space-y-3 px-1">
-          <h4 className="font-display font-black text-xs text-slate-700 tracking-wider uppercase">
-            Recent Cashout Logs ({withdrawals.length})
-          </h4>
-          <div className="space-y-2.5">
-            {withdrawals.map((w) => (
-              <div 
-                key={w.id}
-                className="p-4 rounded-2xl bg-white border border-slate-200 flex justify-between items-center shadow-xs"
+      {/* CARD 6: Interactive Transaction Ledger (Deposits & Withdrawals) */}
+      {(deposits.length > 0 || withdrawals.length > 0) && (
+        <div className="space-y-4 px-1">
+          {/* Header & Tabs */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <h4 className="font-display font-black text-xs text-slate-700 tracking-wider uppercase">
+              Financial Records
+            </h4>
+            
+            {/* Elegant Segmented Control */}
+            <div className="p-0.5 bg-slate-100 rounded-xl border border-slate-200/60 flex text-[10px] font-black uppercase tracking-wider self-start sm:self-auto select-none">
+              <button
+                onClick={() => setActiveLedgerTab('deposits')}
+                className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+                  activeLedgerTab === 'deposits' 
+                    ? 'bg-[#0A3D91] text-white shadow-xs' 
+                    : 'text-slate-600 hover:text-slate-800'
+                }`}
               >
-                <div>
-                  <h5 className="text-[12.5px] font-display font-black text-slate-950">
-                    {(w.amount ?? 0).toLocaleString()} ETB
-                  </h5>
-                  <p className="text-[8.5px] text-slate-700 uppercase font-mono font-black mt-0.5">
-                    Wire Time: {new Date(w.submittedAt).toLocaleDateString()}
-                  </p>
+                Deposits ({deposits.length})
+              </button>
+              <button
+                onClick={() => setActiveLedgerTab('cashouts')}
+                className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+                  activeLedgerTab === 'cashouts' 
+                    ? 'bg-[#0A3D91] text-white shadow-xs' 
+                    : 'text-slate-600 hover:text-slate-800'
+                }`}
+              >
+                Cashouts ({withdrawals.length})
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-2.5">
+            {activeLedgerTab === 'deposits' ? (
+              deposits.length === 0 ? (
+                <div className="p-6 rounded-2xl bg-white border border-slate-100 flex flex-col items-center justify-center text-center">
+                  <Coins className="w-8 h-8 text-slate-300 stroke-[1.5] mb-2" />
+                  <p className="text-[10px] text-slate-700 uppercase font-bold tracking-wider">No deposits recorded yet</p>
                 </div>
-                <div className="text-right">
-                  <span className={`text-[8.5px] font-black px-3 py-1 rounded-full border uppercase tracking-wider ${
-                    w.status === 'approved' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
-                    w.status === 'rejected' ? 'bg-rose-100 text-rose-800 border-rose-300' :
-                    'bg-amber-100 text-amber-800 border-amber-300 animate-pulse'
-                  }`}>
-                    {w.status}
-                  </span>
-                  {w.status === 'rejected' && w.rejectionReason && (
-                    <p className="text-[8px] text-rose-800 mt-1 max-w-[150px] truncate font-black font-sans">
-                      Notes: {w.rejectionReason}
-                    </p>
-                  )}
+              ) : (
+                deposits.map((d) => (
+                  <div 
+                    key={d.id}
+                    className="p-4 rounded-2xl bg-white border border-slate-200 flex justify-between items-center shadow-xs"
+                  >
+                    <div>
+                      <h5 className="text-[12.5px] font-display font-black text-slate-950">
+                        {(d.amount ?? 0).toLocaleString()} ETB
+                      </h5>
+                      <p className="text-[8.5px] text-slate-700 uppercase font-mono font-black mt-0.5">
+                        Deposit Time: {new Date(d.submittedAt).toLocaleDateString()}
+                      </p>
+                      {d.bankReference && (
+                        <p className="text-[8px] text-[#0180FE] font-mono font-black mt-1 select-all">
+                          Ref: {d.bankReference}
+                        </p>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <span className={`text-[8.5px] font-black px-3 py-1 rounded-full border uppercase tracking-wider ${
+                        d.status === 'approved' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
+                        d.status === 'rejected' ? 'bg-rose-100 text-rose-800 border-rose-300' :
+                        'bg-amber-100 text-amber-800 border-amber-300 animate-pulse'
+                      }`}>
+                        {d.status}
+                      </span>
+                      {d.status === 'rejected' && d.rejectionReason && (
+                        <p className="text-[8px] text-rose-800 mt-1 max-w-[150px] truncate font-black font-sans">
+                          Notes: {d.rejectionReason}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )
+            ) : (
+              withdrawals.length === 0 ? (
+                <div className="p-6 rounded-2xl bg-white border border-slate-100 flex flex-col items-center justify-center text-center">
+                  <ArrowUpRight className="w-8 h-8 text-slate-300 stroke-[1.5] mb-2" />
+                  <p className="text-[10px] text-slate-700 uppercase font-bold tracking-wider">No cashouts recorded yet</p>
                 </div>
-              </div>
-            ))}
+              ) : (
+                withdrawals.map((w) => (
+                  <div 
+                    key={w.id}
+                    className="p-4 rounded-2xl bg-white border border-slate-200 flex justify-between items-center shadow-xs"
+                  >
+                    <div>
+                      <h5 className="text-[12.5px] font-display font-black text-slate-950">
+                        {(w.amount ?? 0).toLocaleString()} ETB
+                      </h5>
+                      <p className="text-[8.5px] text-slate-700 uppercase font-mono font-black mt-0.5">
+                        Wire Time: {new Date(w.submittedAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <span className={`text-[8.5px] font-black px-3 py-1 rounded-full border uppercase tracking-wider ${
+                        w.status === 'approved' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
+                        w.status === 'rejected' ? 'bg-rose-100 text-rose-800 border-rose-300' :
+                        'bg-amber-100 text-amber-800 border-amber-300 animate-pulse'
+                      }`}>
+                        {w.status}
+                      </span>
+                      {w.status === 'rejected' && w.rejectionReason && (
+                        <p className="text-[8px] text-rose-800 mt-1 max-w-[150px] truncate font-black font-sans">
+                          Notes: {w.rejectionReason}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )
+            )}
           </div>
         </div>
       )}

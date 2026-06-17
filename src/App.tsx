@@ -18,7 +18,7 @@ import IdUploadGate from './components/IdUploadGate';
 import WalkthroughModal from './components/WalkthroughModal';
 import LumoraLogo from './components/LumoraLogo';
 import AdminPanel from './components/AdminPanel';
-import { Profile, Investment, MyTransaction, Notification, InvestmentPlan, Withdrawal, Loan } from './types';
+import { Profile, Investment, MyTransaction, Notification, InvestmentPlan, Withdrawal, Loan, Deposit } from './types';
 
 const offlineTranslations: Record<string, string> = {
   en: "Offline Mode — Showing last synced profile & portfolio",
@@ -50,6 +50,7 @@ function MainAppContent() {
   const [recentTransactions, setRecentTransactions] = useState<MyTransaction[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
+  const [deposits, setDeposits] = useState<Deposit[]>([]);
   const [loans, setLoans] = useState<Loan[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
   
@@ -79,6 +80,11 @@ function MainAppContent() {
         const cachedWithdrawals = localStorage.getItem(`lumora_cached_withdrawals_${userId}`);
         if (cachedWithdrawals) {
           setWithdrawals(JSON.parse(cachedWithdrawals));
+        }
+
+        const cachedDeposits = localStorage.getItem(`lumora_cached_deposits_${userId}`);
+        if (cachedDeposits) {
+          setDeposits(JSON.parse(cachedDeposits));
         }
       } catch (err) {
         console.error("Failed to restore dashboard cache:", err);
@@ -186,6 +192,18 @@ function MainAppContent() {
         localStorage.setItem(`lumora_cached_withdrawals_${userId}`, JSON.stringify(data));
       }
 
+      // 3b. Fetch user deposit history
+      const resDeposits = await fetch(`/api/deposits/user/${userId}`);
+      if (resDeposits.ok) {
+        try {
+          const data = await resDeposits.json();
+          setDeposits(data);
+          localStorage.setItem(`lumora_cached_deposits_${userId}`, JSON.stringify(data));
+        } catch (e) {
+          console.error("Error reading deposits:", e);
+        }
+      }
+
     } catch (err) {
       console.error("Error retrieving dashboard logs:", err);
       setIsOffline(true); // Treat fetch exceptions (e.g. DNS failure / offline) as offline rather than logging out
@@ -206,6 +224,7 @@ function MainAppContent() {
     if (userId) {
       localStorage.removeItem(`lumora_cached_dashboard_${userId}`);
       localStorage.removeItem(`lumora_cached_withdrawals_${userId}`);
+      localStorage.removeItem(`lumora_cached_deposits_${userId}`);
     }
     localStorage.removeItem('lumora_user_id');
     setUserId(null);
@@ -213,6 +232,8 @@ function MainAppContent() {
     setInvestments([]);
     setRecentTransactions([]);
     setNotifications([]);
+    setWithdrawals([]);
+    setDeposits([]);
     setIsAdmin(false);
     setActiveTab('home');
     setShowAdmin(false);
@@ -508,6 +529,7 @@ function MainAppContent() {
                   profile={enrichedProfile}
                   todayEarnings={todayEarningsVal}
                   withdrawals={withdrawals}
+                  deposits={deposits}
                   loans={loans}
                   onSubmitLoan={handleSubmitLoan}
                   onLogout={handleLogout}

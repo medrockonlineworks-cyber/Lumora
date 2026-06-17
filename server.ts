@@ -1563,6 +1563,13 @@ async function startServer() {
     res.json(list.sort((a,b) => b.submittedAt.localeCompare(a.submittedAt)));
   });
 
+  // Get user deposits list
+  app.get("/api/deposits/user/:userId", (req, res) => {
+    const { userId } = req.params;
+    const list = db.deposits.filter(d => d.userId === userId);
+    res.json(list.sort((a,b) => b.submittedAt.localeCompare(a.submittedAt)));
+  });
+
   // Purchase digital plan
   app.post("/api/investments/buy", (req, res) => {
     const { userId, planLevel, vipLevel, durationDays } = req.body;

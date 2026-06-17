@@ -663,6 +663,13 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     return respondJSON(200, list);
   }
 
+  // 11b. GET /api/deposits/user/:userId
+  if (pathname.startsWith('/api/deposits/user/') && method === 'GET') {
+    const userId = pathname.split('/').pop();
+    const list = db.deposits.filter(d => d.userId === userId);
+    return respondJSON(200, list);
+  }
+
   // 12. POST /api/investments/buy
   if (pathname === '/api/investments/buy' && method === 'POST') {
     const { userId, planLevel, vipLevel, durationDays } = body;
