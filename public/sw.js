@@ -1,10 +1,9 @@
-const CACHE_NAME = 'lumora-pwa-cache-v15';
+const CACHE_NAME = 'lumora-pwa-cache-v16';
 const ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/lumora_pwa_icon_v9.png',
-  '/lumora_pwa_icon_v9_192.png',
+  '/logo.png',
   '/favicon_v8.ico'
 ];
 
