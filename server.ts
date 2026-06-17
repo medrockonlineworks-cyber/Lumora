@@ -7,6 +7,10 @@ import {
   MyTransaction, Notification, Referral, ChatMessage, Agreement, AppSettings, Loan, EligibilityCheck
 } from "./src/types";
 
+// Initialize the Express router/app globally so it's exported for Vercel Serverless
+const app = express();
+export { app };
+
 // Initialize Firebase Admin SDK
 import { initializeApp, getApps, App, cert } from "firebase-admin/app";
 import { getFirestore, Firestore } from "firebase-admin/firestore";
@@ -823,7 +827,6 @@ function setupFirebaseSync() {
 }
 
 async function startServer() {
-  const app = express();
   const PORT = 3000;
 
   // Timezone helper functions for precise Ethiopia Local Time (EAT = UTC+3)
@@ -958,25 +961,29 @@ async function startServer() {
   process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 
   // Set up the listener to real-time sync with Firebase!
-  // Pre-check connectivity to disable cleanly if we don't have IAM access
-  const hasAccess = await testFirestoreConnectivity();
-  if (hasAccess) {
-    setupFirebaseSync();
+  // Pre-check connectivity asynchronously to allow synchronous endpoint registration (critical for Vercel)
+  testFirestoreConnectivity().then((hasAccess) => {
+    if (hasAccess) {
+      setupFirebaseSync();
 
-    // Perform initial Firestore bootstrap/verify after virtual mount
-    setTimeout(async () => {
-      try {
-        console.log("Verifying Firestore seeding...");
-        await syncToFirestore(db);
-        console.log("Seeding to cloud Firestore complete.");
-      } catch (e) {
-        console.error("Initial Firestore seeding failed:", e);
-      }
-    }, 3000);
-  } else {
+      // Perform initial Firestore bootstrap/verify after virtual mount
+      setTimeout(async () => {
+        try {
+          console.log("Verifying Firestore seeding...");
+          await syncToFirestore(db);
+          console.log("Seeding to cloud Firestore complete.");
+        } catch (e) {
+          console.error("Initial Firestore seeding failed:", e);
+        }
+      }, 3000);
+    } else {
+      firestoreSyncDisabled = true;
+      console.log("Firestore cloud sync is disabled. Fallback to local high-performance file-based storage 'lumora_db.json' which is fully active and persistent.");
+    }
+  }).catch((err) => {
+    console.error("Firestore connectivity pre-check encountered an error:", err);
     firestoreSyncDisabled = true;
-    console.log("Firestore cloud sync is disabled. Fallback to local high-performance file-based storage 'lumora_db.json' which is fully active and persistent.");
-  }
+  });
 
   // Automatic Daily Earnings Allocation Engine
   function autoAllocateDailyEarnings() {
@@ -2819,10 +2826,11 @@ Official Lumora Knowledge Base details:
 - 10% direct VIP level incentive on invites, set dynamically by Lumora platform authorities.
 
 6. Official Regulatory Licensing and Trade Registry details:
-- Trade Registration No.: LUM-ETH/77402-2B
-- Investment License No.: LIC-984/CBE/2026
-- Audited SEC Ledger: ETB-FTS-88402-SEC
-- Authorized Capital Reserve: 15,000,000 ETB (Verified)
+- TIN: 0024896464
+- Principal Registration Number: AACATB/1/0264213/2018
+- Business License Number: AACATB/14/667/50303357/2018
+- Date of Issuance: 06/10/2018
+- Authorized Capital: ETB 15,000,000
 - Incorporation & Regulation: Registered and fully certified as a private asset brokerage partner under the Federal Democratic Republic of Ethiopia Trade, Industry & Investment ministry standards.
 
 7. Platform Launch Date:
@@ -2927,10 +2935,16 @@ Please contact our support team:
     });
   });
 
-  // Bind exclusively to 3000 to comply with network constraints
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`LUMORA Express server running on port ${PORT}`);
-  });
+  // Prevent app.listen from running in Vercel to avoid port binding errors,
+  // since Vercel acts as the serverless host and controls the listener natively.
+  if (process.env.VERCEL) {
+    console.log("Verified running on Vercel: skipping local port listener bootstrap.");
+  } else {
+    // Bind exclusively to 3000 to comply with network constraints
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`LUMORA Express server running on port ${PORT}`);
+    });
+  }
 }
 
 startServer();

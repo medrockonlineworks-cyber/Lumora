@@ -281,27 +281,33 @@ export default function AboutUsPage({ onBack }: AboutUsPageProps) {
         <div className="space-y-2 text-[10.5px] text-slate-800 font-sans font-semibold">
           <div className="flex justify-between items-center pb-2 border-b border-blue-100/60">
             <span className="text-slate-500 font-medium">
-              {language === 'am' ? 'የንግድ ምዝገባ ቁጥር' : 'Trade Registration No.'}
+              {language === 'am' ? 'የግብር ከፋይ መለያ ቁጥር (TIN)' : 'TIN'}
             </span>
-            <span className="font-mono text-[#0A3D91] font-bold">LUM-ETH/77402-2B</span>
+            <span className="font-mono text-[#0A3D91] font-bold">0024896464</span>
           </div>
           <div className="flex justify-between items-center pb-2 border-b border-blue-100/60">
             <span className="text-slate-500 font-medium">
-              {language === 'am' ? 'የኢንቨስትመንት ፈቃድ' : 'Investment License No.'}
+              {language === 'am' ? 'ዋና የንግድ ምዝገባ ቁጥር' : 'Principal Registration No.'}
             </span>
-            <span className="font-mono text-[#0A3D91] font-bold">LIC-984/CBE/2026</span>
+            <span className="font-mono text-[#0A3D91] font-bold text-right pl-2 selection:bg-blue-200">AACATB/1/0264213/2018</span>
+          </div>
+          <div className="flex justify-between items-center pb-2 border-b border-blue-100/60">
+            <span className="text-slate-500 font-medium whitespace-nowrap">
+              {language === 'am' ? 'የንግድ ሥራ ፈቃድ ቁጥር' : 'Business License No.'}
+            </span>
+            <span className="font-mono text-[#0A3D91] font-bold text-right pl-2">AACATB/14/667/50303357/2018</span>
           </div>
           <div className="flex justify-between items-center pb-2 border-b border-blue-100/60">
             <span className="text-slate-500 font-medium">
-              {language === 'am' ? 'የዕውቅና ማረጋገጫ' : 'Audited SEC Ledger'}
+              {language === 'am' ? 'የተሰጠበት ቀን' : 'Date of Issuance'}
             </span>
-            <span className="font-mono text-emerald-600 font-bold">ETB-FTS-88402-SEC</span>
+            <span className="font-mono text-[#0A3D91] font-bold">06/10/2018</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-slate-500 font-medium">
-              {language === 'am' ? 'የተፈቀደ የካፒታል ክምችት' : 'Authorized Capital reserve'}
+              {language === 'am' ? 'የተፈቀደ የካፒታል መጠን' : 'Authorized Capital'}
             </span>
-            <span className="text-slate-900 font-bold">15,000,000 ETB (Verified)</span>
+            <span className="text-slate-900 font-bold">ETB 15,000,000</span>
           </div>
         </div>
         <p className="text-[9.5px] text-[#0A3D91]/75 leading-relaxed font-sans font-medium italic pt-1">

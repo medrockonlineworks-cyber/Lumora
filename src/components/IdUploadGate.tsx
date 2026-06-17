@@ -11,6 +11,57 @@ interface IdUploadGateProps {
   onLogout: () => void;
 }
 
+// Automatically downscales and compresses any selected image to a lightweight format
+// supporting extreme file sizes without failing or hitting browser payload/database limits.
+const compressImage = (file: File, maxDimension: number = 1200, quality: number = 0.85): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          } else {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error("Failed to initialize compression canvas context."));
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+        resolve(compressedDataUrl);
+      };
+      img.onerror = () => {
+        reject(new Error("Failed to process image data pixels. File might be corrupted."));
+      };
+      if (typeof event.target?.result === 'string') {
+        img.src = event.target.result;
+      } else {
+        reject(new Error("Unsupported file data format"));
+      }
+    };
+    reader.onerror = () => {
+      reject(new Error("Error reading selected verification file."));
+    };
+    reader.readAsDataURL(file);
+  });
+};
+
 export default function IdUploadGate({ userId, profile, onUploadSuccess, onLogout }: IdUploadGateProps) {
   const { et } = useLanguage();
   const [frontImage, setFrontImage] = useState<string | null>(null);
@@ -121,30 +172,25 @@ export default function IdUploadGate({ userId, profile, onUploadSuccess, onLogou
     }, 120);
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, side: 'front' | 'back') => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, side: 'front' | 'back') => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      setErrorText(et('sizeLimitError') || "Each photograph must be smaller than 5MB.");
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        if (side === 'front') {
-          setFrontImage(reader.result);
-        } else {
-          setBackImage(reader.result);
-        }
-        setErrorText(null);
+    setUploading(true);
+    setErrorText(null);
+    try {
+      const compressedDataUrl = await compressImage(file, 1200, 0.85);
+      if (side === 'front') {
+        setFrontImage(compressedDataUrl);
+      } else {
+        setBackImage(compressedDataUrl);
       }
-    };
-    reader.onerror = () => {
-      setErrorText(et('readError') || "Failed to read the selected file.");
-    };
-    reader.readAsDataURL(file);
+    } catch (err: any) {
+      console.error(err);
+      setErrorText(err.message || "Failed to process the uploaded image. Please try another image file.");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -264,7 +310,7 @@ export default function IdUploadGate({ userId, profile, onUploadSuccess, onLogou
                     <span className="text-[9px] font-black">
                       {et('selectFront') || 'Select Front Photo'}
                     </span>
-                    <span className="text-[7.5px] text-slate-800 font-extrabold">PNG, JPG up to 5MB</span>
+                    <span className="text-[7.5px] text-slate-800 font-extrabold">PNG, JPG (Any file size supported)</span>
                   </div>
                 )}
               </label>
@@ -295,7 +341,7 @@ export default function IdUploadGate({ userId, profile, onUploadSuccess, onLogou
                     <span className="text-[9px] font-black">
                       {et('selectBack') || 'Select Back Photo'}
                     </span>
-                    <span className="text-[7.5px] text-slate-800 font-extrabold">PNG, JPG up to 5MB</span>
+                    <span className="text-[7.5px] text-slate-800 font-extrabold">PNG, JPG (Any file size supported)</span>
                   </div>
                 )}
               </label>
