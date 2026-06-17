@@ -30,6 +30,17 @@ if ('serviceWorker' in navigator && isProdEnv) {
   });
 }
 
+// Auto-reload the page when service worker undergoes an active change (instantly loads fresh deploys for users)
+if ('serviceWorker' in navigator) {
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing) return;
+    refreshing = true;
+    console.log('Lumora ServiceWorker content updated! Auto-reloading client for fresh assets.');
+    window.location.reload();
+  });
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />

@@ -1908,11 +1908,13 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
 // Global window interceptor initialization
 let fallbackToLocalDB = false;
 
-// Auto-activate offline/static fallback if on Vercel or similar static hosts
+// Auto-activate offline/static fallback if not in the official development cloud sandbox or localhost
 if (typeof window !== "undefined") {
   const host = window.location.hostname;
-  if (host.endsWith("vercel.app") || host.endsWith("github.io") || host.includes("stackblitz") || host.includes("codesandbox")) {
-    console.log("Static host hosting environment detected. Initializing client-only storage module.");
+  const isSandbox = host.includes("europe-west1.run.app") || host.includes("localhost") || host.includes("127.0.0.1") || host.startsWith("192.168.");
+  
+  if (!isSandbox) {
+    console.log("Production hosting or client-only environment detected. Enabling local database emulation.");
     fallbackToLocalDB = true;
   }
 }

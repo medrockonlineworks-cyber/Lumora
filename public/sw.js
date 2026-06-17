@@ -1,4 +1,4 @@
-const CACHE_NAME = 'lumora-pwa-cache-v13';
+const CACHE_NAME = 'lumora-pwa-cache-v15';
 const ASSETS = [
   '/',
   '/index.html',
@@ -69,8 +69,27 @@ self.addEventListener('fetch', (e) => {
           });
         })
     );
+  } else if (e.request.mode === 'navigate' || url.pathname === '/' || url.pathname.endsWith('.html')) {
+    // Crucial: Network-First strategy for HTML index & navigations to guarantee instant updates on deploy!
+    e.respondWith(
+      fetch(e.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(e.request, responseToCache);
+            });
+          }
+          return networkResponse;
+        })
+        .catch(() => {
+          return caches.match(e.request).then((cachedResponse) => {
+            return cachedResponse || caches.match('/index.html') || caches.match('/');
+          });
+        })
+    );
   } else {
-    // Static assets - Cache-First, fallback to Network with dynamic caching
+    // Static assets (CSS, JS, images) - Cache-First, fallback to Network with dynamic caching
     e.respondWith(
       caches.match(e.request).then((cachedResponse) => {
         if (cachedResponse) {
@@ -93,10 +112,8 @@ self.addEventListener('fetch', (e) => {
 
           return networkResponse;
         }).catch(() => {
-          // Fallback for offline if navigating html
-          if (e.request.mode === 'navigate') {
-            return caches.match('/');
-          }
+          // Fallback if offline
+          return caches.match('/index.html') || caches.match('/');
         });
       })
     );
