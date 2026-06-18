@@ -421,36 +421,62 @@ export function setupClientFirebaseSync() {
   for (const col of collectionsToListen) {
     onSnapshot(collection(fDb, col.name), (snapshot) => {
       const currentDb = loadLocalDB();
-      const colArray = (currentDb[col.arrayName as keyof LumoraDB] || []) as any[];
-
-      // Block writing empty lists immediately if local list has data to allow warm seeding
-      if (snapshot.empty && colArray.length > 0) {
-        return;
-      }
-
-      const remoteItems: any[] = [];
-      snapshot.docs.forEach(docSnap => {
-        const data = docSnap.data();
-        remoteItems.push(data);
-        lastSyncedClient[col.name][docSnap.id] = JSON.stringify(data);
-      });
-
-      if (remoteItems.length === 0 && colArray.length > 0) {
-        return;
-      }
-
-      // Replace existing array elements with remote snapshot items
       if (!currentDb[col.arrayName as keyof LumoraDB]) {
         (currentDb as any)[col.arrayName] = [];
       }
       const targetArray = currentDb[col.arrayName as keyof LumoraDB] as any[];
-      targetArray.length = 0;
-      targetArray.push(...remoteItems);
 
-      localStorage.setItem('lumora_local_db', JSON.stringify(currentDb));
+      // Create a map of current local items by their main key to preserve local-only/unsubmitted items
+      const localMap = new Map<string, any>();
+      for (const item of targetArray) {
+        if (item) {
+          const id = item[col.key];
+          if (id) {
+            localMap.set(id, item);
+          }
+        }
+      }
 
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(new CustomEvent("lumoradb-updated", { detail: { collection: col.name } }));
+      let updated = false;
+
+      // Update or insert elements retrieved from Firestore
+      snapshot.docs.forEach(docSnap => {
+        const data = docSnap.data();
+        const id = data[col.key];
+        if (id) {
+          const remoteJson = JSON.stringify(data);
+          const localItem = localMap.get(id);
+          const localJson = localItem ? JSON.stringify(localItem) : null;
+
+          if (localJson !== remoteJson) {
+            localMap.set(id, data);
+            lastSyncedClient[col.name][id] = remoteJson;
+            updated = true;
+          }
+        }
+      });
+
+      // Handle remote deletions: If we tracked an item in lastSynced but it's no longer present on Firestore, remove it
+      const remoteKeys = new Set(snapshot.docs.map(d => d.id));
+      const trackedKeys = Object.keys(lastSyncedClient[col.name]);
+      for (const key of trackedKeys) {
+        if (!remoteKeys.has(key)) {
+          if (localMap.has(key)) {
+            localMap.delete(key);
+            delete lastSyncedClient[col.name][key];
+            updated = true;
+          }
+        }
+      }
+
+      if (updated || (snapshot.empty && targetArray.length > 0 && Object.keys(lastSyncedClient[col.name]).length > 0)) {
+        targetArray.length = 0;
+        targetArray.push(...Array.from(localMap.values()));
+        localStorage.setItem('lumora_local_db', JSON.stringify(currentDb));
+
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("lumoradb-updated", { detail: { collection: col.name } }));
+        }
       }
     }, (error) => {
       console.error(`[Client Firestore] Listener error on '${col.name}':`, error);
@@ -2176,8 +2202,10 @@ if (typeof window !== "undefined") {
   const host = window.location.hostname;
   const isSandbox = host.includes("europe-west1.run.app") || host.includes("localhost") || host.includes("127.0.0.1") || host.startsWith("192.168.");
   
-  if (host === "" || !isSandbox) {
-    console.log("[Client Firestore] Production custom domain or static host detected. Enabling client-side state engine with cloud Firestore sync.");
+  const isFirestoreActive = firebaseConfig.projectId && firebaseConfig.projectId !== "YOUR_PROJECT_ID";
+
+  if (host === "" || !isSandbox || isFirestoreActive) {
+    console.log("[Client Firestore] Direct Firestore-synced client-side state engine enabled.");
     fallbackToLocalDB = true;
   }
 
