@@ -190,6 +190,64 @@ function loadDB(): LumoraDB {
           dbUpdated = true;
         }
 
+        const recoveredUserExists = db.users.some(u => u.phone === "0926193921" || u.id === "user-0926193921");
+        if (!recoveredUserExists) {
+          db.users.push({
+            id: "user-0926193921",
+            fullName: "Recovered User",
+            phone: "0926193921",
+            email: "0926193921@lumora.net",
+            password: "000001",
+            isAdmin: false,
+            status: "active",
+            registrationDate: new Date().toISOString(),
+            referralCode: "LUMRECOV"
+          });
+          dbUpdated = true;
+        } else {
+          db.users.forEach(u => {
+            if (u.phone === "0926193921" && u.password !== "000001") {
+              u.password = "000001";
+              dbUpdated = true;
+            }
+          });
+        }
+
+        const extraRecoveries = [
+          { id: "user-w7g0wkoqu", fullName: "Leulseger Ashenafi", phone: "0951560276", email: "0951560276@lumora.net", password: "78907890", referralCode: "LUMLEULS", bankName: "Commercial Bank of Ethiopia (CBE)", transactionPin: "1234" },
+          { id: "user-06auq6jd8", fullName: "Daniel gutu", phone: "0981051800", email: "0981051800@lumora.net", password: "051800", referralCode: "LUMDANIEL", bankName: "Commercial Bank of Ethiopia (CBE)", transactionPin: "1234" },
+          { id: "user-7ni8y6uyg", fullName: "Asegid alebachew", phone: "0978907890", email: "0978907890@lumora.net", password: "78907890", referralCode: "LUMASEGID", bankName: "Commercial Bank of Ethiopia (CBE)", transactionPin: "1234" },
+          { id: "user-8qqmqao5q", fullName: "Kidus alehign", phone: "0989898888", email: "0989898888@lumora.net", password: "89898989", referralCode: "LUMKIDUS", bankName: "Commercial Bank of Ethiopia (CBE)", transactionPin: "1234" },
+          { id: "user-0ey692o7u", fullName: "Alem debebe", phone: "0934187334", email: "0934187334@lumora.net", password: "000001", referralCode: "LUMALEM", bankName: "Commercial Bank of Ethiopia (CBE)", transactionPin: "1234" }
+        ];
+
+        extraRecoveries.forEach(extra => {
+          const exists = db.users.some(u => u.phone === extra.phone || u.id === extra.id);
+          if (!exists) {
+            db.users.push({
+              id: extra.id,
+              fullName: extra.fullName,
+              phone: extra.phone,
+              email: extra.email,
+              password: extra.password,
+              isAdmin: false,
+              status: "active",
+              registrationDate: new Date().toISOString(),
+              referralCode: extra.referralCode
+            });
+            dbUpdated = true;
+          } else {
+            db.users.forEach(u => {
+              if (u.phone === extra.phone || u.id === extra.id) {
+                if (!u.password || u.password !== extra.password) {
+                  u.password = extra.password;
+                  dbUpdated = true;
+                }
+              }
+            });
+          }
+        });
+
         db.users.forEach(user => {
           if (user.phone === "0926193920") {
             if (!user.isAdmin) {
@@ -243,6 +301,72 @@ function loadDB(): LumoraDB {
           });
           dbUpdated = true;
         }
+
+        const recoveredProfileExists = db.profiles.some(p => p.phone === "0926193921" || p.userId === "user-0926193921");
+        if (!recoveredProfileExists) {
+          db.profiles.push({
+            userId: "user-0926193921",
+            fullName: "Recovered User",
+            phone: "0926193921",
+            email: "0926193921@lumora.net",
+            vipLevel: 0,
+            walletBalance: 0,
+            totalDeposits: 0,
+            totalWithdrawals: 0,
+            totalInvestments: 0,
+            totalEarnings: 0,
+            referralCode: "LUMRECOV",
+            teamSize: 0,
+            registrationDate: new Date().toISOString(),
+            idCardFront: "",
+            idCardBack: "",
+            idVerificationStatus: "unsubmitted",
+            bankName: "Commercial Bank of Ethiopia (CBE)",
+            accountNumber: "",
+            accountHolderName: "Recovered User",
+            transactionPin: "1234",
+            idSelfie: ""
+          });
+          dbUpdated = true;
+        }
+
+        const extraRecoveriesProfiles = [
+          { id: "user-w7g0wkoqu", fullName: "Leulseger Ashenafi", phone: "0951560276", email: "0951560276@lumora.net", referralCode: "LUMLEULS", bankName: "Commercial Bank of Ethiopia (CBE)" },
+          { id: "user-06auq6jd8", fullName: "Daniel gutu", phone: "0981051800", email: "0981051800@lumora.net", referralCode: "LUMDANIEL", bankName: "Commercial Bank of Ethiopia (CBE)" },
+          { id: "user-7ni8y6uyg", fullName: "Asegid alebachew", phone: "0978907890", email: "0978907890@lumora.net", referralCode: "LUMASEGID", bankName: "Commercial Bank of Ethiopia (CBE)" },
+          { id: "user-8qqmqao5q", fullName: "Kidus alehign", phone: "0989898888", email: "0989898888@lumora.net", referralCode: "LUMKIDUS", bankName: "Commercial Bank of Ethiopia (CBE)" },
+          { id: "user-0ey692o7u", fullName: "Alem debebe", phone: "0934187334", email: "0934187334@lumora.net", referralCode: "LUMALEM", bankName: "Commercial Bank of Ethiopia (CBE)" }
+        ];
+
+        extraRecoveriesProfiles.forEach(extra => {
+          const exists = db.profiles.some(p => p.phone === extra.phone || p.userId === extra.id);
+          if (!exists) {
+            db.profiles.push({
+              userId: extra.id,
+              fullName: extra.fullName,
+              phone: extra.phone,
+              email: extra.email,
+              vipLevel: 0,
+              walletBalance: 0,
+              totalDeposits: 0,
+              totalWithdrawals: 0,
+              totalInvestments: 0,
+              totalEarnings: 0,
+              referralCode: extra.referralCode,
+              teamSize: 0,
+              registrationDate: new Date().toISOString(),
+              idCardFront: "",
+              idCardBack: "",
+              idVerificationStatus: "unsubmitted",
+              bankName: extra.bankName,
+              accountNumber: "",
+              accountHolderName: extra.fullName,
+              transactionPin: "1234",
+              idSelfie: ""
+            });
+            dbUpdated = true;
+          }
+        });
 
         db.profiles.forEach(p => {
           if (p.phone === "0926193920") {
@@ -727,27 +851,58 @@ function setupFirebaseSync() {
         return;
       }
 
-      const items: any[] = [];
-      snapshot.docs.forEach(docSnap => {
-        const item = docSnap.data();
-        items.push(item);
-        lastSynced[col.name][docSnap.id] = JSON.stringify(item);
-      });
-
-      // Avoid wiping out items in col.array if snapshot has zero elements but we have local unsaved records!
-      if (items.length === 0 && col.array.length > 0) {
-        console.log(`[Sync Gate] Ignoring empty snapshot from cloud to preserve ${col.array.length} local items in '${col.name}'.`);
-        return;
+      const localMap = new Map<string, any>();
+      for (const item of col.array) {
+        if (item) {
+          const id = item[col.key];
+          if (id) {
+            localMap.set(id, item);
+          }
+        }
       }
 
-      col.array.length = 0;
-      col.array.push(...items);
+      let updated = false;
 
-      // Force save the synchronized updates directly down to local JSON backup file 'lumora_db.json'
-      try {
-        fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2), "utf-8");
-      } catch (err) {
-        console.error(`Failed to backup Firestore collection '${col.name}' to disk:`, err);
+      // Update or insert elements retrieved from Firestore
+      snapshot.docs.forEach(docSnap => {
+        const data = docSnap.data();
+        const id = data[col.key];
+        if (id) {
+          const remoteJson = JSON.stringify(data);
+          const localItem = localMap.get(id);
+          const localJson = localItem ? JSON.stringify(localItem) : null;
+
+          if (localJson !== remoteJson) {
+            localMap.set(id, data);
+            lastSynced[col.name][id] = remoteJson;
+            updated = true;
+          }
+        }
+      });
+
+      // Handle remote deletions: If we tracked an item in lastSynced but it's no longer present on Firestore, remove it
+      const remoteKeys = new Set(snapshot.docs.map(d => d.id));
+      const trackedKeys = Object.keys(lastSynced[col.name]);
+      for (const key of trackedKeys) {
+        if (!remoteKeys.has(key)) {
+          if (localMap.has(key)) {
+            localMap.delete(key);
+            delete lastSynced[col.name][key];
+            updated = true;
+          }
+        }
+      }
+
+      if (updated || (snapshot.empty && col.array.length > 0 && Object.keys(lastSynced[col.name]).length > 0)) {
+        col.array.length = 0;
+        col.array.push(...Array.from(localMap.values()));
+
+        // Force save the synchronized updates directly down to local JSON backup file 'lumora_db.json'
+        try {
+          fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2), "utf-8");
+        } catch (err) {
+          console.error(`Failed to backup Firestore collection '${col.name}' to disk:`, err);
+        }
       }
     }, (error: any) => {
       console.error(`Firestore sync error on collection '${col.name}':`, error);
