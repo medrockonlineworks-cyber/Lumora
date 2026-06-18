@@ -7,6 +7,17 @@ import {
   LumoraCard, CardTransaction
 } from '../types';
 
+import { initializeApp } from "firebase/app";
+import { 
+  getFirestore, 
+  collection, 
+  doc, 
+  setDoc, 
+  deleteDoc, 
+  onSnapshot 
+} from "firebase/firestore";
+import firebaseConfig from "../../firebase-applet-config.json";
+
 interface LumoraDB {
   users: User[];
   profiles: Profile[];
@@ -253,8 +264,246 @@ function sanitizeLocalDBBalances(db: LumoraDB) {
   return modified;
 }
 
+const lastSyncedClient: Record<string, Record<string, string>> = {
+  users: {},
+  profiles: {},
+  investments: {},
+  deposits: {},
+  withdrawals: {},
+  transactions: {},
+  notifications: {},
+  referrals: {},
+  agreements: {},
+  settings: {},
+  loans: {},
+  cards: {},
+  cardTransactions: {},
+  chatHistory: {}
+};
+
+let firestoreClientDb: any = null;
+
+function getFirestoreClientDb() {
+  if (firestoreClientDb) return firestoreClientDb;
+  if (!firebaseConfig.projectId || firebaseConfig.projectId === "YOUR_PROJECT_ID") {
+    return null;
+  }
+  try {
+    const app = initializeApp({
+      apiKey: firebaseConfig.apiKey,
+      authDomain: firebaseConfig.authDomain,
+      projectId: firebaseConfig.projectId,
+      storageBucket: firebaseConfig.storageBucket,
+      messagingSenderId: firebaseConfig.messagingSenderId,
+      appId: firebaseConfig.appId
+    });
+    firestoreClientDb = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+    console.log("[Client Firestore] Initialized successfully.");
+    return firestoreClientDb;
+  } catch (err) {
+    console.error("[Client Firestore] Failed to initialize:", err);
+    return null;
+  }
+}
+
+async function syncClientToFirestore(latestDb: LumoraDB) {
+  const fDb = getFirestoreClientDb();
+  if (!fDb) return;
+
+  const collectionSpecs = [
+    { name: "users", array: latestDb.users || [], key: "id" },
+    { name: "profiles", array: latestDb.profiles || [], key: "userId" },
+    { name: "investments", array: latestDb.investments || [], key: "id" },
+    { name: "deposits", array: latestDb.deposits || [], key: "id" },
+    { name: "withdrawals", array: latestDb.withdrawals || [], key: "id" },
+    { name: "transactions", array: latestDb.transactions || [], key: "id" },
+    { name: "notifications", array: latestDb.notifications || [], key: "id" },
+    { name: "referrals", array: latestDb.referrals || [], key: "id" },
+    { name: "agreements", array: latestDb.agreements || [], key: "id" },
+    { name: "loans", array: latestDb.loans || [], key: "id" },
+    { name: "cards", array: latestDb.cards || [], key: "id" },
+    { name: "cardTransactions", array: latestDb.cardTransactions || [], key: "id" },
+  ];
+
+  for (const spec of collectionSpecs) {
+    const localMap = new Map<string, any>();
+    for (const item of spec.array) {
+      if (item) {
+        const id = item[spec.key];
+        if (id) {
+          localMap.set(id, item);
+        }
+      }
+    }
+
+    // 1. Identify updates & creations
+    for (const [id, item] of localMap.entries()) {
+      const json = JSON.stringify(item);
+      if (lastSyncedClient[spec.name][id] !== json) {
+        lastSyncedClient[spec.name][id] = json;
+        try {
+          await setDoc(doc(fDb, spec.name, id), item);
+        } catch (e) {
+          console.error(`[Client Firestore] Error saving ${spec.name}/${id}:`, e);
+        }
+      }
+    }
+
+    // 2. Identify deletions
+    const lastSyncedKeys = Object.keys(lastSyncedClient[spec.name]);
+    for (const id of lastSyncedKeys) {
+      if (!localMap.has(id)) {
+        delete lastSyncedClient[spec.name][id];
+        try {
+          await deleteDoc(doc(fDb, spec.name, id));
+        } catch (e) {
+          console.error(`[Client Firestore] Error deleting ${spec.name}/${id}:`, e);
+        }
+      }
+    }
+  }
+
+  // Settings
+  if (latestDb.settings) {
+    const jsonSettings = JSON.stringify(latestDb.settings);
+    if (lastSyncedClient.settings["global"] !== jsonSettings) {
+      lastSyncedClient.settings["global"] = jsonSettings;
+      try {
+        await setDoc(doc(fDb, "settings", "global"), latestDb.settings);
+      } catch (e) {
+        console.error("[Client Firestore] Error saving settings:", e);
+      }
+    }
+  }
+
+  // Chat History
+  for (const userId of Object.keys(latestDb.chatHistory || {})) {
+    const messages = latestDb.chatHistory[userId] || [];
+    const json = JSON.stringify(messages);
+    if (lastSyncedClient.chatHistory[userId] !== json) {
+      lastSyncedClient.chatHistory[userId] = json;
+      try {
+        await setDoc(doc(fDb, "chatHistory", userId), { messages });
+      } catch (e) {
+        console.error(`[Client Firestore] Error saving chatHistory for ${userId}:`, e);
+      }
+    }
+  }
+}
+
+let listenersInitialized = false;
+
+export function setupClientFirebaseSync() {
+  if (listenersInitialized) return;
+  const fDb = getFirestoreClientDb();
+  if (!fDb) {
+    console.log("[Client Firestore] No client Firestore configured or available.");
+    return;
+  }
+  listenersInitialized = true;
+  console.log("[Client Firestore] Setting up real-time listener subscriptions for real-time admin sync...");
+
+  const collectionsToListen = [
+    { name: "users", key: "id", arrayName: "users" },
+    { name: "profiles", key: "userId", arrayName: "profiles" },
+    { name: "investments", key: "id", arrayName: "investments" },
+    { name: "deposits", key: "id", arrayName: "deposits" },
+    { name: "withdrawals", key: "id", arrayName: "withdrawals" },
+    { name: "transactions", key: "id", arrayName: "transactions" },
+    { name: "notifications", key: "id", arrayName: "notifications" },
+    { name: "referrals", key: "id", arrayName: "referrals" },
+    { name: "agreements", key: "id", arrayName: "agreements" },
+    { name: "loans", key: "id", arrayName: "loans" },
+    { name: "cards", key: "id", arrayName: "cards" },
+    { name: "cardTransactions", key: "id", arrayName: "cardTransactions" },
+  ];
+
+  for (const col of collectionsToListen) {
+    onSnapshot(collection(fDb, col.name), (snapshot) => {
+      const currentDb = loadLocalDB();
+      const colArray = (currentDb[col.arrayName as keyof LumoraDB] || []) as any[];
+
+      // Block writing empty lists immediately if local list has data to allow warm seeding
+      if (snapshot.empty && colArray.length > 0) {
+        return;
+      }
+
+      const remoteItems: any[] = [];
+      snapshot.docs.forEach(docSnap => {
+        const data = docSnap.data();
+        remoteItems.push(data);
+        lastSyncedClient[col.name][docSnap.id] = JSON.stringify(data);
+      });
+
+      if (remoteItems.length === 0 && colArray.length > 0) {
+        return;
+      }
+
+      // Replace existing array elements with remote snapshot items
+      if (!currentDb[col.arrayName as keyof LumoraDB]) {
+        (currentDb as any)[col.arrayName] = [];
+      }
+      const targetArray = currentDb[col.arrayName as keyof LumoraDB] as any[];
+      targetArray.length = 0;
+      targetArray.push(...remoteItems);
+
+      localStorage.setItem('lumora_local_db', JSON.stringify(currentDb));
+
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("lumoradb-updated", { detail: { collection: col.name } }));
+      }
+    }, (error) => {
+      console.error(`[Client Firestore] Listener error on '${col.name}':`, error);
+    });
+  }
+
+  // settings listener
+  onSnapshot(doc(fDb, "settings", "global"), (docSnap) => {
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      const currentDb = loadLocalDB();
+      currentDb.settings = data as AppSettings;
+      lastSyncedClient.settings["global"] = JSON.stringify(data);
+      localStorage.setItem('lumora_local_db', JSON.stringify(currentDb));
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("lumoradb-updated", { detail: { collection: "settings" } }));
+      }
+    }
+  }, (error) => {
+    console.error("[Client Firestore] Listener error on settings:", error);
+  });
+
+  // chatHistory listener
+  onSnapshot(collection(fDb, "chatHistory"), (snapshot) => {
+    const currentDb = loadLocalDB();
+    if (!currentDb.chatHistory) currentDb.chatHistory = {};
+    let updated = false;
+
+    snapshot.docs.forEach(docSnap => {
+      const data = docSnap.data();
+      const userId = docSnap.id;
+      const messages = data.messages || [];
+      currentDb.chatHistory[userId] = messages;
+      lastSyncedClient.chatHistory[userId] = JSON.stringify(messages);
+      updated = true;
+    });
+
+    if (updated) {
+      localStorage.setItem('lumora_local_db', JSON.stringify(currentDb));
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("lumoradb-updated", { detail: { collection: "chatHistory" } }));
+      }
+    }
+  }, (error) => {
+    console.error("[Client Firestore] Listener error on chatHistory:", error);
+  });
+}
+
 function saveLocalDB(db: LumoraDB) {
   localStorage.setItem('lumora_local_db', JSON.stringify(db));
+  syncClientToFirestore(db).catch(err => {
+    console.warn("[Client Firestore Sync] Cloud update error:", err);
+  });
 }
 
 function autoAllocateLocalDailyEarnings(db: LumoraDB) {
@@ -1920,15 +2169,22 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
 // Global window interceptor initialization
 let fallbackToLocalDB = false;
 
-// Auto-activate offline/static fallback if not in the official development cloud sandbox or localhost
+// Auto-activate offline/static fallback if not in the official development cloud sandbox or localhost.
+// This ensures that custom domains deployed on stateless hosting like Vercel will process state in a highly responsive client-side model,
+// with immediate, real-time background synchronization directly into Firestore.
 if (typeof window !== "undefined") {
   const host = window.location.hostname;
   const isSandbox = host.includes("europe-west1.run.app") || host.includes("localhost") || host.includes("127.0.0.1") || host.startsWith("192.168.");
   
-  if (!isSandbox) {
-    console.log("Production hosting or client-only environment detected. Enabling local database emulation.");
+  if (host === "" || !isSandbox) {
+    console.log("[Client Firestore] Production custom domain or static host detected. Enabling client-side state engine with cloud Firestore sync.");
     fallbackToLocalDB = true;
   }
+
+  // Trigger real-time client-side Firestore listener subscriptions to receive remote updates (e.g., from Admin actions)
+  setTimeout(() => {
+    setupClientFirebaseSync();
+  }, 1200);
 }
 
 if (typeof window !== "undefined") {

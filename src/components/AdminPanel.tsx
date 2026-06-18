@@ -145,6 +145,22 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
 
   useEffect(() => {
     fetchAllAdminData();
+
+    // Listen for local/remote database updates to update the admin dashboard immediately
+    const handleUpdate = () => {
+      fetchAllAdminData();
+    };
+    window.addEventListener("lumoradb-updated", handleUpdate);
+
+    // Dynamic background poll interval for fallback sync consistency
+    const handle = setInterval(() => {
+      fetchAllAdminData();
+    }, 4000);
+
+    return () => {
+      window.removeEventListener("lumoradb-updated", handleUpdate);
+      clearInterval(handle);
+    };
   }, [activeSubTab]);
 
   useEffect(() => {

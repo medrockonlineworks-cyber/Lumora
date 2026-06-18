@@ -138,11 +138,22 @@ function MainAppContent() {
   useEffect(() => {
     if (userId) {
       fetchDashboardData();
-      // Setup periodic dashboard poll every 3 seconds for instant real-time synchronization
+
+      // Listen for local/remote database updates to synchronize client states immediately
+      const handleUpdate = () => {
+        fetchDashboardData();
+      };
+      window.addEventListener("lumoradb-updated", handleUpdate);
+
+      // Setup periodic dashboard poll every 3 seconds for secondary real-time synchronization fallback
       const handle = setInterval(() => {
         fetchDashboardData();
       }, 3000);
-      return () => clearInterval(handle);
+
+      return () => {
+        window.removeEventListener("lumoradb-updated", handleUpdate);
+        clearInterval(handle);
+      };
     }
   }, [userId]);
 
