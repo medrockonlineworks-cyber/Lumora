@@ -189,9 +189,9 @@ export default function HeaderBar({
             
             <div className="relative shrink-0">
                <div className="w-8 h-8 rounded-xl border border-slate-200 bg-slate-50 overflow-hidden flex items-center justify-center shadow-2xs hover:scale-105 transition-all">
-                {profile?.idSelfie || profile?.profilePicture ? (
+                {profile?.profilePicture || profile?.idSelfie ? (
                   <img 
-                    src={profile.idSelfie || profile.profilePicture} 
+                    src={profile.profilePicture || profile.idSelfie} 
                     alt="Profile avatar" 
                     className="w-full h-full object-cover"
                     referrerPolicy="no-referrer"

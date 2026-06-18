@@ -1792,8 +1792,8 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
               {/* User Bio Header */}
               <div className="flex items-center space-x-3 border-b border-slate-100 pb-3">
                 <div className="w-11 h-11 bg-slate-100 border border-slate-200 rounded-xl overflow-hidden flex items-center justify-center shrink-0">
-                  {selectedUserForEdit.profile?.idSelfie || selectedUserForEdit.profile?.profilePicture ? (
-                    <img src={selectedUserForEdit.profile.idSelfie || selectedUserForEdit.profile.profilePicture} alt="User" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  {selectedUserForEdit.profile?.profilePicture || selectedUserForEdit.profile?.idSelfie ? (
+                    <img src={selectedUserForEdit.profile.profilePicture || selectedUserForEdit.profile.idSelfie} alt="User" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                   ) : (
                     <Users className="w-5 h-5 text-[#0A3D91]" />
                   )}

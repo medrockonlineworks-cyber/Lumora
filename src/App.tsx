@@ -288,7 +288,8 @@ function MainAppContent() {
         fetchDashboardData();
         return { success: true };
       }
-      return { success: false, error: 'Failed to update avatar image' };
+      const data = await res.json().catch(() => ({}));
+      return { success: false, error: data.error || 'Failed to update avatar image' };
     } catch (err) {
       return { success: false, error: 'Network failure' };
     }

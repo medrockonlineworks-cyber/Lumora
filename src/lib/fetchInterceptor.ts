@@ -927,11 +927,11 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
 
   // 15. POST /api/profiles/avatar
   if (pathname === '/api/profiles/avatar' && method === 'POST') {
-    const { userId, avatarRaw } = body;
+    const { userId, avatarRaw, avatarBase64 } = body;
     const profile = db.profiles.find(p => p.userId === userId);
     if (!profile) return respondJSON(404, { error: "Profile not found" });
 
-    profile.profilePicture = avatarRaw;
+    profile.profilePicture = avatarRaw || avatarBase64;
     saveLocalDB(db);
     return respondJSON(200, { success: true, profile });
   }

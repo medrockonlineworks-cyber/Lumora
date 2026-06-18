@@ -568,6 +568,43 @@ export default function ProfileTab({
     setTimeout(() => setPinMessage(''), 3000);
   };
 
+  const compressImageBase64 = (base64Str: string, maxWidth = 256, maxHeight = 256): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = base64Str;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.8));
+        } else {
+          resolve(base64Str);
+        }
+      };
+      img.onerror = () => {
+        resolve(base64Str);
+      };
+    });
+  };
+
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -577,7 +614,8 @@ export default function ProfileTab({
       reader.onloadend = async () => {
         try {
           const base64 = reader.result as string;
-          const result = await onUploadAvatar(base64);
+          const compressed = await compressImageBase64(base64);
+          const result = await onUploadAvatar(compressed);
           if (result.success) {
             setShowAvatarModal(false);
           } else {
@@ -632,9 +670,9 @@ export default function ProfileTab({
               onClick={() => setShowAvatarModal(true)}
               className="relative w-24 h-24 rounded-[1.8rem] border-4 border-white bg-slate-50 overflow-hidden flex items-center justify-center shadow-xl group cursor-pointer active:scale-95 transition-transform"
             >
-              {profile.idSelfie || profile.profilePicture ? (
+              {profile.profilePicture || profile.idSelfie ? (
                 <img 
-                   src={profile.idSelfie || profile.profilePicture} 
+                   src={profile.profilePicture || profile.idSelfie} 
                    alt="User profile avatar" 
                    className="w-full h-full object-cover" 
                 />
