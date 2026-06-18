@@ -11,6 +11,11 @@ import { Profile, Withdrawal, Loan, Referral, Investment, Deposit } from '../typ
 import LoanCalculator from './LoanCalculator';
 import LumoraLogo from './LumoraLogo';
 
+import avatarMaleInvestor from '../assets/images/avatar_male_investor_1780743569199.png';
+import avatarFemaleExecutive from '../assets/images/avatar_female_executive_1780743584261.png';
+import avatarTechAnalyst from '../assets/images/avatar_tech_analyst_1780743599314.png';
+import avatarSeniorAdvisor from '../assets/images/avatar_senior_advisor_1780743613602.png';
+
 interface ProfileTabProps {
   profile: Profile;
   todayEarnings?: number;
@@ -418,25 +423,25 @@ export default function ProfileTab({
     {
       id: 'avatar_male_investor',
       name: 'Executive Wealth Director',
-      path: '/src/assets/images/avatar_male_investor_1780743569199.png',
+      path: avatarMaleInvestor,
       badge: 'PRO'
     },
     {
       id: 'avatar_female_executive',
       name: 'Sovereign Portfolio Partner',
-      path: '/src/assets/images/avatar_female_executive_1780743584261.png',
+      path: avatarFemaleExecutive,
       badge: 'PRESTIGE'
     },
     {
       id: 'avatar_tech_analyst',
       name: 'Quantum Systems Analyst',
-      path: '/src/assets/images/avatar_tech_analyst_1780743599314.png',
+      path: avatarTechAnalyst,
       badge: 'FINTECH'
     },
     {
       id: 'avatar_senior_advisor',
       name: 'Senior Board Advisor',
-      path: '/src/assets/images/avatar_senior_advisor_1780743613602.png',
+      path: avatarSeniorAdvisor,
       badge: 'ELITE'
     },
     {

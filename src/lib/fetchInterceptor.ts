@@ -312,7 +312,12 @@ function autoAllocateLocalDailyEarnings(db: LumoraDB) {
 
 // Function to handle the intercepted local storage operations
 async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response> {
-  const pathname = url.split('?')[0];
+  let pathname = url.split('?')[0];
+  if (pathname.includes('://')) {
+    try {
+      pathname = new URL(pathname).pathname;
+    } catch (_) {}
+  }
   const method = init?.method?.toUpperCase() || 'GET';
   const body = init?.body ? JSON.parse(init.body as string) : undefined;
   

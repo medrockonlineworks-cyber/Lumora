@@ -248,3 +248,4 @@ export interface CardTransaction {
   status: 'completed' | 'failed' | 'pending';
 }
 
+
