@@ -521,7 +521,7 @@ function getFirestoreClientDb() {
       appId: firebaseConfig.appId
     });
     firestoreClientDb = getFirestore(app, firebaseConfig.firestoreDatabaseId);
-    console.log("[Client Firestore] Initialized successfully.");
+    console.log(`[Firebase Client Diagnostic] Connected successfully to Firebase Project ID: "${firebaseConfig.projectId}" and Database ID: "${firebaseConfig.firestoreDatabaseId}"`);
     return firestoreClientDb;
   } catch (err) {
     console.error("[Client Firestore] Failed to initialize:", err);
@@ -2549,10 +2549,9 @@ if (typeof window !== "undefined") {
   
   const isFirestoreActive = firebaseConfig.projectId && firebaseConfig.projectId !== "YOUR_PROJECT_ID";
 
-  if (host === "" || !isSandbox || isFirestoreActive) {
-    console.log("[Client Firestore] Direct Firestore-synced client-side state engine enabled.");
-    fallbackToLocalDB = true;
-  }
+  // Always use the real Express/Firestore backend for production consistency; do not default to client local storage.
+  fallbackToLocalDB = false;
+  console.log("[Client Firestore] Running in real Express full-stack mode with primary Firebase Firestore backend.");
 
   // Trigger real-time client-side Firestore listener subscriptions to receive remote updates (e.g., from Admin actions)
   setTimeout(() => {

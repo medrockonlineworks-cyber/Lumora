@@ -84,7 +84,7 @@ function getFirestoreDb(): Firestore | null {
       }
     }
     firestoreDb = getFirestore(firebaseApp, firebaseConfig.firestoreDatabaseId);
-    console.log("Firebase Admin SDK initialized successfully.");
+    console.log(`[Firebase Admin Diagnostic] Connected successfully to Firebase Project ID: "${firebaseConfig.projectId}" and Database ID: "${firebaseConfig.firestoreDatabaseId}"`);
   } catch (err) {
     console.error("Firebase Admin SDK failed to initialize:", err);
   }
@@ -98,11 +98,12 @@ async function testFirestoreConnectivity(): Promise<boolean> {
   }
   const fDb = getFirestoreDb();
   if (!fDb) return false;
-  try {
-    // Perform a fast, non-mutating single-document probe read on "settings/global"
-    await fDb.collection("settings").doc("global").get();
-    return true;
-  } catch (err: any) {
+    try {
+      // Perform a fast, non-mutating single-document probe read on "settings/global"
+      await fDb.collection("settings").doc("global").get();
+      console.log(`[Firebase Diagnostic] Connectivity check SUCCEEDED for Project ID: "${firebaseConfig.projectId}"`);
+      return true;
+    } catch (err: any) {
     if (err && err.message && err.message.includes("PERMISSION_DENIED")) {
       console.warn("Firestore connectivity check returned PERMISSION_DENIED. This is expected in container sandboxes due to cross-project GCP IAM constraints. Gracefully falling back to local file storage.");
     } else {
