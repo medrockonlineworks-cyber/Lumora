@@ -2392,10 +2392,13 @@ Instruct the user precisely on which page, component, or element to use to accom
     res.json({
       totalUsers,
       totalDeposits: totalDepositsSum,
+      totalDeposited: totalDepositsSum,
       totalWithdrawals: totalWithdrawSum,
+      totalWithdrawn: totalWithdrawSum,
       totalInvestments: totalInvestedAmount,
       activeInvestmentsCount: activeInvestQuantity,
       totalEarningsPaid: totalPaidEarnings,
+      totalBalance: db.profiles.reduce((sum, p) => sum + (p.walletBalance || 0), 0),
     });
   });
 

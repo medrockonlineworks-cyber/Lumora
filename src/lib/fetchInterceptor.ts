@@ -1540,8 +1540,8 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
   // Admin and assistant routes are fully mocked or bypassed
   // 19. GET /api/admin/stats
   if (pathname === '/api/admin/stats' && method === 'GET') {
-    const totalUsers = db.users.length;
-    const totalWalletBalance = db.profiles.reduce((acc, p) => acc + p.walletBalance, 0);
+    const totalUsers = db.users.filter(u => !u.isAdmin).length;
+    const totalWalletBalance = db.profiles.reduce((acc, p) => acc + (p.walletBalance || 0), 0);
     const totalApprovedDeposits = db.deposits.filter(d => d.status === 'approved').reduce((acc, d) => acc + d.amount, 0);
     const totalPendingDeposits = db.deposits.filter(d => d.status === 'pending').reduce((acc, d) => acc + d.amount, 0);
     const totalApprovedWithdrawals = db.withdrawals.filter(w => w.status === 'approved').reduce((acc, w) => acc + w.amount, 0);
@@ -1551,8 +1551,11 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     return respondJSON(200, {
       totalUsers,
       totalDeposited: totalApprovedDeposits,
+      totalDeposits: totalApprovedDeposits,
       totalWithdrawn: totalApprovedWithdrawals,
+      totalWithdrawals: totalApprovedWithdrawals,
       totalInvested: totalActiveInvestments,
+      totalInvestments: totalActiveInvestments,
       totalBalance: totalWalletBalance,
       pendingDepositsCount: db.deposits.filter(d => d.status === 'pending').length,
       pendingWithdrawalsCount: db.withdrawals.filter(w => w.status === 'pending').length,

@@ -36,7 +36,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   const [depositFilter, setDepositFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
   const [withdrawalFilter, setWithdrawalFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
   const [loanFilter, setLoanFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
-  const [idFilter, setIdFilter] = useState<'all' | 'pending' | 'verified' | 'rejected' | 'unsubmitted' | 'skipped'>('pending');
+  const [idFilter, setIdFilter] = useState<'all' | 'pending' | 'verified' | 'rejected' | 'unsubmitted' | 'skipped'>('all');
   const [userStatusFilter, setUserStatusFilter] = useState<'all' | 'active' | 'suspended'>('all');
   
   // Custom Toast notification states
@@ -552,7 +552,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
           { id: 'overview', label: 'Overview', icon: Landmark },
           { id: 'deposits', label: 'Deposits', icon: Coins, count: deposits.filter(d => d.status === 'pending').length },
           { id: 'withdrawals', label: 'Withdrawals', icon: CreditCard, count: withdrawals.filter(w => w.status === 'pending').length },
-          { id: 'id-verify', label: 'ID Verify', icon: ShieldAlert, count: users.filter(u => u.profile?.idVerificationStatus === 'pending').length },
+          { id: 'id-verify', label: 'ID Verify', icon: ShieldAlert, count: users.filter(u => { const s = u.profile?.idVerificationStatus; return s === 'pending' || s === 'skipped'; }).length },
           { id: 'users', label: 'Users Manager', icon: Users },
           { id: 'cards', label: 'LUMORA Cards', icon: CreditCard, count: allCards.filter(c => c.status === 'pending').length },
           { id: 'loans', label: 'Loans Board', icon: FileText, count: loans.filter(l => l.status === 'pending').length },
@@ -961,9 +961,9 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                   <button
                     key={fil}
                     onClick={() => setIdFilter(fil)}
-                    className={`px-3 py-1 rounded-lg text-[9.5px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-lg text-[9.5px] font-black uppercase tracking-wider transition-all cursor-pointer ${
                       idFilter === fil 
-                        ? 'bg-slate-200 text-slate-800' 
+                        ? 'bg-[#0A3D91] text-white font-black' 
                         : 'text-slate-500 hover:text-slate-900 bg-white border border-slate-200/60'
                     }`}
                   >
@@ -994,7 +994,9 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                           <div className="flex flex-wrap items-center gap-1.5">
                             <span className={`p-1 px-2.5 rounded-full text-[9px] font-mono font-black uppercase tracking-wider ${
                               prof.idVerificationStatus === 'pending' ? 'bg-amber-100 text-amber-700 border border-amber-200' :
-                              prof.idVerificationStatus === 'verified' ? 'bg-emerald-100 text-emerald-700 border border-emerald-250' : 'bg-rose-100 text-rose-700'
+                              prof.idVerificationStatus === 'verified' ? 'bg-emerald-100 text-emerald-700 border border-emerald-250' :
+                              prof.idVerificationStatus === 'skipped' ? 'bg-indigo-100 text-indigo-700 border border-indigo-200' :
+                              'bg-slate-100 text-slate-500 border border-slate-200'
                             }`}>
                               REVIEWS STATUS: {prof.idVerificationStatus || 'unsubmitted'}
                             </span>
@@ -1058,7 +1060,9 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                           ) : (
                             <div className="flex flex-col sm:flex-row items-center gap-2">
                               <span className="text-[10px] text-slate-500 font-mono uppercase tracking-widest italic font-extrabold select-none bg-slate-100 px-2 py-1 rounded-lg">
-                                {prof.idVerificationStatus === 'verified' ? 'Identity Cleared' : prof.idVerificationStatus === 'rejected' ? 'Identity Denied' : 'Not Uploaded'}
+                                {prof.idVerificationStatus === 'verified' ? 'Identity Cleared' : 
+                                 prof.idVerificationStatus === 'rejected' ? 'Identity Denied' : 
+                                 prof.idVerificationStatus === 'skipped' ? 'Bypassed (Starter Level)' : 'Not Uploaded'}
                               </span>
                               
                               <div className="flex items-center space-x-1">
@@ -1242,7 +1246,8 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                               <div className="flex flex-wrap items-center gap-1.5">
                                 <span className={`p-1 px-2.5 rounded-full text-[9px] font-mono font-black uppercase tracking-widest w-fit ${
                                   prof.idVerificationStatus === 'verified' ? 'bg-emerald-100 text-emerald-700' :
-                                  prof.idVerificationStatus === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'
+                                  prof.idVerificationStatus === 'pending' ? 'bg-amber-100 text-amber-700' :
+                                  prof.idVerificationStatus === 'skipped' ? 'bg-indigo-100 text-indigo-700 border border-indigo-200/50' : 'bg-slate-100 text-slate-500'
                                 }`}>
                                   ID: {prof.idVerificationStatus || 'unsubmitted'}
                                 </span>
@@ -2083,7 +2088,8 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                       <span className="text-[8.5px] text-slate-400 uppercase font-bold tracking-widest block font-sans">KYC ID Verification State</span>
                       <span className={`inline-block mt-1 p-0.5 px-3 rounded-full text-[9px] font-mono font-black uppercase tracking-widest ${
                         selectedUserForEdit.profile?.idVerificationStatus === 'verified' ? 'bg-emerald-100 text-emerald-700' :
-                        selectedUserForEdit.profile?.idVerificationStatus === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'
+                        selectedUserForEdit.profile?.idVerificationStatus === 'pending' ? 'bg-amber-100 text-amber-700' :
+                        selectedUserForEdit.profile?.idVerificationStatus === 'skipped' ? 'bg-indigo-100 text-indigo-700 border border-indigo-200/50' : 'bg-slate-100 text-slate-500'
                       }`}>
                         {selectedUserForEdit.profile?.idVerificationStatus || 'unsubmitted'}
                       </span>
