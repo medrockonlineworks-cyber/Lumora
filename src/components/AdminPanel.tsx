@@ -151,22 +151,6 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
 
   useEffect(() => {
     fetchAllAdminData();
-
-    // Listen for local/remote database updates to update the admin dashboard immediately
-    const handleUpdate = () => {
-      fetchAllAdminData();
-    };
-    window.addEventListener("lumoradb-updated", handleUpdate);
-
-    // Dynamic background poll interval for fallback sync consistency
-    const handle = setInterval(() => {
-      fetchAllAdminData();
-    }, 4000);
-
-    return () => {
-      window.removeEventListener("lumoradb-updated", handleUpdate);
-      clearInterval(handle);
-    };
   }, [activeSubTab]);
 
   useEffect(() => {
@@ -537,10 +521,11 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
           <button 
             onClick={fetchAllAdminData}
             disabled={loading}
-            className="p-2 border border-slate-200 text-slate-600 rounded-xl bg-white hover:bg-slate-100 transition-all cursor-pointer shadow-3xs"
-            title="Refresh logs"
+            className="flex items-center space-x-2 px-3 py-2 border border-[#0A3D91]/25 text-[#0A3D91] rounded-xl bg-[#0A3D91]/5 font-sans text-xs font-black uppercase tracking-wider hover:bg-[#0A3D91]/10 active:scale-97 transition-all cursor-pointer shadow-3xs"
+            title="Refresh and sync all ledger logs"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-[#0A3D91]' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <span>{loading ? 'Syncing...' : 'Sync Data'}</span>
           </button>
           <button 
             onClick={onBack}

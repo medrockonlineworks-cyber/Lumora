@@ -383,7 +383,7 @@ export default function AboutUsPage({ onBack }: AboutUsPageProps) {
                 
                 {/* High Contrast Lumora Stamp Overlay */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-10">
-                  <LumoraStamp text="VERIFIED" variant="blue" size="md" tilted={true} highContrast={true} className="opacity-100 transform scale-125 hover:scale-130 transition-transform duration-300" />
+                  <LumoraStamp text="VERIFIED" variant="blue" size="md" tilted={true} highContrast={true} className="opacity-[0.32] mix-blend-multiply transform scale-125 hover:scale-130 transition-transform duration-300" />
                 </div>
 
                 <div className="w-full bg-slate-100/80 hover:bg-slate-200/80 border-t border-slate-200 text-center py-2 transition-colors relative z-10">

@@ -32,6 +32,7 @@ export default function HomeTab({
 
   const [userCard, setUserCard] = useState<any | null>(null);
   const [loadingCard, setLoadingCard] = useState(true);
+  const [showAllTx, setShowAllTx] = useState(false);
 
   const fetchUserCard = async () => {
     if (!profile?.userId) return;
@@ -770,10 +771,10 @@ export default function HomeTab({
             <span>{t.recentTransactions || 'Ledger Log Entries'}</span>
           </h3>
           <button 
-            onClick={() => setActiveTab('profile')}
+            onClick={() => setShowAllTx(!showAllTx)}
             className="text-[10px] font-black text-blue-650 hover:underline tracking-wider uppercase"
           >
-            {t.viewAll || 'See Ledger'}
+            {showAllTx ? (language === 'am' ? 'ያነሰ አሳይ' : 'Show Less') : (t.viewAll || 'View All')}
           </button>
         </div>
 
@@ -781,44 +782,106 @@ export default function HomeTab({
           <div className="p-10 rounded-3xl bg-white border border-slate-200 text-center text-xs text-slate-800 font-black shadow-3xs">
             {t.noData || 'No transaction logs registered.'}
           </div>
-        ) : (
-          <div className="space-y-2.5">
-            {recentTransactions.slice(0, 5).map((tx) => {
-              const isPositive = tx.amount > 0;
-              return (
-                <div 
-                  key={tx.id}
-                  className="flex items-center justify-between p-4 rounded-2xl bg-white border border-slate-150 shadow-[0_2px_8px_rgba(10,61,145,0.01)] hover:border-slate-300 transition-all"
-                >
-                  <div className="flex items-center space-x-3.5">
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                      tx.type === 'deposit' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
-                      tx.type === 'investment' ? 'bg-blue-50 text-blue-600 border border-blue-105' :
-                      tx.type === 'referral_reward' ? 'bg-amber-50 text-amber-600 border border-amber-100' :
-                      'bg-purple-50 text-purple-600 border border-purple-100'
-                    }`}>
-                      {tx.type === 'deposit' ? <ArrowUpRight className="w-4.5 h-4.5 stroke-[2.2]" /> : <ArrowDownRight className="w-4.5 h-4.5 stroke-[2.2]" />}
-                    </div>
-                    <div>
-                      <p className="text-[11px] font-black text-[#0A3D91]">
-                        {tx.description}
-                      </p>
-                      <p className="text-[9px] text-slate-805 mt-0.5 font-mono font-black">
-                        {new Date(tx.date).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span className={`text-[12px] font-black font-mono tracking-tight ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
-                      {isPositive ? '+' : ''}{(tx.amount ?? 0).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} 
+        ) : (() => {
+          const visibleTx = showAllTx ? recentTransactions : recentTransactions.slice(0, 5);
+          const grouped: { dateKey: string; items: typeof recentTransactions }[] = [];
+          
+          visibleTx.forEach((tx) => {
+            const d = new Date(tx.date);
+            const dateKey = isNaN(d.getTime()) ? 'Invalid Date' : d.toDateString();
+            let grp = grouped.find(g => g.dateKey === dateKey);
+            if (!grp) {
+              grp = { dateKey, items: [] };
+              grouped.push(grp);
+            }
+            grp.items.push(tx);
+          });
+
+          const getFriendlyDateHeader = (dateKey: string) => {
+            if (dateKey === 'Invalid Date') {
+              return language === 'am' ? 'ያልታወቀ ቀን' : 'Unknown Date';
+            }
+            const d = new Date(dateKey);
+            const today = new Date();
+            const yesterday = new Date();
+            yesterday.setDate(today.getDate() - 1);
+            
+            if (d.toDateString() === today.toDateString()) {
+              return language === 'am' ? 'ዛሬ' : 
+                     language === 'om' ? 'Hardha' :
+                     language === 'ti' ? 'ሎሚ' :
+                     language === 'so' ? 'Maanta' : 'Today';
+            } else if (d.toDateString() === yesterday.toDateString()) {
+              return language === 'am' ? 'ትናንት' : 
+                     language === 'om' ? 'Kalee' :
+                     language === 'ti' ? 'ትማሊ' :
+                     language === 'so' ? 'Shalay' : 'Yesterday';
+            }
+            
+            return d.toLocaleDateString(
+              language === 'am' ? 'am-ET' : 
+              language === 'om' ? 'om-ET' :
+              language === 'ti' ? 'ti-ET' :
+              language === 'so' ? 'so-SO' : undefined, 
+              {
+                weekday: 'long',
+                month: 'short',
+                day: 'numeric'
+              }
+            );
+          };
+
+          return (
+            <div className="space-y-4">
+              {grouped.map((group) => (
+                <div key={group.dateKey} className="space-y-2">
+                  <div className="flex items-center space-x-1.5 px-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#0A3D91]/40"></span>
+                    <span className="text-[10px] font-black text-[#0A3D91] opacity-75 uppercase tracking-wider font-sans select-none">
+                      {getFriendlyDateHeader(group.dateKey)}
                     </span>
-                    <span className="text-[8px] text-[#0A3D91] font-black ml-1 uppercase font-mono">ETB</span>
+                  </div>
+                  <div className="space-y-2">
+                    {group.items.map((tx) => {
+                      const isPositive = tx.amount > 0;
+                      return (
+                        <div 
+                          key={tx.id}
+                          className="flex items-center justify-between p-4 rounded-2xl bg-white border border-slate-150 shadow-[0_2px_8px_rgba(10,61,145,0.01)] hover:border-slate-350 transition-all"
+                        >
+                          <div className="flex items-center space-x-3.5">
+                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+                              tx.type === 'deposit' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                              tx.type === 'investment' ? 'bg-blue-50 text-blue-600 border border-blue-105' :
+                              tx.type === 'referral_reward' ? 'bg-amber-50 text-amber-600 border border-amber-100' :
+                              'bg-purple-50 text-purple-600 border border-purple-100'
+                            }`}>
+                              {tx.type === 'deposit' ? <ArrowUpRight className="w-4.5 h-4.5 stroke-[2.2]" /> : <ArrowDownRight className="w-4.5 h-4.5 stroke-[2.2]" />}
+                            </div>
+                            <div>
+                              <p className="text-[11px] font-black text-[#0A3D91]">
+                                {tx.description}
+                              </p>
+                              <p className="text-[9px] text-slate-805 mt-0.5 font-mono font-black opacity-60">
+                                {new Date(tx.date).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', hour12: true })}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <span className={`text-[12px] font-black font-mono tracking-tight ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
+                              {isPositive ? '+' : ''}{(tx.amount ?? 0).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} 
+                            </span>
+                            <span className="text-[8px] text-[#0A3D91] font-black ml-1 uppercase font-mono">ETB</span>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
+              ))}
+            </div>
+          );
+        })()}
       </div>
 
 

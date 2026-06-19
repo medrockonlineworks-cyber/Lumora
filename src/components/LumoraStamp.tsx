@@ -84,34 +84,42 @@ export default function LumoraStamp({
 
   const sizeMap = {
     xs: {
-      outer: 'w-16 h-16 p-1 border-[2px]',
-      inner: 'border-[0.75px]',
-      fontSize: highContrast ? 'text-[7.5px] font-extrabold tracking-[0.1em]' : 'text-[6.5px] tracking-[0.1em]',
-      logoSize: 'w-6 h-5',
+      outer: 'w-11 h-11 sm:w-16 sm:h-16 p-0.5 sm:p-1 border-[1.5px] sm:border-[2px]',
+      inner: 'border-[0.5px] sm:border-[0.75px]',
+      fontSize: highContrast 
+        ? 'text-[5px] sm:text-[7.5px] font-extrabold tracking-[0.08em] sm:tracking-[0.1em]' 
+        : 'text-[4.5px] sm:text-[6.5px] tracking-[0.08em] sm:tracking-[0.1em]',
+      logoSize: 'w-4 sm:w-6 h-3 sm:h-5',
       lineWidth: '1',
       showTopBottom: false
     },
     sm: {
-      outer: 'w-24 h-24 p-1.5 border-[2.5px]',
-      inner: 'border-[1.2px]',
-      fontSize: highContrast ? 'text-[10px] font-extrabold tracking-[0.14em]' : 'text-[9px] tracking-[0.14em]',
-      logoSize: 'w-8 h-6',
+      outer: 'w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 p-1 sm:p-1.2 md:p-1.5 border-[1.5px] sm:border-[2px] md:border-[2.5px]',
+      inner: 'border-[0.8px] sm:border-[1px] md:border-[1.2px]',
+      fontSize: highContrast 
+        ? 'text-[6.5px] sm:text-[8px] md:text-[10px] font-extrabold tracking-[0.1em] md:tracking-[0.14em]' 
+        : 'text-[5.5px] sm:text-[7px] md:text-[9px] tracking-[0.1em] md:tracking-[0.14em]',
+      logoSize: 'w-5 sm:w-7 md:w-8 h-4 sm:h-5 md:h-6',
       lineWidth: '1.2',
       showTopBottom: true
     },
     md: {
-      outer: 'w-32 h-32 p-2 border-[3.2px]',
-      inner: 'border-[1.5px]',
-      fontSize: highContrast ? 'text-[12px] font-extrabold tracking-[0.16em]' : 'text-[11px] tracking-[0.16em]',
-      logoSize: 'w-12 h-9',
+      outer: 'w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 p-1 sm:p-1.8 md:p-2 border-[2px] sm:border-[2.8px] md:border-[3.2px]',
+      inner: 'border-[1px] sm:border-[1.2px] md:border-[1.5px]',
+      fontSize: highContrast 
+        ? 'text-[8px] sm:text-[10.5px] md:text-[12px] font-extrabold tracking-[0.12em] md:tracking-[0.16em]' 
+        : 'text-[7px] sm:text-[9.5px] md:text-[11px] tracking-[0.12em] md:tracking-[0.16em]',
+      logoSize: 'w-7 sm:w-10 md:w-12 h-5.5 sm:h-7.5 md:h-9',
       lineWidth: '1.8',
       showTopBottom: true
     },
     lg: {
-      outer: 'w-44 h-44 p-3 border-[4px]',
-      inner: 'border-[2.2px]',
-      fontSize: highContrast ? 'text-[15px] font-extrabold tracking-[0.18em]' : 'text-[14px] tracking-[0.18em]',
-      logoSize: 'w-18 h-13',
+      outer: 'w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 p-1.5 sm:p-2.5 md:p-3 border-[2.2px] sm:border-[3.2px] md:border-[4px]',
+      inner: 'border-[1.2px] sm:border-[1.8px] md:border-[2.2px]',
+      fontSize: highContrast 
+        ? 'text-[9px] sm:text-[12.5px] md:text-[15px] font-extrabold tracking-[0.14em] md:tracking-[0.18em]' 
+        : 'text-[8px] sm:text-[11.5px] md:text-[14px] tracking-[0.14em] md:tracking-[0.18em]',
+      logoSize: 'w-10 sm:w-15 md:w-18 h-7.5 sm:h-11 md:h-13',
       lineWidth: '2.5',
       showTopBottom: true
     }
@@ -221,7 +229,7 @@ export default function LumoraStamp({
         <div className={`w-full h-full rounded-full border border-dashed flex flex-col items-center justify-center p-1 ${colorMap.border} ${sizeMap.inner}`}>
           
           {sizeMap.showTopBottom && (
-            <div className="text-[6.5px] sm:text-[7px] tracking-[0.18em] opacity-50 uppercase font-mono mb-0.5 whitespace-nowrap">
+            <div className="hidden sm:block text-[6.5px] sm:text-[7px] tracking-[0.18em] opacity-50 uppercase font-mono mb-0.5 whitespace-nowrap">
               ★ LUMORA OFFICIAL ★
             </div>
           )}
@@ -235,7 +243,7 @@ export default function LumoraStamp({
           </div>
 
           {sizeMap.showTopBottom && (
-            <div className="text-[5.5px] sm:text-[6px] tracking-[0.14em] opacity-50 font-mono mt-0.5 whitespace-nowrap">
+            <div className="hidden sm:block text-[5.5px] sm:text-[6px] tracking-[0.14em] opacity-50 font-mono mt-0.5 whitespace-nowrap">
               CBE SECURED CONTEXT
             </div>
           )}
