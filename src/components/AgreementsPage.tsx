@@ -33,7 +33,7 @@ Welcome to LUMORA. Please review our revised platform guidelines:
 Platform micro-finance structural rules in detail:
 
 1. **High-Yield Plan Activation**: Investment plans are activated immediately upon balance confirmation (Min 3,500 ETB), automatically starting synced daily yields spanning VIP levels. Interest cycles schedule payouts every 24 hours.
-2. **CBE Transfer, Auditing & ID Lock**: Accounts must be fully verified (using National ID cards) to make deposit submissions. Deposits are routed directly to the treasury audit desk via CBE app screenshots. Administrators evaluate submissions, and credits reflect live on user dashboards in under 2 hours.
+2. **CBE Transfer & Auditing**: Users can submit deposit credentials instantly without ID verification checks. Deposits are routed directly to the treasury audit desk via CBE app screenshots. Administrators evaluate submissions, and credits reflect live on user dashboards in under 2 hours.
 3. **Cashout Settlements**: Users cash out using secure designated accounts. Approved cashouts are dispersed within 0 to 42 hours to prevent settlement issues and ensure sustainable liquidity.`
       },
       "risk-disclosure": {
@@ -46,10 +46,10 @@ We connect local commerce and infrastructure project liquidity pools directly to
 
 #### How It Works:
 
-1. **Identity Integrity Clearance**: Submit a clean photo of both sides of your National ID card. Approval usually resolves within 1-2 hours and is strictly required before any deposits are permitted.
-2. **Deposit Micro-Capital**: Copy our official Commercial Bank of Ethiopia (CBE) account number from the Deposit Dialog. Transfer your starting capital (minimum 3,500 ETB) from your CBE Birr App, note down your reference code, and capture a clear screenshot of the receipt.
-3. **Submit Proof**: Enter your deposited amount, paste the CBE reference code, upload your receipt screenshot, and submit. The administrators will audit and credit your account within 2 hours.
-4. **Activate High-Yield Plans**: Invest your wallet balance into VIP tiers ranging from VIP 0 to VIP 15. Your plan activates immediately, compounding interest payouts every 24 hours.
+1. **Deposit Micro-Capital Instantly**: Copy our official Commercial Bank of Ethiopia (CBE) account number from the Deposit Dialog. Transfer your starting capital (minimum 3,500 ETB) from your CBE Birr App, note down your reference code, and capture a clear screenshot of the receipt. You can construct and submit deposit proof instantly without needing to verify your ID first.
+2. **Submit Proof**: Enter your deposited amount, paste the CBE reference code, upload your receipt screenshot, and submit. The administrators will audit and credit your account within 2 hours.
+3. **Activate High-Yield Plans**: Invest your wallet balance into VIP tiers ranging from VIP 0 to VIP 15. Your plan activates immediately, compounding interest payouts every 24 hours.
+4. **Identity Verification & Clearance**: Submit a clean photo of both sides of your National ID card under the Profile tab at any time to unlock advanced platform benefits, such as applying for micro-loans and low-interest Sovereign leverage.
 5. **Secure virtual Mastercard**: Apply for and load a virtual Mastercard instantly. No OTP authentication required—simply verify transactions in real-time using your main account login password.
 6. **Secure Dynamic Cashouts**: Navigate to the Cashout menu. First, configure your personal phone number, active Ethiopian bank card details, and a secret 4-digit transaction PIN. Authorize cashouts (minimum 600 ETB) safely using this PIN.`
       }

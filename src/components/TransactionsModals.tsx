@@ -482,7 +482,7 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
 
         {/* --- 1. CBE DEPOSIT DIALOG CONTENT --- */}
         {type === 'deposit' && (
-          profile.idVerificationStatus !== 'verified' ? (
+          (false && profile.idVerificationStatus !== 'verified') ? (
             <div className="space-y-4 py-4 text-center animate-in fade-in duration-200">
               <div className="mx-auto w-12 h-12 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 animate-pulse">
                 <ShieldAlert className="w-5 h-5 stroke-[2.2]" />
