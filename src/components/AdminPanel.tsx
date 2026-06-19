@@ -776,12 +776,12 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                               {dep.status}
                             </span>
                             {dep.status === 'approved' && (
-                              <div className="absolute left-[35px] top-[-10px] opacity-[0.80] pointer-events-none z-0 transform scale-[0.62] select-none origin-center">
+                              <div className="absolute left-[35px] top-[-10px] opacity-100 pointer-events-none z-0 transform scale-[0.72] select-none origin-center">
                                 <LumoraStamp text="APPROVED" variant="green" size="xs" tilted={true} highContrast={true} />
                               </div>
                             )}
                             {dep.status === 'rejected' && (
-                              <div className="absolute left-[35px] top-[-10px] opacity-[0.80] pointer-events-none z-0 transform scale-[0.62] select-none origin-center">
+                              <div className="absolute left-[35px] top-[-10px] opacity-100 pointer-events-none z-0 transform scale-[0.72] select-none origin-center">
                                 <LumoraStamp text="REJECTED" variant="rose" size="xs" tilted={true} highContrast={true} />
                               </div>
                             )}
@@ -910,12 +910,12 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                               {wit.status}
                             </span>
                             {wit.status === 'approved' && (
-                              <div className="absolute left-[35px] top-[-10px] opacity-[0.80] pointer-events-none z-0 transform scale-[0.62] select-none origin-center">
+                              <div className="absolute left-[35px] top-[-10px] opacity-100 pointer-events-none z-0 transform scale-[0.72] select-none origin-center">
                                 <LumoraStamp text="APPROVED" variant="green" size="xs" tilted={true} highContrast={true} />
                               </div>
                             )}
                             {wit.status === 'rejected' && (
-                              <div className="absolute left-[35px] top-[-10px] opacity-[0.80] pointer-events-none z-0 transform scale-[0.62] select-none origin-center">
+                              <div className="absolute left-[35px] top-[-10px] opacity-100 pointer-events-none z-0 transform scale-[0.72] select-none origin-center">
                                 <LumoraStamp text="REJECTED" variant="rose" size="xs" tilted={true} highContrast={true} />
                               </div>
                             )}

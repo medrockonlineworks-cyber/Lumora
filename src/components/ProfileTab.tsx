@@ -1840,12 +1840,12 @@ export default function ProfileTab({
                     className="p-4 rounded-2xl bg-white border border-slate-200 flex justify-between items-center shadow-xs relative overflow-hidden"
                   >
                     {d.status === 'approved' && (
-                      <div className="absolute right-[22%] top-[-8px] opacity-[0.80] pointer-events-none z-0 transform scale-75 origin-top-right select-none">
+                      <div className="absolute right-[24%] top-[-4px] opacity-100 pointer-events-none z-0 transform scale-80 origin-top-right select-none">
                         <LumoraStamp text="APPROVED" variant="green" size="xs" tilted={true} highContrast={true} />
                       </div>
                     )}
                     {d.status === 'rejected' && (
-                      <div className="absolute right-[22%] top-[-8px] opacity-[0.80] pointer-events-none z-0 transform scale-75 origin-top-right select-none">
+                      <div className="absolute right-[24%] top-[-4px] opacity-100 pointer-events-none z-0 transform scale-80 origin-top-right select-none">
                         <LumoraStamp text="REJECTED" variant="rose" size="xs" tilted={true} highContrast={true} />
                       </div>
                     )}
@@ -1893,12 +1893,12 @@ export default function ProfileTab({
                     className="p-4 rounded-2xl bg-white border border-slate-200 flex justify-between items-center shadow-xs relative overflow-hidden"
                   >
                     {w.status === 'approved' && (
-                      <div className="absolute right-[22%] top-[-8px] opacity-[0.80] pointer-events-none z-0 transform scale-75 origin-top-right select-none">
+                      <div className="absolute right-[24%] top-[-4px] opacity-100 pointer-events-none z-0 transform scale-80 origin-top-right select-none">
                         <LumoraStamp text="APPROVED" variant="green" size="xs" tilted={true} highContrast={true} />
                       </div>
                     )}
                     {w.status === 'rejected' && (
-                      <div className="absolute right-[22%] top-[-8px] opacity-[0.80] pointer-events-none z-0 transform scale-75 origin-top-right select-none">
+                      <div className="absolute right-[24%] top-[-4px] opacity-100 pointer-events-none z-0 transform scale-80 origin-top-right select-none">
                         <LumoraStamp text="REJECTED" variant="rose" size="xs" tilted={true} highContrast={true} />
                       </div>
                     )}
