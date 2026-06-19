@@ -614,6 +614,27 @@ async function syncClientToFirestore(latestDb: LumoraDB) {
   }
 }
 
+const initialSyncStatus: { users: boolean; profiles: boolean } = {
+  users: false,
+  profiles: false,
+};
+
+export async function ensureAuthDataSynced(timeoutMs: number = 4000): Promise<void> {
+  const fDb = getFirestoreClientDb();
+  if (!fDb) {
+    console.log("[Client Firestore] Direct Firestore-synced engine is offline. Bypassing guarantee wait.");
+    return;
+  }
+  const start = Date.now();
+  while (!initialSyncStatus.users || !initialSyncStatus.profiles) {
+    if (Date.now() - start >= timeoutMs) {
+      console.warn(`[Client Firestore Sync] Auth data sync timed out after ${timeoutMs}ms.`);
+      break;
+    }
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+}
+
 let listenersInitialized = false;
 
 export function setupClientFirebaseSync() {
@@ -643,6 +664,9 @@ export function setupClientFirebaseSync() {
 
   for (const col of collectionsToListen) {
     onSnapshot(collection(fDb, col.name), (snapshot) => {
+      if (col.name === "users" || col.name === "profiles") {
+        initialSyncStatus[col.name] = true;
+      }
       const currentDb = loadLocalDB();
       if (!currentDb[col.arrayName as keyof LumoraDB]) {
         (currentDb as any)[col.arrayName] = [];
@@ -703,6 +727,9 @@ export function setupClientFirebaseSync() {
       }
     }, (error) => {
       console.error(`[Client Firestore] Listener error on '${col.name}':`, error);
+      if (col.name === "users" || col.name === "profiles") {
+        initialSyncStatus[col.name] = true;
+      }
     });
   }
 
@@ -848,10 +875,12 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
 
   // 4. POST /api/auth/session
   if (pathname === '/api/auth/session' && method === 'POST') {
+    await ensureAuthDataSynced(4000);
+    const activeDb = loadLocalDB();
     const { userId } = body;
     if (!userId) return respondJSON(401, { error: "Session authentication failed" });
-    const user = db.users.find(u => u.id === userId);
-    const profile = db.profiles.find(p => p.userId === userId);
+    const user = activeDb.users.find(u => u.id === userId);
+    const profile = activeDb.profiles.find(p => p.userId === userId);
     if (!user || !profile) return respondJSON(404, { error: "Active user profile not found" });
     if (user.status === "suspended") return respondJSON(403, { error: "Your account is suspended. Contact LUMORA Support." });
     return respondJSON(200, { user, profile });
@@ -859,11 +888,13 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
 
   // 5. POST /api/auth/register
   if (pathname === '/api/auth/register' && method === 'POST') {
+    await ensureAuthDataSynced(4000);
+    const activeDb = loadLocalDB();
     const { fullName, phone, email, password, referralCode } = body;
     if (!fullName || !phone || !email || !password) {
       return respondJSON(400, { error: "All fields including email are required" });
     }
-    const userExists = db.users.some(u => u.phone === phone);
+    const userExists = activeDb.users.some(u => u.phone === phone);
     if (userExists) {
       return respondJSON(409, { error: "This phone number is already registered" });
     }
@@ -871,7 +902,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     const userId = "user-" + Math.random().toString(36).substr(2, 9);
     const systemReferral = "LUM" + Math.random().toString(36).substr(2, 5).toUpperCase();
 
-    let referrer = referralCode ? db.users.find(u => u.referralCode === referralCode) : undefined;
+    let referrer = referralCode ? activeDb.users.find(u => u.referralCode === referralCode) : undefined;
 
     const newUser: User = {
       id: userId,
@@ -910,13 +941,13 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       transactionPin: ""
     };
 
-    db.users.push(newUser);
-    db.profiles.push(newProfile);
+    activeDb.users.push(newUser);
+    activeDb.profiles.push(newProfile);
 
     if (referrer) {
-      const referrerProfile = db.profiles.find(p => p.userId === referrer!.id);
+      const referrerProfile = activeDb.profiles.find(p => p.userId === referrer!.id);
       if (referrerProfile) referrerProfile.teamSize += 1;
-      db.referrals.push({
+      activeDb.referrals.push({
         id: "ref-" + Math.random().toString(36).substr(2, 9),
         referrerId: referrer.id,
         referredId: userId,
@@ -928,7 +959,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       });
     }
 
-    db.notifications.push({
+    activeDb.notifications.push({
       id: "not-" + Math.random().toString(36).substr(2, 9),
       userId,
       title: "Welcome to LUMORA!",
@@ -937,21 +968,23 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       date: new Date().toISOString()
     });
 
-    saveLocalDB(db);
+    saveLocalDB(activeDb);
     return respondJSON(200, { user: newUser, profile: newProfile });
   }
 
   // 6. POST /api/auth/login
   if (pathname === '/api/auth/login' && method === 'POST') {
+    await ensureAuthDataSynced(4000);
+    const activeDb = loadLocalDB();
     const { phone, password } = body;
-    const user = db.users.find(u => u.phone === phone);
+    const user = activeDb.users.find(u => u.phone === phone);
     if (!user || user.password !== password) {
       return respondJSON(401, { error: "Invalid telephone number or password credentials." });
     }
     if (user.status === "suspended") {
       return respondJSON(430, { error: "This profile has been suspended indefinitely for institutional compliance auditing. Please connect with Lumora Technical Desk." });
     }
-    const profile = db.profiles.find(p => p.userId === user.id || p.phone === phone);
+    const profile = activeDb.profiles.find(p => p.userId === user.id || p.phone === phone);
     return respondJSON(200, { user, profile });
   }
 
@@ -2484,7 +2517,7 @@ if (typeof window !== "undefined") {
   // Trigger real-time client-side Firestore listener subscriptions to receive remote updates (e.g., from Admin actions)
   setTimeout(() => {
     setupClientFirebaseSync();
-  }, 1200);
+  }, 50);
 }
 
 if (typeof window !== "undefined") {
