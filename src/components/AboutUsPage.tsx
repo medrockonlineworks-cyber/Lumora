@@ -11,7 +11,7 @@ export default function AboutUsPage({ onBack }: AboutUsPageProps) {
   const localizedContent = {
     en: {
       overview: "LUMORA is a premier digital-first fintech asset allocation tool. We leverage AI-integrated financial modelling, giving users secure micro-capacities on asset dividends with premium interactive monitoring tools. We offer a virtual debit Mastercard exchange rate of 1 USD = 170 ETB, managed using your secure login password.",
-      mission: "To democratize secure microeconomic allocations in East Africa. LUMORA allows modern high-yield calculations to become accessible for everyday mobile-first users securely. Please note: Users must verify their profiles with National ID cards before any deposits can be initialized.",
+      mission: "To democratize secure microeconomic allocations in East Africa. LUMORA allows modern high-yield calculations to become accessible for everyday mobile-first users securely. (National ID card validation is optional for starting deposits).",
       vision: "To become the premier micro-allocation network in Ethiopia, expanding reliable visual tracking and AI-driven predictive insights across 5 language sectors seamlessly.",
       complianceTitle: "Official CBE Capital Guarantee Act",
       complianceDesc: "LUMORA is an official partner with the Commercial Bank of Ethiopia (CBE). All user investments and funds are 100% safe, capital protected, and fully secured by bank-backed physical reserves under our joint cooperative framework.",
@@ -28,7 +28,7 @@ export default function AboutUsPage({ onBack }: AboutUsPageProps) {
     },
     am: {
       overview: "LUMORA ግንባር ቀደም ዲጂታል-የፋይናንስ የንብረት ድልድል መሣሪያ ነው። በ AI የተደገፈ የፋይናንስ ሞዴሊንግን እንጠቀማለን፣ ይህም ለተጠቃሚዎች በንብረት ክፍፍል ላይ ደህንነቱ የተጠበቀ አነስተኛ አቅምን በፕሪሚየም መስተጋብራዊ የክትትል መሳሪያዎች ይሰጣል። ቨርቹዋል ማስተር ካርድ የውጭ ምንዛሬ ተመን 1 ዶላር = 170 የኢትዮጵያ ብር (ETB) ያቀርባል።",
-      mission: "በምስራቅ አፍሪካ አስተማማኝ የማይክሮ ኢኮኖሚ ድልድሎችን በዲሞክራሲያዊ መንገድ ተደራሽ ማድረግ። LUMORA ዘመናዊ ከፍተኛ-ምርት ስሌቶች ለዕለታዊ ተንቀሳቃሽ ስልክ ተጠቃሚዎች ደህንነቱ በተጠበቀ ሁኔታ ተደራሽ እንዲሆኑ ያስችላል። ማስጠንቀቂያ፡ ተቀማጭ ሂሳብ ከማስተላለፍዎ በፊት በቅድሚያ ብሔራዊ መታወቂያ ካርድ በሉሞራ መረጋገጥ አለበት።",
+      mission: "በምስራቅ አፍሪካ አስተማማኝ የማይክሮ ኢኮኖሚ ድልድሎችን በዲሞክራሲያዊ መንገድ ተደራሽ ማድረግ። LUMORA ዘመናዊ ከፍተኛ-ምርት ስሌቶች ለዕለታዊ ተንቀሳቃሽ ስልክ ተጠቃሚዎች ደህንነቱ በተጠበቀ ሁኔታ ተደራሽ እንዲሆኑ ያስችላል። (አስቀድሞ ብሔራዊ መታወቂያ መመዝገብ ለተቀማጭ ሂሳብ አማራጭ ነው)።",
       vision: "አስተማማኝ የእይታ መከታተያ እና በ AI-የተደገፉ ግምቶችን በ5 ቋንቋ ዘርፎች ላይ ያለምንም እንከን በማስፋፋት የኢትዮጵያ ቀዳሚው የማይክሮ ድልድል መረብ መሆን።",
       complianceTitle: "ኦፊሴላዊ የCBE የካፒታል ዋስትና ስምምነት",
       complianceDesc: "LUMORA ከኢትዮጵያ ንግድ ባንክ (CBE) ጋር ይፋዊ አጋር ነው። ሁሉም የተጠቃሚዎች ኢንቨስትመንቶች እና ገንዘብ 100% አስተማማኝ፣ ካፒታላቸው የተጠበቀ እና በባንክ በተደገፉ አካላዊ ክምችቶች የተጠበቁ ናቸው።",
