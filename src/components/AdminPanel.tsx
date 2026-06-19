@@ -77,6 +77,8 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   const [adjustTargetWallet, setAdjustTargetWallet] = useState<'deposit' | 'income'>('deposit');
   const [adjustVipLevel, setAdjustVipLevel] = useState<number>(0);
   const [showBalanceConfirm, setShowBalanceConfirm] = useState(false);
+  const [newPasswordValue, setNewPasswordValue] = useState('');
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   
   // System Settings state inputs
   const [cbeAccountName, setCbeAccountName] = useState('');
@@ -349,6 +351,44 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
       showToast("Network error updating VIP tier.", "error");
     } finally {
       setActionLoading(null);
+    }
+  };
+
+  // Handle changed login password (Admin option)
+  const handleChangeUserPassword = async () => {
+    if (!selectedUserForEdit) return;
+    if (!newPasswordValue.trim()) {
+      showToast("Password cannot be empty.", "error");
+      return;
+    }
+    setIsUpdatingPassword(true);
+    try {
+      const res = await fetch('/api/admin/users/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          targetUserId: selectedUserForEdit.id,
+          newPassword: newPasswordValue.trim()
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSelectedUserForEdit(prev => prev ? {
+          ...prev,
+          password: data.password
+        } : null);
+        setNewPasswordValue('');
+        showToast("User login password updated successfully!", "success");
+        fetchAllAdminData();
+      } else {
+        const errData = await res.json();
+        showToast(errData.error || "Failed to edit user password.", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Network error changing user password.", "error");
+    } finally {
+      setIsUpdatingPassword(false);
     }
   };
 
@@ -2031,6 +2071,29 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                       }`}>
                         {selectedUserForEdit.profile?.idVerificationStatus || 'unsubmitted'}
                       </span>
+                    </div>
+
+                    {/* Administrative Password Override */}
+                    <div className="col-span-2 pt-2.5 border-t border-slate-200/60 mt-1.5">
+                      <span className="text-[8.5px] text-rose-600 uppercase font-bold tracking-widest block mb-1.5">Administrative Password Override</span>
+                      <div className="flex items-center space-x-2" id="admin-password-override-group">
+                        <input
+                          type="text"
+                          placeholder="Type new secure user password"
+                          value={newPasswordValue}
+                          onChange={(e) => setNewPasswordValue(e.target.value)}
+                          className="flex-1 text-[11px] font-mono p-1.5 px-3 bg-white border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-450 focus:ring-1 focus:ring-rose-200"
+                        />
+                        <button
+                          type="button"
+                          id="submit-new-password-btn"
+                          onClick={handleChangeUserPassword}
+                          disabled={isUpdatingPassword || !newPasswordValue.trim()}
+                          className="py-1.5 px-3.5 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-[10px] uppercase tracking-wider rounded-lg transition-all active:scale-95 disabled:opacity-50 cursor-pointer shadow-3xs shrink-0"
+                        >
+                          {isUpdatingPassword ? 'Saving...' : 'Change'}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

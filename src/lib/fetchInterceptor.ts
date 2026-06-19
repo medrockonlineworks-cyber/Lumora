@@ -1726,6 +1726,20 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     return respondJSON(200, { success: true });
   }
 
+  // 24b. POST /api/admin/users/change-password
+  if (pathname === '/api/admin/users/change-password' && method === 'POST') {
+    const { targetUserId, newPassword } = body;
+    if (!targetUserId || !newPassword || newPassword.trim().length === 0) {
+      return respondJSON(400, { error: "Invalid user or password parameters" });
+    }
+    const user = db.users.find(u => u.id === targetUserId);
+    if (!user) return respondJSON(404, { error: "User not found" });
+
+    user.password = newPassword.trim();
+    saveLocalDB(db);
+    return respondJSON(200, { success: true, password: user.password });
+  }
+
   // 25. GET /api/admin/deposits
   if (pathname === '/api/admin/deposits' && method === 'GET') {
     return respondJSON(200, db.deposits);

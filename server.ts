@@ -2544,6 +2544,20 @@ Instruct the user precisely on which page, component, or element to use to accom
     res.json({ success: true, profile: p });
   });
 
+  // Change user password (Admin only)
+  app.post("/api/admin/users/change-password", (req, res) => {
+    const { targetUserId, newPassword } = req.body;
+    if (!targetUserId || !newPassword || newPassword.trim().length === 0) {
+      return res.status(400).json({ error: "Invalid user or password parameters" });
+    }
+    const u = db.users.find(user => user.id === targetUserId);
+    if (!u) return res.status(404).json({ error: "User not found" });
+
+    u.password = newPassword.trim();
+    saveDB(db);
+    res.json({ success: true, password: u.password });
+  });
+
   // Cancel/Refund an active investment plan (Admin Only)
   app.post("/api/admin/investments/cancel", (req, res) => {
     const { investmentId } = req.body;
