@@ -402,6 +402,10 @@ function loadLocalDB(): LumoraDB {
     }
   }
 
+  // Overwrite local db agreements with up-to-date agreements to sync limits (3500 and 200)
+  db.agreements = AGREEMENTS;
+  modified = true;
+
   // Self-correcting: Ensure ALL initial seed users from getInitialDB() are always present in the database,
   // preventing login failures when legacy users visit the app.
   const initial = getInitialDB();

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   Users, Coins, CheckCircle, XCircle, Search, ShieldAlert, ShieldCheck, 
   UserPlus, Award, Landmark, RefreshCw, ChevronRight, Ban, Eye, Key,
-  Sparkles, Save, FileText, ChevronDown, Check, Sliders, Settings, CreditCard, Copy 
+  Sparkles, Save, FileText, ChevronDown, Check, Sliders, Settings, CreditCard, Copy,
+  Upload, Trash2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Profile, Deposit, Withdrawal, Loan, AppSettings, User } from '../types';
@@ -82,6 +83,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   const [cbeAccountNumber, setCbeAccountNumber] = useState('');
   const [referralBonusPercentage, setReferralBonusPercentage] = useState(10);
   const [productionInviteUrl, setProductionInviteUrl] = useState('');
+  const [companyLicenseUrl, setCompanyLicenseUrl] = useState('');
 
   // Fetch all admin data
   const fetchAllAdminData = async () => {
@@ -121,6 +123,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
         setCbeAccountNumber(sett.cbeAccountNumber || '');
         setReferralBonusPercentage(sett.referralBonusPercentage || 10);
         setProductionInviteUrl(sett.productionInviteUrl || '');
+        setCompanyLicenseUrl(sett.companyLicenseUrl || '');
       }
 
       // Fetch cards
@@ -388,7 +391,8 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
           cbeAccountName,
           cbeAccountNumber,
           referralBonusPercentage,
-          productionInviteUrl
+          productionInviteUrl,
+          companyLicenseUrl
         })
       });
       if (res.ok) {
@@ -1462,6 +1466,117 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#0A3D91]"
                 />
                 <p className="text-[10px] text-slate-400 font-semibold mt-1.5">Used as the base URL generated in user invitation links. If blank, redirects dynamically to client origin.</p>
+              </div>
+
+              {/* Company license file-upload capability */}
+              <div className="border-t border-slate-100 pt-4 space-y-3">
+                <label className="block text-[10px] uppercase font-black tracking-wider text-slate-500">Official Company Regulatory License (Image/PDF)</label>
+                
+                {companyLicenseUrl ? (
+                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col space-y-2" id="company-license-preview-container">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-[#0A3D91]/10 text-[#0A3D91] rounded-lg">
+                          <FileText className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-slate-700">Official_Company_License</p>
+                          <p className="text-[10px] text-slate-400">
+                            {companyLicenseUrl.startsWith('data:application/pdf') ? 'PDF Document' : 'Image Asset (Base64)'}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        id="remove-license-btn"
+                        onClick={() => {
+                          if (confirm("Are you sure you want to remove the current license file?")) {
+                            setCompanyLicenseUrl('');
+                          }
+                        }}
+                        className="p-1.5 hover:bg-rose-50 text-rose-600 hover:text-rose-700 rounded-lg transition-colors cursor-pointer"
+                        title="Remove License"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    {/* Preview conditional helper */}
+                    <div className="mt-2 border border-slate-200/60 rounded-xl overflow-hidden max-h-48 bg-white flex items-center justify-center">
+                      {companyLicenseUrl.startsWith('data:application/pdf') ? (
+                        <div className="p-4 text-center">
+                          <p className="text-xs font-semibold text-slate-600 mb-2">PDF Document Attached</p>
+                          <a 
+                            href={companyLicenseUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="text-[10px] uppercase tracking-wider font-extrabold text-[#0A3D91] hover:underline"
+                          >
+                            Open PDF in New Tab
+                          </a>
+                        </div>
+                      ) : (
+                        <img 
+                          src={companyLicenseUrl} 
+                          alt="Company License Preview" 
+                          className="object-contain w-full h-full max-h-40" 
+                          referrerPolicy="no-referrer"
+                        />
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    id="company-license-drag-drop-zone"
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.currentTarget.classList.add('border-[#0A3D91]', 'bg-[#0A3D91]/5');
+                    }}
+                    onDragLeave={(e) => {
+                      e.preventDefault();
+                      e.currentTarget.classList.remove('border-[#0A3D91]', 'bg-[#0A3D91]/5');
+                    }}
+                    onDrop={async (e) => {
+                      e.preventDefault();
+                      e.currentTarget.classList.remove('border-[#0A3D91]', 'bg-[#0A3D91]/5');
+                      const file = e.dataTransfer.files[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                          if (event.target?.result) {
+                            setCompanyLicenseUrl(event.target.result as string);
+                          }
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    onClick={() => {
+                      const input = document.createElement('input');
+                      input.type = 'file';
+                      input.accept = 'image/*,application/pdf';
+                      input.onchange = (event: any) => {
+                        const file = event.target.files[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = (e) => {
+                            if (e.target?.result) {
+                              setCompanyLicenseUrl(e.target.result as string);
+                            }
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      };
+                      input.click();
+                    }}
+                    className="border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center hover:border-[#0A3D91] hover:bg-slate-50/50 cursor-pointer transition-all flex flex-col items-center justify-center space-y-2 group"
+                  >
+                    <Upload className="w-6 h-6 text-slate-400 group-hover:text-[#0A3D91] transition-colors" />
+                    <div>
+                      <p className="text-xs font-bold text-slate-700">Drag & drop license file here, or <span className="text-[#0A3D91] underline font-extrabold">browse</span></p>
+                      <p className="text-[10px] text-slate-400 mt-1">Supports PNG, JPG, JPEG, and PDF documents up to 10MB</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="pt-4 border-t border-slate-100 flex justify-end">

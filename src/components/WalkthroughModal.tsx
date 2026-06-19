@@ -98,7 +98,7 @@ export default function WalkthroughModal({ userId, onClose }: WalkthroughModalPr
       bgGlow: 'bg-sky-400/20',
       description: 'Withdrawal of earnings was built for record clearing times. Open the Withdraw panel, select your payout, and verify using your safety credentials.',
       bullets: [
-        'The minimum withdrawal threshold is exceptionally low at 600 ETB.',
+        'The minimum withdrawal threshold is exceptionally low at 200 ETB.',
         'Enter your custom 4-digit security PIN to authorize the transaction.',
         'Profits are settled directly to your Commercial Bank of Ethiopia (CBE) account.'
       ]

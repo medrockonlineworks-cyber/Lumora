@@ -22,7 +22,7 @@ export default function AgreementsPage({ onBack }: AgreementsPageProps) {
 Welcome to LUMORA. Please review our revised platform guidelines:
 
 1. **User Identity & Bank Registration**: To maintain compliance with financial frameworks in Ethiopia, user registration does not auto-populate default credentials. Users must designate their own legitimate Commercial Bank of Ethiopia (CBE) bank details and configure a secure 4-digit payment PIN to authorize active withdrawals.
-2. **Unified Financial Limits**: A minimum transaction threshold of 3,500 ETB for CBE deposit submissions and 600 ETB for cashouts is enforced to ensure efficient processing and settlement.
+2. **Unified Financial Limits**: A minimum transaction threshold of 3,500 ETB for CBE deposit submissions and 200 ETB for cashouts is enforced to ensure efficient processing and settlement.
 3. **Real-Time Ledger Integration**: All balance adjustments, VIP level elevations, deposits, and cashouts synchronize in real-time under a 3-second secure consensus. All transfers are manually audited on the admin portal.
 4. **Security, ID Check & Compliance**: CBE deposits, micro-loans, and active cashouts are strictly blocked until your account identity audit is completed. All users must supply a valid photo of both sides of their National ID to unlock these features.`
       },
@@ -51,7 +51,7 @@ We connect local commerce and infrastructure project liquidity pools directly to
 3. **Activate High-Yield Plans**: Invest your wallet balance into VIP tiers ranging from VIP 0 to VIP 15. Your plan activates immediately, compounding interest payouts every 24 hours.
 4. **Identity Verification & Clearance**: Submit a clean photo of both sides of your National ID card under the Profile tab at any time to unlock advanced platform benefits, such as applying for micro-loans and low-interest Sovereign leverage.
 5. **Secure virtual Mastercard**: Apply for and load a virtual Mastercard instantly. No OTP authentication required—simply verify transactions in real-time using your main account login password.
-6. **Secure Dynamic Cashouts**: Navigate to the Cashout menu. First, configure your personal phone number, active Ethiopian bank card details, and a secret 4-digit transaction PIN. Authorize cashouts (minimum 600 ETB) safely using this PIN.`
+6. **Secure Dynamic Cashouts**: Navigate to the Cashout menu. First, configure your personal phone number, active Ethiopian bank card details, and a secret 4-digit transaction PIN. Authorize cashouts (minimum 200 ETB) safely using this PIN.`
       }
     },
     am: {
@@ -62,7 +62,7 @@ We connect local commerce and infrastructure project liquidity pools directly to
 ወደ LUMORA እንኳን ደህና መጡ። እባክዎ የእኛን የህግ መመሪያዎች ይገምግሙ፡
 
 1. **የባንክ ምዝገባ**: ተጠቃሚዎች የራሳቸውን የኢትዮጵያ ንግድ ባንክ (CBE) ዝርዝሮችን መመዝገብ እና ደህንነቱ የተጠበቀ ባለ ባለ 4-አሃዝ የክፍያ ፒን ኮድ ማዘጋጀት አለባቸው።
-2. **ግብይት ገደቦች**: ዝቅተኛው ተቀማጭ ገንዘብ 3500 ETB እና አነስተኛው የገንዘብ ማውጣት 600 ETB ነው።
+2. **ግብይት ገደቦች**: ዝቅተኛው ተቀማጭ ገንዘብ 3500 ETB እና አነስተኛው የገንዘብ ማውጣት 200 ETB ነው።
 3. **የመለያ ማረጋገጫ ግዴታ**: ግብይት ወይም ተቀማጭ ሂሳብ ለማስገባት በቅድሚያ የብሔራዊ መታወቂያ ካርድ በሉሞራ መረጋገጥ አለበት።`
       },
       "investment-policies": {
@@ -100,7 +100,7 @@ We connect local commerce and infrastructure project liquidity pools directly to
 Baga gara LUMORA nagaan dhuftan. Maaloo qajeelfama keenya hordofaa:
 
 1. **Galmeessa Baankii**: Fayyadamaan hundi odeeffannoo herrega baankii CBE kan mataa isaa galmeessuu fi PIN iccitii digit 4 qopheessu qaba.
-2. **Daangaa Maallaqaa**: Kaffaltiin gadi aanaan herrega galchuu 3500 ETB, herrega baasuu immoo 600 ETB dha.
+2. **Daangaa Maallaqaa**: Kaffaltiin gadi aanaan herrega galchuu 3500 ETB, herrega baasuu immoo 200 ETB dha.
 3. **Mirkaneessa Eenyummeessaa**: Maallaqa baasuuf ykn liqii argachuuf footoo ID biyyoolessaa guutuu erguun dirqama.`
       },
       "investment-policies": {
@@ -135,7 +135,7 @@ Dambiiwwan caasaa madaallii maallaqaa:
 እንቋዕ ናብ LUMORA ብደሓን መጻእኩም። በጃኹም ሕጋዊ መምርሒታትና ግምግሙ፡
 
 1. **ምዝገባ ባንኪ**: ተጠቀምቲ ናይ ባዕሎም ናይ ኢትዮጵያ ንግድ ባንኪ (CBE) ሓበሬታ ክምዝግቡን ምስጢራዊ 4 ዲጂት ፒን ኮድ ከዳልዉን ኣለዎም።
-2. **ገደብ ገንዘብ**: ዝቅተረ ዝግበር ተቀማጦ 3500 ETB ክኸውን ከሎ ዝቅተረ ገንዘብ ምውጻእ ድማ 600 ETB እዩ።
+2. **ገደብ ገንዘብ**: ዝቅተረ ዝግበር ተቀማጦ 3500 ETB ክኸውን ከሎ ዝቅተረ ገንዘብ ምውጻእ ድማ 200 ETB እዩ።
 3. **ምርግጋጽ መታወቂያ**: ገንዘብ ንምውጻእን ልቓሕ ንምርካብን ሃገራዊ መታወቂያ ምስጋር ግዴታ እዩ።`
       },
       "investment-policies": {

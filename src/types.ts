@@ -167,6 +167,7 @@ export interface AppSettings {
   cbeAccountNumber: string;
   referralBonusPercentage: number; // e.g., 5 for 5%
   productionInviteUrl?: string;
+  companyLicenseUrl?: string;
 }
 
 export interface AdminLog {

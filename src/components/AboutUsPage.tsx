@@ -1,4 +1,5 @@
-import { ArrowLeft, ShieldCheck, Heart, Award, Eye, Mail, Phone, MapPin, Briefcase } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, ShieldCheck, Heart, Award, Eye, Mail, Phone, MapPin, Briefcase, FileText, ChevronRight } from 'lucide-react';
 import { useLanguage } from '../locale';
 
 interface AboutUsPageProps {
@@ -7,6 +8,21 @@ interface AboutUsPageProps {
 
 export default function AboutUsPage({ onBack }: AboutUsPageProps) {
   const { t, language } = useLanguage();
+  const [settings, setSettings] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/admin/settings')
+      .then(res => res.json())
+      .then(data => {
+        setSettings(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Error loading institutional settings:", err);
+        setLoading(false);
+      });
+  }, []);
 
   const localizedContent = {
     en: {
@@ -215,7 +231,7 @@ export default function AboutUsPage({ onBack }: AboutUsPageProps) {
             </div>
             <div className="p-3 bg-white border border-slate-200 rounded-xl space-y-0.5 shadow-3xs">
               <span className="text-[7.5px] text-slate-400 font-extrabold uppercase font-mono tracking-wider block">{language === 'am' ? 'ዝቅተኛ ወጪ ማውጫ' : 'Min Withdrawal'}</span>
-              <span className="font-mono text-[11px] font-black text-slate-900">600.00 ETB</span>
+              <span className="font-mono text-[11px] font-black text-slate-900">200.00 ETB</span>
             </div>
             <div className="p-3 bg-white border border-slate-200 rounded-xl space-y-0.5 shadow-3xs">
               <span className="text-[7.5px] text-slate-400 font-extrabold uppercase font-mono tracking-wider block">{language === 'am' ? 'የክፍያ ፍጥነት' : 'Settlement Speed'}</span>
@@ -316,6 +332,63 @@ export default function AboutUsPage({ onBack }: AboutUsPageProps) {
             : '※ Lumora Financial is fully incorporated as a private asset brokerage partner under the Federal Democratic Republic of Ethiopia Trade, Industry & Investment ministry standards.'}
         </p>
       </div>
+
+      {/* Dynamic Company License Viewer */}
+      {settings?.companyLicenseUrl && (
+        <div className="p-5 bg-white border border-blue-100 rounded-3xl space-y-3.5 shadow-sm text-left" id="user-license-viewer-block">
+          <div className="flex items-center space-x-2.5 text-slate-800">
+            <div className="p-2 bg-[#0A3D91]/10 text-[#0A3D91] rounded-xl shrink-0">
+              <FileText className="w-4.5 h-4.5 text-[#0A3D91]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="text-xs font-black uppercase text-slate-900 select-none">
+                {language === 'am' ? 'ባለሥልጣን የንግድ ፈቃድ ሰነድ' : 'Official Trade License'}
+              </h4>
+              <p className="text-[9.5px] text-slate-400 font-black uppercase tracking-wider mt-0.5">
+                {language === 'am' ? 'የተረጋገጠ የሉሞራ የፈቃድ አባሪ ሰነድ' : 'Verified regulatory registration'}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-2 border border-slate-250/20 rounded-2xl overflow-hidden bg-slate-50 relative">
+            {settings.companyLicenseUrl.startsWith('data:application/pdf') ? (
+              <div className="p-6 text-center space-y-3">
+                <p className="text-xs font-semibold text-slate-600">
+                  {language === 'am' ? 'የተረጋገጠ ፒዲኤፍ የፈቃድ አባሪ' : 'Official PDF Document Attachment'}
+                </p>
+                <a 
+                  href={settings.companyLicenseUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="inline-flex items-center space-x-1.5 py-2 px-4 rounded-xl bg-[#0A3D91] text-white hover:bg-[#072f70] transition-colors text-[10.5px] font-extrabold uppercase tracking-wider cursor-pointer shadow-3xs"
+                >
+                  <span>{language === 'am' ? 'ፒዲኤፍ ፋይሉን በትልቅ ገጽ ክፈት' : 'Open PDF file'}</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </a>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center">
+                <img 
+                  src={settings.companyLicenseUrl} 
+                  alt="Official Company License Attachment" 
+                  className="object-contain w-full max-h-72 align-middle"
+                  referrerPolicy="no-referrer"
+                />
+                <div className="w-full bg-slate-100/80 hover:bg-slate-200/80 border-t border-slate-200 text-center py-2 transition-colors">
+                  <a 
+                    href={settings.companyLicenseUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-[10px] uppercase font-mono font-black text-[#0A3D91] hover:underline"
+                  >
+                    {language === 'am' ? 'ሙሉ ምስሉን በትልቅ ገጽ እይ' : 'View Full Image'}
+                  </a>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Official Footnote / Launch Date Badge */}
       <div className="text-center py-6 text-[10px] text-slate-500 font-sans font-medium space-y-1" id="about-us-footer-section">
