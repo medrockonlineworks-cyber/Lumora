@@ -993,91 +993,106 @@ export default function InvestmentsTab({ plans, profile, onBuyPlan }: Investment
                 </div>
 
                 {/* VIP 5+ Milestone Tracker with Hide/Show mechanisms, as requested */}
-                {p.level >= 5 && (
+                {p.level >= 2 && (
                   <div className="mt-3.5 pt-3.5 border-t border-slate-205">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-[10px] font-black text-[#0A3D91] uppercase tracking-wide flex items-center space-x-1">
-                        <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
-                        <span>VIP {p.level} Tracker</span>
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setShowTrackers(prev => ({ ...prev, [p.level]: !prev[p.level] }))}
-                        className={`text-[9.5px] font-black uppercase px-2.5 py-1 rounded transition-all border cursor-pointer active:scale-95 ${
-                          showTrackers[p.level]
-                            ? "bg-[#0A3D91] text-white border-[#0A3D91]"
-                            : "bg-slate-50 text-[#0A3D91] border-slate-200 hover:bg-slate-100"
-                        }`}
-                        title={showTrackers[p.level] ? "Hide milestone checks" : "Show milestone checks"}
-                      >
-                        {showTrackers[p.level] ? "✕ Hide" : "✦ Show Tracker"}
-                      </button>
-                    </div>
+                    {(() => {
+                      const vipLevelNum = p.level - 1; // 1 for VIP 1, 5 for VIP 5, etc.
+                      const isUperVip = vipLevelNum >= 5;
+                      const requiredInvites = isUperVip ? 25 + (vipLevelNum - 5) * 5 : 0;
+                      const requiredMonths = isUperVip ? 5 : 0;
 
-                    {showTrackers[p.level] && (
-                      <div className="space-y-2.5 p-3 rounded-2xl bg-slate-50 border border-slate-150 text-[10.5px] font-sans antialiased animate-in fade-in slide-in-from-top-1 duration-200">
-                        {/* Milestone 1: Duration >= 5 months */}
-                        <div className="flex items-center justify-between p-1">
-                          <div className="flex items-center space-x-2">
-                            {(() => {
-                              const regDate = profile.registrationDate ? new Date(profile.registrationDate) : new Date();
-                              const now = new Date();
-                              const diffTime = Math.abs(now.getTime() - regDate.getTime());
-                              const durationMonths = diffTime / (1000 * 60 * 60 * 24 * 30.4375);
-                              return durationMonths >= 5 ? (
-                                <span className="text-emerald-600 font-extrabold text-[13px]">✓</span>
-                              ) : (
-                                <span className="text-rose-500 font-bold text-[13px]">✗</span>
-                              );
-                            })()}
-                            <span className="text-[9.5px] font-bold text-slate-800">Membership at least 5 Months</span>
-                          </div>
-                          <span className="font-mono text-[9px] font-black text-slate-700 bg-white border px-2 py-0.5 rounded-lg shadow-4xs">
-                            {(() => {
-                              const regDate = profile.registrationDate ? new Date(profile.registrationDate) : new Date();
-                              const now = new Date();
-                              const diffTime = Math.abs(now.getTime() - regDate.getTime());
-                              const durationMonths = diffTime / (1000 * 60 * 60 * 24 * 30.4375);
-                              return (Math.round(durationMonths * 10) / 10).toFixed(1);
-                            })()} / 5.0m
-                          </span>
-                        </div>
+                      // Calculate dynamic values
+                      const regDate = profile.registrationDate ? new Date(profile.registrationDate) : new Date();
+                      const now = new Date();
+                      const diffTime = Math.abs(now.getTime() - regDate.getTime());
+                      const durationMonths = diffTime / (1000 * 60 * 60 * 24 * 30.4375);
+                      const hasDuration = durationMonths >= requiredMonths;
 
-                        {/* Milestone 2: 25+ verified direct invites */}
-                        <div className="flex items-center justify-between p-1 border-t border-slate-100 pt-1.5">
-                          <div className="flex items-center space-x-2">
-                            {referrals.filter(r => r.isVerified || r.referredVipLevel >= 1).length >= 25 ? (
-                              <span className="text-emerald-600 font-extrabold text-[13px]">✓</span>
-                            ) : (
-                              <span className="text-rose-500 font-bold text-[13px]">✗</span>
-                            )}
-                            <span className="text-[9.5px] font-bold text-slate-800">25+ Verified Direct Invites</span>
-                          </div>
-                          <span className="font-mono text-[9px] font-black text-slate-700 bg-white border px-2 py-0.5 rounded-lg shadow-4xs">
-                            {referrals.filter(r => r.isVerified || r.referredVipLevel >= 1).length} / 25
-                          </span>
-                        </div>
+                      const verifiedInvitesCount = referrals.filter(r => r.isVerified || r.referredVipLevel >= 1).length;
+                      const hasInvites = verifiedInvitesCount >= requiredInvites;
+                      const isIdVerified = profile.idVerificationStatus === 'verified';
 
-                        {/* Milestone 3: ID compliant */}
-                        <div className="flex items-center justify-between p-1 border-t border-slate-100 pt-1.5">
-                          <div className="flex items-center space-x-2">
-                            {profile.idVerificationStatus === 'verified' ? (
-                              <span className="text-emerald-600 font-extrabold text-[13px]">✓</span>
-                            ) : (
-                              <span className="text-rose-500 font-bold text-[13px]">✗</span>
-                            )}
-                            <span className="text-[9.5px] font-bold text-slate-800">Verified National ID Status</span>
+                      return (
+                        <>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-[10px] font-black text-[#0A3D91] uppercase tracking-wide flex items-center space-x-1">
+                              <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
+                              <span>VIP {vipLevelNum} Tracker</span>
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setShowTrackers(prev => ({ ...prev, [p.level]: !prev[p.level] }))}
+                              className={`text-[9.5px] font-black uppercase px-2.5 py-1 rounded transition-all border cursor-pointer active:scale-95 ${
+                                showTrackers[p.level]
+                                  ? "bg-[#0A3D91] text-white border-[#0A3D91]"
+                                  : "bg-slate-50 text-[#0A3D91] border-slate-200 hover:bg-slate-100"
+                              }`}
+                              title={showTrackers[p.level] ? "Hide milestone checks" : "Show milestone checks"}
+                            >
+                              {showTrackers[p.level] ? "✕ Hide" : "✦ Show Tracker"}
+                            </button>
                           </div>
-                          <span className={`text-[8.5px] font-mono font-black px-2 py-0.5 rounded-lg uppercase tracking-wider border ${
-                            profile.idVerificationStatus === 'verified'
-                              ? "bg-emerald-50 text-emerald-850 border-emerald-200"
-                              : "bg-amber-50 text-amber-850 border-amber-200"
-                          }`}>
-                            {profile.idVerificationStatus || 'Unsubmitted'}
-                          </span>
-                        </div>
-                      </div>
-                    )}
+
+                          {showTrackers[p.level] && (
+                            <div className="space-y-2.5 p-3 rounded-2xl bg-slate-50 border border-slate-150 text-[10.5px] font-sans antialiased animate-in fade-in slide-in-from-top-1 duration-200">
+                              
+                              {/* Requirement 1: National ID Status */}
+                              <div className="flex items-center justify-between p-1">
+                                <div className="flex items-center space-x-2">
+                                  {isIdVerified ? (
+                                    <span className="text-emerald-600 font-extrabold text-[13px]">✓</span>
+                                  ) : (
+                                    <span className="text-rose-500 font-bold text-[13px]">✗</span>
+                                  )}
+                                  <span className="text-[9.5px] font-bold text-slate-800">Verified National ID Status</span>
+                                </div>
+                                <span className={`text-[8.5px] font-mono font-black px-2 py-0.5 rounded-lg uppercase tracking-wider border ${
+                                  isIdVerified
+                                    ? "bg-emerald-50 text-emerald-850 border-emerald-200"
+                                    : "bg-amber-50 text-amber-850 border-amber-200"
+                                }`}>
+                                  {profile.idVerificationStatus || 'Unsubmitted'}
+                                </span>
+                              </div>
+
+                              {isUperVip && (
+                                <>
+                                  {/* Requirement 2: Membership Duration */}
+                                  <div className="flex items-center justify-between p-1 border-t border-slate-100 pt-1.5">
+                                    <div className="flex items-center space-x-2">
+                                      {hasDuration ? (
+                                        <span className="text-emerald-600 font-extrabold text-[13px]">✓</span>
+                                      ) : (
+                                        <span className="text-rose-500 font-bold text-[13px]">✗</span>
+                                      )}
+                                      <span className="text-[9.5px] font-bold text-slate-800">Membership at least {requiredMonths} Months</span>
+                                    </div>
+                                    <span className="font-mono text-[9px] font-black text-slate-700 bg-white border px-2 py-0.5 rounded-lg shadow-4xs">
+                                      {(Math.round(durationMonths * 10) / 10).toFixed(1)} / {requiredMonths}.0m
+                                    </span>
+                                  </div>
+
+                                  {/* Requirement 3: Verified Direct Invites */}
+                                  <div className="flex items-center justify-between p-1 border-t border-slate-100 pt-1.5">
+                                    <div className="flex items-center space-x-2">
+                                      {hasInvites ? (
+                                        <span className="text-emerald-600 font-extrabold text-[13px]">✓</span>
+                                      ) : (
+                                        <span className="text-rose-500 font-bold text-[13px]">✗</span>
+                                      )}
+                                      <span className="text-[9.5px] font-bold text-slate-800">{requiredInvites}+ Verified Direct Invites</span>
+                                    </div>
+                                    <span className="font-mono text-[9px] font-black text-slate-700 bg-white border px-2 py-0.5 rounded-lg shadow-4xs">
+                                      {verifiedInvitesCount} / {requiredInvites}
+                                    </span>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
                   </div>
                 )}
               </div>

@@ -1212,25 +1212,29 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       return respondJSON(400, { error: `Insufficient available funds. Required: ${plan.requiredInvestment} ETB.` });
     }
 
-    // Level 5 Activation Constraint Guard
-    if (plan.level >= 5) {
+    // Level 5 (VIP Level 5 + corresponding to plan.level >= 6) and upper Activation Constraint Guard
+    if (plan.level >= 6) {
+      const vipLevelNum = plan.level - 1; // 1 for VIP 1, 5 for VIP 5, 6 for VIP 6, etc.
+      const requiredMonths = 5;
+      const requiredInvites = 25 + (vipLevelNum - 5) * 5;
+
       const regDate = profile.registrationDate ? new Date(profile.registrationDate) : new Date();
       const now = new Date();
       const diffTime = Math.abs(now.getTime() - regDate.getTime());
-      const hasDuration = (diffTime / (1000 * 60 * 60 * 24 * 30.4375)) >= 5;
+      const hasDuration = (diffTime / (1000 * 60 * 60 * 24 * 30.4375)) >= requiredMonths;
 
       const userReferrals = db.referrals.filter(r => r.referrerId === userId);
       const verifiedReferrals = userReferrals.filter(ref => {
         const rp = db.profiles.find(p => p.userId === ref.referredId);
-        return rp && rp.idVerificationStatus === 'verified';
+        return ref.isVerified || (ref.referredVipLevel >= 1) || (rp && rp.idVerificationStatus === 'verified');
       });
-      const hasInvites = verifiedReferrals.length >= 25;
+      const hasInvites = verifiedReferrals.length >= requiredInvites;
       const isCompliant = profile.idVerificationStatus === 'verified';
 
       if (!hasDuration || !hasInvites || !isCompliant) {
-        let reqText = "Level 5 Requirements:\n";
-        reqText += hasDuration ? "✓ Membership active for 5 months\n" : "✗ Membership active for 5 months\n";
-        reqText += hasInvites ? "✓ Invite at least 25 verified members\n" : "✗ Invite at least 25 verified members\n";
+        let reqText = `VIP Level ${vipLevelNum} Requirements:\n`;
+        reqText += hasDuration ? `✓ Membership active for ${requiredMonths} months\n` : `✗ Membership active for ${requiredMonths} months\n`;
+        reqText += hasInvites ? `✓ Invite at least ${requiredInvites} verified members\n` : `✗ Invite at least ${requiredInvites} verified members\n`;
         reqText += isCompliant ? "✓ Account is active and compliant with platform rules" : "✗ Account is active and compliant with platform rules";
         return respondJSON(400, { error: reqText });
       }
@@ -2052,8 +2056,14 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
               "2. **Income Pool**: Tracks your active passive earnings, compound yields, and referral bonuses. Daily earnings are credited directly to your Income Pool every 24 hours.\n\nWithdrawals can be made from either pool, subject to transaction rules.";
     } else if (txt.includes('loan') || txt.includes('sovereign')) {
       reply = "Members reaching **VIP Level 3** or higher with a fully verified **National ID** are eligible to apply for low-interest Sovereign Loans up to 200,000 ETB directly from the profile workspace.";
-    } else if (txt.includes('refer') || txt.includes('invite') || txt.includes('bonus') || txt.includes('commission')) {
-      reply = "Earn lucrative rewards by building your team!\n\n• Get a **10% direct VIP level incentive** on deposit amounts from invited users.\n• Bonus rewards are credited directly into your Income Pool instantly.";
+    } else if (txt.includes('refer') || txt.includes('invite') || txt.includes('bonus') || txt.includes('commission') || txt.includes('requirement') || txt.includes('qualif') || txt.includes('join') || txt.includes('rule')) {
+      reply = "Earn lucrative rewards by building your team and leveling up!\n\n" +
+              "• **Referral Bonus**: Get a **10% direct VIP level incentive** on deposit amounts from invited users.\n" +
+              "• **VIP Level Join Requirements**:\n" +
+              "  - **VIP 1 to VIP 4**: Only require verifying your National ID card to join.\n" +
+              "  - **VIP 5**: Requires a membership active for **5 months** and **25 verified invited users**.\n" +
+              "  - **VIP 6 and above**: Requirements scale up as level increases! For example, VIP 6 requires **5 months** and **30 verified invited users**.\n" +
+              "  - **Formula for Level 5+**: `25 + (Level - 5) * 5` verified invites are required.";
     } else if (txt.includes('license') || txt.includes('regulation') || txt.includes('safe') || txt.includes('legit')) {
       reply = "Lumora is registered and fully certified under FDRE Trade, Industry & Investment ministry standards:\n\n• **TIN**: 0024896464\n• **Principal Registration Number**: AACATB/1/0264213/2018\n• **Business License Number**: AACATB/14/667/50303357/2018\n• **Date of Issuance**: 06/10/2018\n• **Authorized Capital**: ETB 15,000,000\n• Incorporates secure 3D-facial biometrics and CBE online ledger verification.";
     } else if (txt.includes('how to invest') || txt.includes('how can i invest') || txt.includes('investing')) {
