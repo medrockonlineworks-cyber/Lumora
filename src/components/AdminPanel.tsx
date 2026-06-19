@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Profile, Deposit, Withdrawal, Loan, AppSettings, User } from '../types';
+import LumoraStamp from './LumoraStamp';
 
 interface AdminPanelProps {
   onBack: () => void;
@@ -891,15 +892,20 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                           <td className="p-3 text-[10px] text-slate-500 font-mono">
                             {new Date(wit.submittedAt).toLocaleString()}
                           </td>
-                          <td className="p-3">
-                            <span className={`p-1 px-2.5 rounded-full text-[9px] font-mono font-black uppercase tracking-widest ${
+                          <td className="p-3 relative overflow-visible">
+                            <span className={`p-1 px-2.5 rounded-full text-[9px] font-mono font-black uppercase tracking-widest relative z-10 ${
                               wit.status === 'pending' ? 'bg-amber-100 text-amber-700' :
                               wit.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
                             }`}>
                               {wit.status}
                             </span>
+                            {wit.status === 'approved' && (
+                              <div className="absolute left-[35px] top-[-10px] opacity-[0.40] pointer-events-none z-0 transform scale-[0.62] select-none origin-center">
+                                <LumoraStamp text="APPROVED" variant="green" size="xs" tilted={true} />
+                              </div>
+                            )}
                             {wit.status === 'rejected' && wit.rejectionReason && (
-                              <p className="text-[10px] text-rose-650 font-semibold mt-1 bg-rose-50 p-1.5 rounded-lg border border-rose-100">{wit.rejectionReason}</p>
+                              <p className="text-[10px] text-rose-650 font-semibold mt-1 bg-rose-50 p-1.5 rounded-lg border border-rose-100 relative z-10">{wit.rejectionReason}</p>
                             )}
                           </td>
                           <td className="p-3 text-right">

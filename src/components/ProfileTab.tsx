@@ -10,6 +10,7 @@ import { useLanguage, LanguageCode, languages } from '../locale';
 import { Profile, Withdrawal, Loan, Referral, Investment, Deposit } from '../types';
 import LoanCalculator from './LoanCalculator';
 import LumoraLogo from './LumoraLogo';
+import LumoraStamp from './LumoraStamp';
 
 import avatarMaleInvestor from '../assets/images/avatar_male_investor_1780743569199.png';
 import avatarFemaleExecutive from '../assets/images/avatar_female_executive_1780743584261.png';
@@ -1878,9 +1879,15 @@ export default function ProfileTab({
                 withdrawals.map((w) => (
                   <div 
                     key={w.id}
-                    className="p-4 rounded-2xl bg-white border border-slate-200 flex justify-between items-center shadow-xs"
+                    className="p-4 rounded-2xl bg-white border border-slate-200 flex justify-between items-center shadow-xs relative overflow-hidden"
                   >
-                    <div>
+                    {w.status === 'approved' && (
+                      <div className="absolute right-[22%] top-[-8px] opacity-[0.25] pointer-events-none z-0 transform scale-75 origin-top-right select-none">
+                        <LumoraStamp text="APPROVED" variant="green" size="xs" tilted={true} />
+                      </div>
+                    )}
+
+                    <div className="relative z-10">
                       <h5 className="text-[12.5px] font-display font-black text-slate-950">
                         {(w.amount ?? 0).toLocaleString()} ETB
                       </h5>
@@ -1888,7 +1895,7 @@ export default function ProfileTab({
                         Wire Time: {new Date(w.submittedAt).toLocaleDateString()}
                       </p>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right relative z-10">
                       <span className={`text-[8.5px] font-black px-3 py-1 rounded-full border uppercase tracking-wider ${
                         w.status === 'approved' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
                         w.status === 'rejected' ? 'bg-rose-100 text-rose-800 border-rose-300' :
