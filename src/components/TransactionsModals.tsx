@@ -361,12 +361,12 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
 
   const handleWithdrawSubmit = async () => {
     const parsedAmt = parseFloat(withdrawalAmount);
-    if (isNaN(parsedAmt) || parsedAmt < 600) {
-      setMessage({ text: 'Minimum withdrawal amount limit is 600 ETB', isError: true });
+    if (isNaN(parsedAmt) || parsedAmt < 200) {
+      setMessage({ text: 'Minimum withdrawal amount limit is 200 ETB', isError: true });
       return;
     }
-    if ((profile?.walletBalance ?? 0) < 600) {
-      setMessage({ text: 'User total wallet balance must be at least 600 ETB to withdraw funds.', isError: true });
+    if ((profile?.walletBalance ?? 0) < 200) {
+      setMessage({ text: 'User total wallet balance must be at least 200 ETB to withdraw funds.', isError: true });
       return;
     }
     if (balanceType === 'deposit') {
@@ -975,9 +975,9 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
                       </span>
                     </div>
 
-                    {/* Pre-defined list of selectable amounts starting from 600 */}
+                    {/* Pre-defined list of selectable amounts starting from 200 */}
                     <div className="grid grid-cols-2 xs:grid-cols-3 gap-2 pt-1">
-                      {[600, 1200, 2500, 5000, 15000, 25000, 50000, 100000, 500000, 1000000].map((amt) => {
+                      {[200, 600, 1200, 2500, 5000, 15000, 25000, 50000, 100000, 500000, 1000000].map((amt) => {
                         const isSelected = String(amt) === withdrawalAmount;
                         return (
                           <button
