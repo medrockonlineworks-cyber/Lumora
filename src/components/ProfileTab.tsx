@@ -1837,9 +1837,20 @@ export default function ProfileTab({
                 deposits.map((d) => (
                   <div 
                     key={d.id}
-                    className="p-4 rounded-2xl bg-white border border-slate-200 flex justify-between items-center shadow-xs"
+                    className="p-4 rounded-2xl bg-white border border-slate-200 flex justify-between items-center shadow-xs relative overflow-hidden"
                   >
-                    <div>
+                    {d.status === 'approved' && (
+                      <div className="absolute right-[22%] top-[-8px] opacity-[0.80] pointer-events-none z-0 transform scale-75 origin-top-right select-none">
+                        <LumoraStamp text="APPROVED" variant="green" size="xs" tilted={true} highContrast={true} />
+                      </div>
+                    )}
+                    {d.status === 'rejected' && (
+                      <div className="absolute right-[22%] top-[-8px] opacity-[0.80] pointer-events-none z-0 transform scale-75 origin-top-right select-none">
+                        <LumoraStamp text="REJECTED" variant="rose" size="xs" tilted={true} highContrast={true} />
+                      </div>
+                    )}
+
+                    <div className="relative z-10">
                       <h5 className="text-[12.5px] font-display font-black text-slate-950">
                         {(d.amount ?? 0).toLocaleString()} ETB
                       </h5>
@@ -1852,7 +1863,7 @@ export default function ProfileTab({
                         </p>
                       )}
                     </div>
-                    <div className="text-right">
+                    <div className="text-right relative z-10 font-sans">
                       <span className={`text-[8.5px] font-black px-3 py-1 rounded-full border uppercase tracking-wider ${
                         d.status === 'approved' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
                         d.status === 'rejected' ? 'bg-rose-100 text-rose-800 border-rose-300' :
@@ -1882,8 +1893,13 @@ export default function ProfileTab({
                     className="p-4 rounded-2xl bg-white border border-slate-200 flex justify-between items-center shadow-xs relative overflow-hidden"
                   >
                     {w.status === 'approved' && (
-                      <div className="absolute right-[22%] top-[-8px] opacity-[0.25] pointer-events-none z-0 transform scale-75 origin-top-right select-none">
-                        <LumoraStamp text="APPROVED" variant="green" size="xs" tilted={true} />
+                      <div className="absolute right-[22%] top-[-8px] opacity-[0.80] pointer-events-none z-0 transform scale-75 origin-top-right select-none">
+                        <LumoraStamp text="APPROVED" variant="green" size="xs" tilted={true} highContrast={true} />
+                      </div>
+                    )}
+                    {w.status === 'rejected' && (
+                      <div className="absolute right-[22%] top-[-8px] opacity-[0.80] pointer-events-none z-0 transform scale-75 origin-top-right select-none">
+                        <LumoraStamp text="REJECTED" variant="rose" size="xs" tilted={true} highContrast={true} />
                       </div>
                     )}
 
@@ -1895,7 +1911,7 @@ export default function ProfileTab({
                         Wire Time: {new Date(w.submittedAt).toLocaleDateString()}
                       </p>
                     </div>
-                    <div className="text-right relative z-10">
+                    <div className="text-right relative z-10 font-sans">
                       <span className={`text-[8.5px] font-black px-3 py-1 rounded-full border uppercase tracking-wider ${
                         w.status === 'approved' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
                         w.status === 'rejected' ? 'bg-rose-100 text-rose-800 border-rose-300' :

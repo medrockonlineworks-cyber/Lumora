@@ -6,6 +6,7 @@ interface LumoraStampProps {
   size?: 'sm' | 'md' | 'lg' | 'xs';
   tilted?: boolean;
   className?: string;
+  highContrast?: boolean;
 }
 
 export default function LumoraStamp({
@@ -13,10 +14,40 @@ export default function LumoraStamp({
   variant = 'green',
   size = 'md',
   tilted = true,
-  className = ''
+  className = '',
+  highContrast = false
 }: LumoraStampProps) {
   // Styles based on variant with transparent colored inks
-  const colorMap = {
+  const colorMap = highContrast ? {
+    green: {
+      border: 'border-emerald-600/80',
+      text: 'text-emerald-600 font-extrabold',
+      bg: 'bg-emerald-500/[0.08]',
+      line: 'rgba(5, 150, 105, 0.70)',
+      darkLine: 'rgba(4, 120, 87, 0.90)'
+    },
+    blue: {
+      border: 'border-[#0a3d91]/80',
+      text: 'text-[#0a3d91] font-extrabold',
+      bg: 'bg-[#0a3d91]/[0.06]',
+      line: 'rgba(10, 61, 145, 0.70)',
+      darkLine: 'rgba(7, 47, 112, 0.90)'
+    },
+    gold: {
+      border: 'border-amber-600/80',
+      text: 'text-amber-600 font-extrabold',
+      bg: 'bg-amber-600/[0.08]',
+      line: 'rgba(217, 119, 6, 0.70)',
+      darkLine: 'rgba(180, 83, 9, 0.90)'
+    },
+    rose: {
+      border: 'border-rose-600/80',
+      text: 'text-rose-600 font-extrabold',
+      bg: 'bg-rose-500/[0.08]',
+      line: 'rgba(225, 29, 72, 0.70)',
+      darkLine: 'rgba(190, 24, 74, 0.90)'
+    }
+  }[variant] : {
     green: {
       border: 'border-emerald-500/25',
       text: 'text-emerald-500/35',

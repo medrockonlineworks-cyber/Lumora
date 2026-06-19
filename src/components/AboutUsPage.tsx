@@ -373,14 +373,20 @@ export default function AboutUsPage({ onBack }: AboutUsPageProps) {
                 </a>
               </div>
             ) : (
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-center relative w-full overflow-hidden">
                 <img 
                   src={settings.companyLicenseUrl} 
                   alt="Official Company License Attachment" 
-                  className="object-contain w-full max-h-72 align-middle"
+                  className="object-contain w-full max-h-72 align-middle z-0"
                   referrerPolicy="no-referrer"
                 />
-                <div className="w-full bg-slate-100/80 hover:bg-slate-200/80 border-t border-slate-200 text-center py-2 transition-colors">
+                
+                {/* High Contrast Lumora Stamp Overlay */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-10">
+                  <LumoraStamp text="VERIFIED" variant="blue" size="md" tilted={true} highContrast={true} className="opacity-90 transform scale-110" />
+                </div>
+
+                <div className="w-full bg-slate-100/80 hover:bg-slate-200/80 border-t border-slate-200 text-center py-2 transition-colors relative z-10">
                   <a 
                     href={settings.companyLicenseUrl} 
                     target="_blank" 
