@@ -14,14 +14,14 @@ interface CelebrationOverlayProps {
 }
 
 const VIP_PRESETS = [
-  { level: 1, amount: 5000, name: "VIP 1" },
-  { level: 2, amount: 10000, name: "VIP 2" },
-  { level: 3, amount: 25000, name: "VIP 3" },
-  { level: 4, amount: 50000, name: "VIP 4" },
-  { level: 5, amount: 100000, name: "VIP 5" },
-  { level: 6, amount: 250000, name: "VIP 6" },
-  { level: 7, amount: 500000, name: "VIP 7" },
-  { level: 8, amount: 1000000, name: "VIP 8" },
+  { level: 1, amount: 3500, name: "Starter" },
+  { level: 2, amount: 5000, name: "VIP 1" },
+  { level: 3, amount: 10000, name: "VIP 2" },
+  { level: 4, amount: 25000, name: "VIP 3" },
+  { level: 5, amount: 50000, name: "VIP 4" },
+  { level: 6, amount: 100000, name: "VIP 5" },
+  { level: 7, amount: 250000, name: "VIP 6" },
+  { level: 8, amount: 500000, name: "VIP 7" },
 ];
 
 function DepositCelebrationOverlay({ amount, txRef, onClose }: CelebrationOverlayProps) {
@@ -316,8 +316,8 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
 
   const handleDepositSubmit = async () => {
     const parsedAmt = parseFloat(depositAmount);
-    if (isNaN(parsedAmt) || parsedAmt < 5000) {
-      setMessage({ text: 'Minimum deposit limit is 5000 ETB', isError: true });
+    if (isNaN(parsedAmt) || parsedAmt < 3500) {
+      setMessage({ text: 'Minimum deposit limit is 3500 ETB', isError: true });
       return;
     }
     if (!transactionRef.trim()) {
@@ -514,7 +514,7 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
                 </div>
                 <ol className="text-[10.5px] text-slate-600 leading-relaxed space-y-1.5 list-decimal pl-4.5 font-sans">
                   <li>
-                    <strong>Transfer Funds:</strong> Copy our Commercial Bank of Ethiopia (CBE) Account Number below and transfer your desired investment amount (Min 5,000 ETB) from your CBE App.
+                    <strong>Transfer Funds:</strong> Copy our Commercial Bank of Ethiopia (CBE) Account Number below and transfer your desired investment amount (Min 3,500 ETB) from your CBE App.
                   </li>
                   <li>
                     <strong>Reference & Receipt:</strong> Copy the CBE transaction reference code and take a clear screenshot of your transfer receipt confirmation page.

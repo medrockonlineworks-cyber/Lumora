@@ -37,7 +37,7 @@ export interface Profile {
   idCardBack?: string;  
   idSelfie?: string;
   fanNumber?: string;
-  idVerificationStatus?: 'unsubmitted' | 'pending' | 'verified' | 'rejected';
+  idVerificationStatus?: 'unsubmitted' | 'pending' | 'verified' | 'rejected' | 'skipped';
   idRejectionReason?: string;
   verificationBonusClaimed?: boolean;
   bankName?: string;

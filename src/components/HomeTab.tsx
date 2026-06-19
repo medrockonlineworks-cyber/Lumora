@@ -219,11 +219,11 @@ export default function HomeTab({
             <span className="px-3 py-1 text-[9px] font-black rounded-full bg-gradient-to-r from-amber-400 to-amber-300 text-[#0b3d91] flex items-center space-x-1.5 uppercase shadow-md font-sans">
               <span className="w-1.5 h-1.5 rounded-full bg-[#0b3d91] animate-ping"></span>
               <span>
-                {language === 'am' ? `ቪአይፒ ደረጃ ${profile.vipLevel || 0}` :
-                 language === 'om' ? `Sadarkaa VIP ${profile.vipLevel || 0}` :
-                 language === 'ti' ? `ቪአይፒ ደረጃ ${profile.vipLevel || 0}` :
-                 language === 'so' ? `Darajada VIP ${profile.vipLevel || 0}` :
-                 `VIP Grade ${profile.vipLevel || 0}`}
+                {language === 'am' ? (profile.vipLevel === 1 ? "ጀማሪ ደረጃ" : `ቪአይፒ ደረጃ ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0}`) :
+                 language === 'om' ? (profile.vipLevel === 1 ? "Starter Level" : `Sadarkaa VIP ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0}`) :
+                 language === 'ti' ? (profile.vipLevel === 1 ? "ጀማሪ ደረጃ" : `ቪአይፒ ደረጃ ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0}`) :
+                 language === 'so' ? (profile.vipLevel === 1 ? "Heerka Starter" : `Darajada VIP ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0}`) :
+                 (profile.vipLevel === 1 ? "Starter Level" : `VIP Grade ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0}`)}
               </span>
             </span>
           </div>

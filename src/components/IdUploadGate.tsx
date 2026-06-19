@@ -246,6 +246,31 @@ export default function IdUploadGate({ userId, profile, onUploadSuccess, onLogou
     }
   };
 
+  const handleSkip = async () => {
+    setUploading(true);
+    setErrorText(null);
+    try {
+      const response = await fetch('/api/auth/skip-id', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ userId })
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        onUploadSuccess();
+      } else {
+        setErrorText(data.error || "Failed to bypass ID upload.");
+      }
+    } catch (err) {
+      setErrorText("Network connection error. Please try again.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#EBF3FC] to-[#F5F9FE] text-slate-900 flex flex-col justify-between py-6 px-4 font-sans select-none relative overflow-hidden">
       {/* Background glow details */}
@@ -263,17 +288,92 @@ export default function IdUploadGate({ userId, profile, onUploadSuccess, onLogou
       {/* Main card verification container */}
       <div className="flex-1 flex flex-col justify-center max-w-md mx-auto w-full my-6 bg-white border-2 border-blue-100/90 rounded-[2.5rem] p-6 shadow-xl relative">
         <div className="text-center space-y-2 mb-5">
-          <div className="inline-flex p-3 bg-blue-50 rounded-full border border-blue-200 text-[#0A3D91] mb-1">
-            <Shield className="w-7 h-7" />
+          <div className="inline-flex p-2 bg-blue-50 rounded-full border border-blue-200 text-[#0A3D91] mb-1">
+            <Shield className="w-5 h-5" />
           </div>
-          <h2 className="text-sm font-black tracking-tight text-[#0A3D91] uppercase font-display">
+          <h2 className="text-xs font-black tracking-tight text-[#0A3D91] uppercase font-display">
             {et('idVerification') || 'Identity Verification'}
           </h2>
-          <p className="text-[11px] text-slate-800 font-extrabold leading-relaxed">
-            {et('idGateGreeting') 
-              ? et('idGateGreeting').replace('{name}', profile.fullName)
-              : `Welcome, ${profile.fullName}. To comply with Ethiopian financial regulations and unlock platform features (like active VIP withdrawals and institutional loans), please submit a photo of both sides of your National ID cards.`}
-          </p>
+        </div>
+
+        {/* KYC Disclosure Panel */}
+        <div className="bg-[#f0f5fd] border border-blue-250 p-4 rounded-[1.8rem] space-y-3 mb-4 text-left">
+          <div className="flex items-center space-x-2">
+            <Shield className="w-4 h-4 text-[#0A3D91]" />
+            <h3 className="text-[11px] font-black tracking-tight text-[#0A3D91]">Identity Verification (KYC) Rules</h3>
+          </div>
+
+          <div className="space-y-1">
+            <p className="text-[10px] text-slate-700 font-bold leading-normal">
+              For the <strong className="text-emerald-700">Starter Level</strong>, ID verification is not required immediately.
+            </p>
+          </div>
+
+          <div className="space-y-1.5 bg-white p-2.5 rounded-xl border border-blue-50/50">
+            <span className="text-[9px] font-black text-emerald-800 uppercase tracking-wider block">✅ Users can:</span>
+            <ul className="text-[9.5px] space-y-0.5 text-slate-650 font-bold">
+              <li className="flex items-center space-x-1.5">
+                <span className="text-emerald-600 font-extrabold">✓</span>
+                <span>Register an account</span>
+              </li>
+              <li className="flex items-center space-x-1.5">
+                <span className="text-emerald-600 font-extrabold">✓</span>
+                <span>Skip ID upload by selecting &ldquo;Upload Later&rdquo;</span>
+              </li>
+              <li className="flex items-center space-x-1.5">
+                <span className="text-emerald-600 font-extrabold">✓</span>
+                <span>Deposit 3,500 ETB</span>
+              </li>
+              <li className="flex items-center space-x-1.5">
+                <span className="text-emerald-600 font-extrabold">✓</span>
+                <span>Activate the Starter Level</span>
+              </li>
+              <li className="flex items-center space-x-1.5">
+                <span className="text-emerald-600 font-extrabold">✓</span>
+                <span>Access and use the platform</span>
+              </li>
+            </ul>
+          </div>
+
+          <div className="space-y-1 bg-amber-50/60 p-2.5 rounded-xl border border-amber-100">
+            <span className="text-[9px] font-black text-amber-800 uppercase tracking-wider block">⚠️ However, to ensure safety &amp; compliance, users who wish to:</span>
+            <ul className="text-[9px] space-y-0.5 text-slate-700 font-bold">
+              <li className="flex items-center space-x-1.5">
+                <span className="text-amber-600">•</span>
+                <span>Upgrade to higher VIP levels</span>
+              </li>
+              <li className="flex items-center space-x-1.5">
+                <span className="text-amber-600">•</span>
+                <span>Increase their earning opportunities</span>
+              </li>
+              <li className="flex items-center space-x-1.5">
+                <span className="text-amber-600">•</span>
+                <span>Access advanced platform benefits</span>
+              </li>
+              <li className="flex items-center space-x-1.5">
+                <span className="text-amber-600">•</span>
+                <span>Participate in higher-value investments</span>
+              </li>
+            </ul>
+            <p className="text-[8.5px] text-slate-800 font-black mt-1 leading-normal">
+              must complete Identity Verification (KYC) by uploading a valid National ID or other accepted identification documents.
+            </p>
+          </div>
+
+          <div className="text-[8.5px] text-[#0A3D91]/95 bg-blue-50/40 p-2 rounded-lg border border-blue-100 font-semibold leading-relaxed">
+            <strong>Note:</strong> KYC verification can be completed at any time after registration. Users who choose &ldquo;Upload Later&rdquo; can continue using the Starter Level and submit their documents when they are ready to upgrade their account. This approach makes onboarding easier while maintaining verification requirements for higher-level services.
+          </div>
+
+          <div className="pt-1">
+            <button
+              type="button"
+              onClick={handleSkip}
+              disabled={uploading}
+              className="w-full py-2 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 active:scale-95 text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer shadow-md text-center flex items-center justify-center space-x-1"
+            >
+              <span>🚀 Skip ID Upload &amp; Upload Later</span>
+            </button>
+          </div>
         </div>
 
         {errorText && (

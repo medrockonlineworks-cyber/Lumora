@@ -503,7 +503,7 @@ export default function ProfileTab({
     setLoanError('');
     setLoanSuccess('');
     
-    if (profile.vipLevel < 3) {
+    if (profile.vipLevel < 4) {
       setLoanError('Loan services are available only for members who have reached Level 3 or higher.');
       return;
     }
@@ -795,6 +795,21 @@ export default function ProfileTab({
                    'Re-submit National ID'}
                 </button>
               </div>
+            ) : profile.idVerificationStatus === 'skipped' ? (
+              <div className="inline-flex flex-col items-center space-y-2 max-w-[280px] p-1">
+                <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-350 text-[9px] font-extrabold uppercase tracking-widest font-sans">
+                  <span>ID Verification Skipped</span>
+                </div>
+                <p className="text-[9px] text-amber-900 leading-normal font-sans font-bold text-center">
+                  You requested to skip ID upload during onboarding. Under compliance rules, you can enjoy Starter Level benefits. Submitting a National ID is required when you want to upgrade plans or apply for loans.
+                </p>
+                <button
+                  onClick={handleReSubmitId}
+                  className="px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-extrabold text-[9px] uppercase tracking-wider rounded-xl shadow-md cursor-pointer transition-transform active:scale-95 text-center mt-1"
+                >
+                  Verify ID &amp; Unlock Upgrades
+                </button>
+              </div>
             ) : null}
           </div>
 
@@ -803,11 +818,11 @@ export default function ProfileTab({
             <div className="inline-flex items-center space-x-1.5 px-4 py-1.5 rounded-2xl bg-amber-500/10 text-amber-700 border border-amber-500/20 text-[10px] font-black uppercase tracking-widest font-sans">
               <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
               <span>
-                {language === 'am' ? `ከፍተኛ ደረጃ ቪአይፒ ${profile.vipLevel || 0} አባል` :
-                 language === 'om' ? `SADARKAA OLAANAA VIP ${profile.vipLevel || 0} SECTOR` :
-                 language === 'ti' ? `ላዕለዋይ ሰንሰለት ቪአይፒ ${profile.vipLevel || 0} ኣባል` :
-                 language === 'so' ? `VIP-KA HEERKA SARE ${profile.vipLevel || 0} XUBIN` :
-                 `PEAK LEVEL VIP ${profile.vipLevel || 0} MEMBER`}
+                {language === 'am' ? (profile.vipLevel === 1 ? "ዕጩ ጀማሪ አባል" : `ከፍተኛ ደረጃ ቪአይፒ ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0} አባል`) :
+                 language === 'om' ? (profile.vipLevel === 1 ? "STARTER MEMBER" : `SADARKAA OLAANAA VIP ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0} SECTOR`) :
+                 language === 'ti' ? (profile.vipLevel === 1 ? "ጀማሪ ኣባል" : `ላዕለዋይ ሰንሰለት ቪአይፒ ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0} ኣባል`) :
+                 language === 'so' ? (profile.vipLevel === 1 ? "XUBINTA BILOWGA AH" : `VIP-KA HEERKA SARE ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0} XUBIN`) :
+                 (profile.vipLevel === 1 ? "STARTER LEVEL MEMBER" : `PEAK LEVEL VIP ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0} MEMBER`)}
               </span>
             </div>
           </div>
@@ -1247,7 +1262,7 @@ export default function ProfileTab({
         {/* Calculation details simulator is open to EVERYONE, as requested */}
         <div className="bg-slate-50/55 p-4 rounded-2xl border border-slate-100 font-sans">
           <LoanCalculator
-            isEligible={profile.vipLevel >= 3 && profile.idVerificationStatus === 'verified'}
+            isEligible={profile.vipLevel >= 4 && profile.idVerificationStatus === 'verified'}
             onApplySettings={(amount, tenure) => {
               setLoanAmount(amount.toString());
               setLoanTenure(tenure);
@@ -1265,22 +1280,22 @@ export default function ProfileTab({
           </div>
 
           <div className="grid grid-cols-1 gap-2.5">
-            {/* Condition 1: VIP 3+ */}
+            {/* Condition 1: VIP 4+ (VIP 3+) */}
             <div className={`p-3 rounded-xl border flex items-center justify-between transition-all ${
-              profile.vipLevel >= 3 
+              profile.vipLevel >= 4 
                 ? 'bg-emerald-50/60 border-emerald-200 text-emerald-950' 
                 : 'bg-amber-50/60 border-amber-200 text-amber-950'
             }`}>
               <div className="flex items-center space-x-2">
-                <span className={`text-base font-black ${profile.vipLevel >= 3 ? 'text-emerald-600' : 'text-amber-600 animate-pulse'}`}>
-                  {profile.vipLevel >= 3 ? "✓" : "✗"}
+                <span className={`text-base font-black ${profile.vipLevel >= 4 ? 'text-emerald-600' : 'text-amber-600 animate-pulse'}`}>
+                  {profile.vipLevel >= 4 ? "✓" : "✗"}
                 </span>
                 <span className="text-[10.5px] font-bold">
                   {language === 'am' ? 'ቪአይፒ ደረጃ 3 ወይም ከዚያ በላይ መሆን' : 'Active Plan Level: VIP Level 3+'}
                 </span>
               </div>
               <span className="text-[10px] font-mono font-black px-2 py-0.5 rounded bg-white border">
-                VIP {profile.vipLevel || 0} / 3
+                {profile.vipLevel === 1 ? "Starter" : `VIP ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0}`} / 3
               </span>
             </div>
 
@@ -1312,11 +1327,11 @@ export default function ProfileTab({
               {language === 'am' ? 'አጠቃላይ የብቁነት ሁኔታ፡' : 'Access Authorization:'}
             </span>
             <span className={`px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider border ${
-              profile.vipLevel >= 3 && profile.idVerificationStatus === 'verified'
+              profile.vipLevel >= 4 && profile.idVerificationStatus === 'verified'
                 ? 'bg-emerald-500 border-emerald-600 text-white shadow-xs'
                 : 'bg-amber-100 border-amber-200 text-amber-800'
             }`}>
-              {profile.vipLevel >= 3 && profile.idVerificationStatus === 'verified' 
+              {profile.vipLevel >= 4 && profile.idVerificationStatus === 'verified' 
                 ? (language === 'am' ? '✓ ብቁ ነዎት' : '✓ Fully Eligible') 
                 : (language === 'am' ? '✗ የታገደ' : '✗ Authorization Pending')
               }
@@ -1324,13 +1339,13 @@ export default function ProfileTab({
           </div>
         </div>
 
-        {profile.vipLevel < 3 ? (
+        {profile.vipLevel < 4 ? (
           <div className="p-5 bg-amber-50/75 rounded-[1.80rem] border border-amber-200 text-center space-y-3 font-sans">
             <span className="text-[9px] bg-amber-200/70 text-[#925c0e] font-extrabold uppercase py-1 px-4 rounded-xl border border-amber-300">
               Loan Feature Locked
             </span>
             <p className="text-[11px] text-amber-900 leading-relaxed font-bold max-w-sm mx-auto">
-              Sovereign loan request portal is closed. Loan services are available only for members who have reached VIP Level 3 or higher. Current level: <strong>VIP {profile.vipLevel || 0}</strong>.
+              Sovereign loan request portal is closed. Loan services are available only for members who have reached VIP Level 3 or higher. Current level: <strong>{profile.vipLevel === 1 ? "Starter Level" : `VIP ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0}`}</strong>.
             </p>
             <p className="text-[10px] text-slate-600 leading-normal max-w-xs mx-auto">
               Please visit the <strong>Investments Screen</strong> to upgrade your plan to VIP Level 3 or higher to acquire full eligibility.

@@ -143,21 +143,22 @@ const DEFAULT_SETTINGS: AppSettings = {
 
 // Seed 15 VIP investment plans
 const VIP_PLANS = [
-  { level: 1, name: "VIP Level 1", requiredInvestment: 5000, dailyRate: 0.0350, durationDays: 50, estimatedReturn: 13750 },
-  { level: 2, name: "VIP Level 2", requiredInvestment: 10000, dailyRate: 0.0375, durationDays: 50, estimatedReturn: 28750 },
-  { level: 3, name: "VIP Level 3", requiredInvestment: 25000, dailyRate: 0.0400, durationDays: 50, estimatedReturn: 75000 },
-  { level: 4, name: "VIP Level 4", requiredInvestment: 50000, dailyRate: 0.0430, durationDays: 50, estimatedReturn: 157500 },
-  { level: 5, name: "VIP Level 5", requiredInvestment: 100000, dailyRate: 0.0460, durationDays: 70, estimatedReturn: 422000 },
-  { level: 6, name: "VIP Level 6", requiredInvestment: 250000, dailyRate: 0.0500, durationDays: 70, estimatedReturn: 1125000 },
-  { level: 7, name: "VIP Level 7", requiredInvestment: 500000, dailyRate: 0.0540, durationDays: 70, estimatedReturn: 2390000 },
-  { level: 8, name: "VIP Level 8", requiredInvestment: 1000000, dailyRate: 0.0580, durationDays: 70, estimatedReturn: 5060000 },
-  { level: 9, name: "VIP Level 9", requiredInvestment: 2000000, dailyRate: 0.0620, durationDays: 70, estimatedReturn: 10680000 },
-  { level: 10, name: "VIP Level 10", requiredInvestment: 5000000, dailyRate: 0.0670, durationDays: 70, estimatedReturn: 28450000 },
-  { level: 11, name: "VIP Level 11", requiredInvestment: 10000000, dailyRate: 0.0720, durationDays: 90, estimatedReturn: 74800000 },
-  { level: 12, name: "VIP Level 12", requiredInvestment: 25000000, dailyRate: 0.0780, durationDays: 90, estimatedReturn: 200500000 },
-  { level: 13, name: "VIP Level 13", requiredInvestment: 50000000, dailyRate: 0.0850, durationDays: 90, estimatedReturn: 432500000 },
-  { level: 14, name: "VIP Level 14", requiredInvestment: 75000000, dailyRate: 0.0920, durationDays: 90, estimatedReturn: 696000000 },
-  { level: 15, name: "VIP Level 15", requiredInvestment: 100000000, dailyRate: 0.1000, durationDays: 120, estimatedReturn: 1300000000 }
+  { level: 1, name: "Starter level", requiredInvestment: 3500, dailyRate: 0.0340, durationDays: 50, estimatedReturn: 9450 },
+  { level: 2, name: "VIP Level 1", requiredInvestment: 5000, dailyRate: 0.0350, durationDays: 50, estimatedReturn: 13750 },
+  { level: 3, name: "VIP Level 2", requiredInvestment: 10000, dailyRate: 0.0375, durationDays: 50, estimatedReturn: 28750 },
+  { level: 4, name: "VIP Level 3", requiredInvestment: 25000, dailyRate: 0.0400, durationDays: 50, estimatedReturn: 75000 },
+  { level: 5, name: "VIP Level 4", requiredInvestment: 50000, dailyRate: 0.0430, durationDays: 50, estimatedReturn: 157500 },
+  { level: 6, name: "VIP Level 5", requiredInvestment: 100000, dailyRate: 0.0460, durationDays: 70, estimatedReturn: 422000 },
+  { level: 7, name: "VIP Level 6", requiredInvestment: 250000, dailyRate: 0.0500, durationDays: 70, estimatedReturn: 1125000 },
+  { level: 8, name: "VIP Level 7", requiredInvestment: 500000, dailyRate: 0.0540, durationDays: 70, estimatedReturn: 2390000 },
+  { level: 9, name: "VIP Level 8", requiredInvestment: 1000000, dailyRate: 0.0580, durationDays: 70, estimatedReturn: 5060000 },
+  { level: 10, name: "VIP Level 9", requiredInvestment: 2000000, dailyRate: 0.0620, durationDays: 70, estimatedReturn: 10680000 },
+  { level: 11, name: "VIP Level 10", requiredInvestment: 5000000, dailyRate: 0.0670, durationDays: 70, estimatedReturn: 28450000 },
+  { level: 12, name: "VIP Level 11", requiredInvestment: 10000000, dailyRate: 0.0720, durationDays: 90, estimatedReturn: 74800000 },
+  { level: 13, name: "VIP Level 12", requiredInvestment: 25000000, dailyRate: 0.0780, durationDays: 90, estimatedReturn: 200500000 },
+  { level: 14, name: "VIP Level 13", requiredInvestment: 50000000, dailyRate: 0.0850, durationDays: 90, estimatedReturn: 432500000 },
+  { level: 15, name: "VIP Level 14", requiredInvestment: 75000000, dailyRate: 0.0920, durationDays: 90, estimatedReturn: 696000000 },
+  { level: 16, name: "VIP Level 15", requiredInvestment: 100000000, dailyRate: 0.1000, durationDays: 120, estimatedReturn: 1300000000 }
 ];
 
 // Helper to load or initialize DB
@@ -1501,6 +1502,34 @@ async function startServer() {
     res.json({ success: true, profile: p });
   });
 
+  // Skip ID verification for Starter Level (Upload Later)
+  app.post("/api/auth/skip-id", (req, res) => {
+    const { userId } = req.body;
+    if (!userId) {
+      return res.status(400).json({ error: "User ID is required" });
+    }
+
+    const p = db.profiles.find(profile => profile.userId === userId);
+    if (!p) {
+      return res.status(404).json({ error: "Profile not found" });
+    }
+
+    p.idVerificationStatus = "skipped";
+
+    // Notify the user of skipped verification (Upload Later)
+    db.notifications.push({
+      id: "not-" + Math.random().toString(36).substr(2, 9),
+      userId,
+      title: "Starter Onboarding Bypassed",
+      message: "You have selected 'Upload Later' for ID verification. You can now use the Starter Level and submit your documents at any time when ready to upgrade.",
+      read: false,
+      date: new Date().toISOString()
+    });
+
+    saveDB(db);
+    res.json({ success: true, profile: p });
+  });
+
   // Reset Identity Verification to unsubmitted (e.g. for re-submission in case of rejection)
   app.post("/api/profiles/reset-verification", (req, res) => {
     const { userId } = req.body;
@@ -1586,8 +1615,8 @@ async function startServer() {
     }
 
     const value = parseFloat(amount);
-    if (isNaN(value) || value < 5000) {
-      return res.status(400).json({ error: "Minimum deposit limit is 5000 ETB" });
+    if (isNaN(value) || value < 3500) {
+      return res.status(400).json({ error: "Minimum deposit limit is 3500 ETB" });
     }
 
     const profile = db.profiles.find(p => p.userId === userId);
@@ -1595,8 +1624,8 @@ async function startServer() {
       return res.status(404).json({ error: "User profile not found" });
     }
 
-    if (profile.idVerificationStatus !== 'verified') {
-      return res.status(403).json({ error: "Security Restriction: Deposits are not allowed until your account is fully ID Verified. Please submit and verify your identity documents first." });
+    if (profile.idVerificationStatus !== 'verified' && profile.idVerificationStatus !== 'skipped') {
+      return res.status(403).json({ error: "Security Restriction: Deposits are not allowed until your account is fully ID Verified or skipped." });
     }
 
     const newDeposit: Deposit = {
@@ -1746,6 +1775,11 @@ async function startServer() {
 
     if (profile.walletBalance < plan.requiredInvestment) {
       return res.status(400).json({ error: "Insufficient wallet balance. Please deposit funds first." });
+    }
+
+    // Require KYC verification to upgrade to VIP Level 1 (plan.level = 2) or above
+    if (plan.level >= 2 && profile.idVerificationStatus !== "verified") {
+      return res.status(403).json({ error: "Identity Verification (KYC) is required to upgrade to higher VIP levels. Please complete your ID submission." });
     }
 
     // Level 5 Activation Constraint Guard
@@ -2936,6 +2970,7 @@ You may answer questions about:
 Official Lumora Knowledge Base details:
 1. VIP Investment Plans & Durations:
 - **MANDATORY INVESTMENT DURATION RULE**: Users can customize the duration for each VIP level, but the investment duration **MUST ONLY** be chosen from the following explicit options: **50, 70, 90, 120, 180, 240, 360, or 720 days**. No other durations are allowed.
+- Starter Level: Invest 3,500 ETB, earn 3.40% daily return, runs for 50 days. Estimated total return is 9,450 ETB.
 - VIP Level 1: Invest 5,000 ETB, earn 3.50% daily return, default runs for 50 days. Estimated total return is 13,750 ETB.
 - VIP Level 2: Invest 10,000 ETB, earn 3.75% daily return, runs for 50 days. Estimated total return is 28,750 ETB.
 - VIP Level 3: Invest 25,000 ETB, earn 4.00% daily return, runs for 50 days. Estimated total return is 75,000 ETB.
@@ -2971,7 +3006,7 @@ Official Lumora Knowledge Base details:
 
 3. Transactions & Balance Pools:
 - Primary Bank partner is Commercial Bank of Ethiopia (CBE)
-- Minimum Deposit: 5,000 ETB
+- Minimum Deposit: 3,500 ETB
 - Minimum Withdrawal: 600 ETB
 - Payout / Yield speed: 0 to 42 hours.
 - Bank account info is available in settings/profiles: Lumora CBE configuration Account Name "Leykun" and Account Number "1000419524747".

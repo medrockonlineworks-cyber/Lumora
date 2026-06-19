@@ -42,7 +42,7 @@ const customerServiceTranslations: Record<LanguageCode, {
     faqQ1: "How fast are CBE yield payouts settled?",
     faqA1: "All yield balance payouts are processed automatically via Commercial Bank of Ethiopia (CBE) institutional API integration within 0 to 42 hours after withdrawal requests are placed.",
     faqQ2: "What is the minimum deposit and withdraw value?",
-    faqA2: "The minimum deposit amount is 5000 ETB. The minimum withdrawal is 600 ETB to guarantee efficient network settlement with CBE without excessive service charges.",
+    faqA2: "The minimum deposit amount is 3500 ETB. The minimum withdrawal is 600 ETB to guarantee efficient network settlement with CBE without excessive service charges.",
     faqQ3: "How do I secure my VIP Level investment plan?",
     faqA3: "Navigate to the plans tab, select your preferred VIP tier, click Invest, and transfer the exact amount. Remember to upload your CBE payment ref receipt screenshot for swift system validation!",
     footer: "Secured by Lumora Institutional Network Security and CBE Co-Sovereignty"
@@ -64,7 +64,7 @@ const customerServiceTranslations: Record<LanguageCode, {
     faqQ1: "የCBE የትርፍ ክፍያዎች ምን ያህል ፈጣን ናቸው?",
     faqA1: "ሁሉም የትርፍ ክፍያዎች በኢትዮጵያ ንግድ ባንክ (CBE) ተቋማዊ ኤፒአይ በኩል ከ0 እስከ 42 ሰዓት ባለው ጊዜ ውስጥ በራስ-ሰር ይከፈላሉ ።",
     faqQ2: "ዝቅተኛው የተቀማጭ እና የገንዘብ ማውጣት መጠን ስንት ነው?",
-    faqA2: "ዝቅተኛው የተቀማጭ መጠን 5000 ETB ነው፣ ዝቅተኛው የማውጫ መጠን ደግሞ 600 ETB ነው። ይህ የሆነው ያለ አላስፈላጊ የአገልግሎት ክፍያ ግብይቱን ለማሳለጥ ነው።",
+    faqA2: "ዝቅተኛው የተቀማጭ መጠን 3500 ETB ነው፣ ዝቅተኛው የማውጫ መጠን ደግሞ 600 ETB ነው። ይህ የሆነው ያለ አላስፈላጊ የአገልግሎት ክፍያ ግብይቱን ለማሳለጥ ነው።",
     faqQ3: "የVIP ደረጃ ኢንቨስትመንት ጥቅሌን እንዴት ላረጋግጥ?",
     faqA3: "ወደ ኢንቨስትመንት ገጽ ይሂዱ፣ የእርስዎን VIP ጥቅል ይምረጡ፣ ኢንቨስት የሚለውን ይጫኑና ትክክለኛውን መጠን ይላኩ። ከዚያ የተቀማጭ ደረሰኝ ፎቶዎን ለፈጣን ማረጋገጫ መስቀል አይርሱ!",
     footer: "በሉሞራ ተቋማዊ ኔትወርክ ደህንነት እና በኢትዮጵያ ንግድ ባንክ ጥበቃ የተጠበቀ ነው"
@@ -86,7 +86,7 @@ const customerServiceTranslations: Record<LanguageCode, {
     faqQ1: "Kaffaltiin tajaajila CBE hammam saffisa?",
     faqA1: "Kaffaltiin bu'aa hundi Commercial Bank of Ethiopia (CBE) API sirnaan sa'aatii 0 hanga 42 keessatti of-umaan raawwatama.",
     faqQ2: "Baay'inni maallaqa galii fi baasii xiqqaan hammami?",
-    faqA2: "Maallaqni galii xiqqaan 5000 ETB dha. Kaffaltiin baasii xiqqaan immoo 600 ETB dha, kunis kaffaltii tajaajila dabalataa malee herrega salphisuufi.",
+    faqA2: "Maallaqni galii xiqqaan 3500 ETB dha. Kaffaltiin baasii xiqqaan immoo 600 ETB dha, kunis kaffaltii tajaajila dabalataa malee herrega salphisuufi.",
     faqQ3: "Waliigaltee VIP akkamittin mirkaneessa?",
     faqA3: "Gara invest tab deemi, VIP plane filadhu, invest cuqiisii maallaqa isa sirrii ergi. Sana boodaan tikkeeti kaffaltii CBE upload gochuu hin dagatinaa!",
     footer: "Badbaadummaa network Lumora fi Baankii CBE waliin kan eegame dha"
@@ -108,7 +108,7 @@ const customerServiceTranslations: Record<LanguageCode, {
     faqQ1: "ናይ CBE ናይ ትርፊ ክፍሊት ክሳብ ክንደይ ቅልጡፍ እዩ?",
     faqA1: "ኮሎም ክፍሊታት ብናይ ኢትዮጵያ ንግዲ ባንኪ (CBE) ኤፒአይ ኣቢሎም ካብ 0 ክሳብ 42 ሰዓታት ውሽጢ ብባዕሎም ይፍጸሙ እዮም።",
     faqQ2: "ዝተሓተ መጠን ተቀማጭን ምስሓብን ክንደይ እዩ?",
-    faqA2: "ዝተሓተ መጠን ተቀማጭ 5000 ETB ክኸውን ከሎ፣ ዝተሓተ መጠን ምስሓብ ድማ 600 ETB እዩ። እዚ ድማ ክፍሊት ኣገልግሎት ንምንካይ እዩ።",
+    faqA2: "ዝተሓተ መጠን ተቀማጭ 3500 ETB ክኸውን ከሎ፣ ዝተሓተ መጠን ምስሓብ ድማ 600 ETB እዩ። እዚ ድማ ክፍሊት ኣገልግሎት ንምንካይ እዩ።",
     faqQ3: "ናይ VIP ኢንቨስትመንት ብኸመይ የረጋግጽ?",
     faqA3: "ናብ ኢንቨስትመንት ገጽ ብምኻድ ናይ VIP ፓኬጅኩም ምረጹ፣ ኢንቨስት ዝብል ጠውቑ እሞ ትክክለኛ መጠን ስደዱ። ደረሰኝኩም ንምጽዳቕ ፎቶ ምስዳድ ኣይትርሰዑ!",
     footer: "ብሉሞራ ተቋማዊ ድሕንነትን ብኢትዮጵያ ንግዲ ባንክ ሓለዋን ዝተሓለወ እዩ"
@@ -130,7 +130,7 @@ const customerServiceTranslations: Record<LanguageCode, {
     faqQ1: "Intee in le'eg ayay qaadataa bixinta lacagaha CBE?",
     faqA1: "Dhamaan bixinta faaiidooyinka waxaa si toos ah loo farsameeyaa iyada oo loo marayo Commercial Bank of Ethiopia (CBE) muddo 0 ilaa 42 saacadood gudahood ah.",
     faqQ2: "Waa maxay deebaajiga ugu yar iyo lacag bixinta ugu yar?",
-    faqA2: "Deebaajiga ugu yar waa 5000 ETB. Lacag bixinta ugu yar ee la oggol yahayna waa 600 ETB si loo hubiyo degdeg bixinta deebaajiga.",
+    faqA2: "Deebaajiga ugu yar waa 3500 ETB. Lacag bixinta ugu yar ee la oggol yahayna waa 600 ETB si loo hubiyo degdeg bixinta deebaajiga.",
     faqQ3: "Sideen u xaqiijiyaa xidhmada maalgashiga VIP?",
     faqA3: "Tag qaybta qorshooyinka, dooro heerka VIP ee aad rabto, riix Invest, dabadeedna xawaalad saxda ah dir. Upload-garee risiidhka kashka CBE si degdeg loogu xaqiijiyo!",
     footer: "Waxaa ilaaliya amniga shabakada Lumora iyo dammaanadda Baanka CBE"

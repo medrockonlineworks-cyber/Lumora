@@ -50,7 +50,7 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
   };
 
   const [usdToEtb, setUsdToEtb] = useState(170);
-  const isVipEligible = profile.vipLevel >= 3;
+  const isVipEligible = profile.vipLevel >= 4;
   const isKycEligible = profile.idVerificationStatus === 'verified';
   const hasMinFunds = (profile.depositBalance ?? 0) >= (13 * usdToEtb) || (profile.incomeBalance ?? 0) >= (13 * usdToEtb);
   const isFullyEligible = isVipEligible && isKycEligible;
@@ -398,7 +398,7 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
             <div className="bg-white border border-slate-100 p-6 rounded-[2.2rem] shadow-sm space-y-6">
               <div className="text-center space-y-1">
                 <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[9px] font-black uppercase tracking-widest">
-                  VIP LEVEL {profile.vipLevel} Verified
+                  {profile.vipLevel === 1 ? "Starter Level Verified" : profile.vipLevel > 1 ? `VIP LEVEL ${profile.vipLevel - 1} Verified` : "No VIP"}
                 </span>
                 <h3 className="text-lg font-black text-slate-900 pt-1.5 uppercase tracking-tight">CARD ELIGIBILITY DISCLOSURE</h3>
                 <p className="text-xs text-slate-455 font-bold">Please complete requirements below to issue your Virtual Mastercard.</p>
@@ -415,7 +415,7 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
                     </div>
                     <div>
                       <h4 className="text-[12px] font-black text-slate-900 uppercase">VIP Level Level 3 Required</h4>
-                      <p className="text-[10px] text-slate-450 font-bold mt-0.5">Your status: VIP Level {profile.vipLevel}</p>
+                      <p className="text-[10px] text-slate-450 font-bold mt-0.5">Your status: {profile.vipLevel === 1 ? "Starter Level" : profile.vipLevel > 1 ? `VIP Level ${profile.vipLevel - 1}` : "No VIP"}</p>
                     </div>
                   </div>
                   {isVipEligible ? (

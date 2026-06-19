@@ -211,7 +211,7 @@ export default function AboutUsPage({ onBack }: AboutUsPageProps) {
           <div className="grid grid-cols-2 gap-2.5 pt-1">
             <div className="p-3 bg-white border border-slate-200 rounded-xl space-y-0.5 shadow-3xs">
               <span className="text-[7.5px] text-slate-400 font-extrabold uppercase font-mono tracking-wider block">{language === 'am' ? 'ዝቅተኛ ማስቀመጫ' : 'Min Deposit'}</span>
-              <span className="font-mono text-[11px] font-black text-slate-900">5,000.00 ETB</span>
+              <span className="font-mono text-[11px] font-black text-slate-900">3,500.00 ETB</span>
             </div>
             <div className="p-3 bg-white border border-slate-200 rounded-xl space-y-0.5 shadow-3xs">
               <span className="text-[7.5px] text-slate-400 font-extrabold uppercase font-mono tracking-wider block">{language === 'am' ? 'ዝቅተኛ ወጪ ማውጫ' : 'Min Withdrawal'}</span>

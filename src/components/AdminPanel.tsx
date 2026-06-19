@@ -2109,9 +2109,10 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                     <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">VIP Level Alignment Desk</p>
                     
                     <div className="flex flex-wrap gap-1.5 max-h-[85px] overflow-y-auto pr-1 scrollbar-none">
-                      {Array.from({ length: 16 }).map((_, level) => {
+                      {Array.from({ length: 17 }).map((_, level) => {
                         const isProposed = adjustVipLevel === level;
                         const isCurrent = (selectedUserForEdit.profile?.vipLevel || 0) === level;
+                        const label = level === 0 ? "No VIP" : level === 1 ? "Starter" : `VIP ${level - 1}`;
                         
                         return (
                           <button
@@ -2127,7 +2128,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                                   : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'
                             }`}
                           >
-                            VIP {level}
+                            {label}
                             {isCurrent && (
                               <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-blue-550 border border-white text-[6px] text-white flex items-center justify-center font-sans font-extrabold" title="Current Level">C</span>
                             )}
