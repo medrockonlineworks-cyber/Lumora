@@ -1343,122 +1343,134 @@ async function startServer() {
 
   // Register with Phone Number inside country scope
   app.post("/api/auth/register", authLimiter, (req, res) => {
-    const { fullName, phone, email, password, referralCode } = req.body;
+    try {
+      const { fullName, phone, email, password, referralCode } = req.body;
+      console.log("[Firebase Backend Registration] Request received for phone:", phone || "None");
 
-    if (!fullName || !phone || !email || !password) {
-      return res.status(400).json({ error: "All fields including email are required" });
-    }
-
-    // Advanced Input Validation (Vercel compliance / prevents SQL/NoSQL Injection style payload spam)
-    const cleanName = fullName.toString().trim();
-    if (cleanName.length < 2 || cleanName.length > 64) {
-      return res.status(400).json({ error: "Full name must be between 2 and 64 characters" });
-    }
-
-    const cleanPhone = phone.toString().trim();
-    const phoneRegex = /^(09|07|\+251)[0-9]{8}$/;
-    if (!phoneRegex.test(cleanPhone)) {
-      return res.status(400).json({ error: "Invalid phone number formatting. Must start with 09, 07, or +251, containing exactly 9 or 10 digits." });
-    }
-
-    const cleanEmail = email.toString().trim();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(cleanEmail)) {
-      return res.status(400).json({ error: "Invalid email address formatting." });
-    }
-
-    const cleanPass = password.toString();
-    if (cleanPass.length < 6 || cleanPass.length > 32) {
-      return res.status(400).json({ error: "Password must be between 6 and 32 characters in length." });
-    }
-
-    // Direct check if user exists
-    const userExists = db.users.some(u => u.phone === cleanPhone);
-    if (userExists) {
-      return res.status(409).json({ error: "This phone number is already registered" });
-    }
-
-    const userId = "user-" + Math.random().toString(36).substr(2, 9);
-    const systemReferral = "LUM" + Math.random().toString(36).substr(2, 5).toUpperCase();
-
-    // Check if referralCode matches any user
-    let referrer: User | undefined = undefined;
-    if (referralCode) {
-      referrer = db.users.find(u => u.referralCode === referralCode);
-    }
-
-    const newUser: User = {
-      id: userId,
-      fullName,
-      phone,
-      email,
-      password, // Save registration password
-      isAdmin: phone === "0926193920" ? true : false,
-      status: "active",
-      registrationDate: new Date().toISOString(),
-      referralCode: systemReferral,
-      referredBy: referrer ? referralCode : undefined
-    };
-
-    const newProfile: Profile = {
-      userId,
-      fullName,
-      phone,
-      email,
-      vipLevel: 0,
-      walletBalance: 0, // initial
-      totalDeposits: 0,
-      totalWithdrawals: 0,
-      totalInvestments: 0,
-      totalEarnings: 0,
-      referralCode: systemReferral,
-      teamSize: 0,
-      registrationDate: new Date().toISOString(),
-      idCardFront: "",
-      idCardBack: "",
-      idSelfie: "",
-      idVerificationStatus: "unsubmitted",
-      bankName: "",
-      accountNumber: "",
-      accountHolderName: "",
-      transactionPin: "" // No initial PIN
-    };
-
-    db.users.push(newUser);
-    db.profiles.push(newProfile);
-
-    // If referred, update team stats!
-    if (referrer) {
-      const referrerProfile = db.profiles.find(p => p.userId === (referrer as User).id);
-      if (referrerProfile) {
-        referrerProfile.teamSize += 1;
+      if (!fullName || !phone || !email || !password) {
+        console.error("[Firebase Backend Registration] Missing mandatory registration parameter(s).");
+        return res.status(400).json({ error: "All fields including email are required" });
       }
-      
-      const newReferralRelation: Referral = {
-        id: "ref-" + Math.random().toString(36).substr(2, 9),
-        referrerId: referrer.id,
-        referredId: userId,
-        referredName: fullName,
-        referredPhone: phone,
-        referredVipLevel: 0,
+
+      // Advanced Input Validation (Vercel compliance / prevents SQL/NoSQL Injection style payload spam)
+      const cleanName = fullName.toString().trim();
+      if (cleanName.length < 2 || cleanName.length > 64) {
+        return res.status(400).json({ error: "Full name must be between 2 and 64 characters" });
+      }
+
+      const cleanPhone = phone.toString().trim();
+      const phoneRegex = /^(09|07|\+251)[0-9]{8}$/;
+      if (!phoneRegex.test(cleanPhone)) {
+        console.warn("[Firebase Backend Registration] Invalid phone formatting format input:", cleanPhone);
+        return res.status(400).json({ error: "Invalid phone number formatting. Must start with 09, 07, or +251, containing exactly 9 or 10 digits." });
+      }
+
+      const cleanEmail = email.toString().trim();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(cleanEmail)) {
+        return res.status(400).json({ error: "Invalid email address formatting." });
+      }
+
+      const cleanPass = password.toString();
+      if (cleanPass.length < 6 || cleanPass.length > 32) {
+        return res.status(400).json({ error: "Password must be between 6 and 32 characters in length." });
+      }
+
+      // Direct check if user exists
+      const userExists = db.users.some(u => u.phone === cleanPhone);
+      if (userExists) {
+        console.warn("[Firebase Backend Registration Conflict] User phone registered previously:", cleanPhone);
+        return res.status(409).json({ error: "This phone number is already registered" });
+      }
+
+      const userId = "user-" + Math.random().toString(36).substr(2, 9);
+      const systemReferral = "LUM" + Math.random().toString(36).substr(2, 5).toUpperCase();
+
+      // Check if referralCode matches any user
+      let referrer: User | undefined = undefined;
+      if (referralCode) {
+        referrer = db.users.find(u => u.referralCode === referralCode);
+      }
+
+      const newUser: User = {
+        id: userId,
+        fullName,
+        phone,
+        email,
+        password, // Save registration password
+        isAdmin: phone === "0926193920" ? true : false,
+        status: "active",
         registrationDate: new Date().toISOString(),
-        rewardEarned: 0
+        referralCode: systemReferral,
+        referredBy: referrer ? referralCode : undefined
       };
-      db.referrals.push(newReferralRelation);
+
+      const newProfile: Profile = {
+        userId,
+        fullName,
+        phone,
+        email,
+        vipLevel: 0,
+        walletBalance: 0, // initial
+        totalDeposits: 0,
+        totalWithdrawals: 0,
+        totalInvestments: 0,
+        totalEarnings: 0,
+        referralCode: systemReferral,
+        teamSize: 0,
+        registrationDate: new Date().toISOString(),
+        idCardFront: "",
+        idCardBack: "",
+        idSelfie: "",
+        idVerificationStatus: "unsubmitted",
+        bankName: "",
+        accountNumber: "",
+        accountHolderName: "",
+        transactionPin: "" // No initial PIN
+      };
+
+      db.users.push(newUser);
+      db.profiles.push(newProfile);
+
+      // If referred, update team stats!
+      if (referrer) {
+        const referrerProfile = db.profiles.find(p => p.userId === (referrer as User).id);
+        if (referrerProfile) {
+          referrerProfile.teamSize += 1;
+        }
+        
+        const newReferralRelation: Referral = {
+          id: "ref-" + Math.random().toString(36).substr(2, 9),
+          referrerId: referrer.id,
+          referredId: userId,
+          referredName: fullName,
+          referredPhone: phone,
+          referredVipLevel: 0,
+          registrationDate: new Date().toISOString(),
+          rewardEarned: 0
+        };
+        db.referrals.push(newReferralRelation);
+        console.log(`[Firebase Backend Registration] Referral tracking relation registered for referrer: ${referrer.id}`);
+      }
+
+      // Add welcome notification
+      db.notifications.push({
+        id: "not-" + Math.random().toString(36).substr(2, 9),
+        userId,
+        title: "Welcome to LUMORA!",
+        message: "Congratulations! Your account has been created. Connect with us via official CBE deposit to choose a VIP Investment plan.",
+        read: false,
+        date: new Date().toISOString()
+      });
+
+      console.log(`[Firebase Backend Registration] Persisting user document ${userId} under the 'users' collection in Firestore.`);
+      saveDB(db);
+      console.log(`[Firebase Backend Registration Success] Successfully persisted user ID: ${userId} securely in Firestore.`);
+      res.json({ user: newUser, profile: newProfile });
+    } catch (err: any) {
+      console.error("[Firebase Backend Registration] Server exception during registration pipeline:", err);
+      res.status(500).json({ error: "Exception caught on server-side registration flow: " + (err?.message || String(err)) });
     }
-
-    // Add welcome notification
-    db.notifications.push({
-      id: "not-" + Math.random().toString(36).substr(2, 9),
-      userId,
-      title: "Welcome to LUMORA!",
-      message: "Congratulations! Your account has been created. Connect with us via official CBE deposit to choose a VIP Investment plan.",
-      read: false,
-      date: new Date().toISOString()
-    });
-
-    saveDB(db);
-    res.json({ user: newUser, profile: newProfile });
   });
 
   // Submit Identity Verification (Photo of ID in both sides + Selfie)
@@ -1554,26 +1566,44 @@ async function startServer() {
 
   // Login
   app.post("/api/auth/login", authLimiter, (req, res) => {
-    const { phone, password } = req.body;
-    if (!phone || !password) {
-      return res.status(400).json({ error: "Phone number and password are required" });
+    try {
+      const { phone, password } = req.body;
+      console.log("[Firebase Backend Login] Request received for phone number:", phone || "None");
+
+      if (!phone || !password) {
+        return res.status(400).json({ error: "Phone number and password are required" });
+      }
+
+      const cleanPhone = phone.toString().trim();
+      const user = db.users.find(u => u.phone === cleanPhone);
+      const profile = user ? db.profiles.find(p => p.userId === user.id || p.phone === phone) : undefined;
+
+      if (!user) {
+        console.warn("[Firebase Backend Login Failure] Lookup failed: no user document matches in Firestore under phone:", cleanPhone);
+        return res.status(401).json({ error: "Invalid phone number or password" });
+      }
+
+      if (user.password !== password) {
+        console.warn("[Firebase Backend Login Failure] Incorrect credential entry for telephone:", cleanPhone);
+        return res.status(401).json({ error: "Invalid phone number or password" });
+      }
+
+      if (!profile) {
+        console.error("[Firebase Backend Login Error] Located user doc but missing matched profile in Firestore for user:", user.id);
+        return res.status(401).json({ error: "Invalid phone number or password" });
+      }
+
+      if (user.status === "suspended") {
+        console.warn("[Firebase Backend Login Blocked] Phone number is marked as suspended:", cleanPhone);
+        return res.status(403).json({ error: "This profile has been suspended. Please contact customer care code CBE." });
+      }
+
+      console.log(`[Firebase Backend Login Success] Authenticated successfully in Firestore. User ID: ${user.id} (${user.fullName}).`);
+      res.json({ user, profile });
+    } catch (err: any) {
+      console.error("[Firebase Backend Login Exception] Exception triggered during login verification process:", err);
+      res.status(500).json({ error: "Server-side login flow encountered an error: " + (err?.message || String(err)) });
     }
-
-    const cleanPhone = phone.toString().trim();
-    const user = db.users.find(u => u.phone === cleanPhone);
-    const profile = user ? db.profiles.find(p => p.userId === user.id || p.phone === phone) : undefined;
-
-    if (!user || user.password !== password || !profile) {
-      return res.status(401).json({ error: "Invalid phone number or password" });
-    }
-
-    if (user.status === "suspended") {
-      return res.status(403).json({ error: "This profile has been suspended. Please contact customer care code CBE." });
-    }
-
-    // Simulate OTP / Login
-    // For demo/production ease, we skip actual bcrypt but save state
-    res.json({ user, profile });
   });
 
   // Reset password

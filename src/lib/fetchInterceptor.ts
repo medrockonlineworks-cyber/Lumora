@@ -848,8 +848,6 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
   
   const db = loadLocalDB();
   autoAllocateLocalDailyEarnings(db);
-  sanitizeLocalDBBalances(db);
-  saveLocalDB(db);
 
   const respondJSON = (status: number, data: any) => {
     return new Response(JSON.stringify(data), {
@@ -888,104 +886,134 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
 
   // 5. POST /api/auth/register
   if (pathname === '/api/auth/register' && method === 'POST') {
-    await ensureAuthDataSynced(4000);
-    const activeDb = loadLocalDB();
-    const { fullName, phone, email, password, referralCode } = body;
-    if (!fullName || !phone || !email || !password) {
-      return respondJSON(400, { error: "All fields including email are required" });
-    }
-    const userExists = activeDb.users.some(u => u.phone === phone);
-    if (userExists) {
-      return respondJSON(409, { error: "This phone number is already registered" });
-    }
+    try {
+      console.log("[Firebase registration] Received new registration request:", body.phone || "No phone");
+      await ensureAuthDataSynced(4000);
+      const activeDb = loadLocalDB();
+      const { fullName, phone, email, password, referralCode } = body;
+      
+      if (!fullName || !phone || !email || !password) {
+        console.error("[Firebase registration error] Missing required parameters.");
+        return respondJSON(400, { error: "All fields including email are required" });
+      }
 
-    const userId = "user-" + Math.random().toString(36).substr(2, 9);
-    const systemReferral = "LUM" + Math.random().toString(36).substr(2, 5).toUpperCase();
+      const userExists = activeDb.users.some(u => u.phone === phone);
+      if (userExists) {
+        console.warn("[Firebase registration conflict] Phone number already registered:", phone);
+        return respondJSON(409, { error: "This phone number is already registered" });
+      }
 
-    let referrer = referralCode ? activeDb.users.find(u => u.referralCode === referralCode) : undefined;
+      const userId = "user-" + Math.random().toString(36).substr(2, 9);
+      const systemReferral = "LUM" + Math.random().toString(36).substr(2, 5).toUpperCase();
 
-    const newUser: User = {
-      id: userId,
-      fullName,
-      phone,
-      email,
-      password,
-      isAdmin: phone === "0926193920" ? true : false,
-      status: "active",
-      registrationDate: new Date().toISOString(),
-      referralCode: systemReferral,
-      referredBy: referrer ? referralCode : undefined
-    };
+      let referrer = referralCode ? activeDb.users.find(u => u.referralCode === referralCode) : undefined;
 
-    const newProfile: Profile = {
-      userId,
-      fullName,
-      phone,
-      email,
-      vipLevel: 0,
-      walletBalance: 0,
-      totalDeposits: 0,
-      totalWithdrawals: 0,
-      totalInvestments: 0,
-      totalEarnings: 0,
-      referralCode: systemReferral,
-      teamSize: 0,
-      registrationDate: new Date().toISOString(),
-      idCardFront: "",
-      idCardBack: "",
-      idSelfie: "",
-      idVerificationStatus: "unsubmitted",
-      bankName: "",
-      accountNumber: "",
-      accountHolderName: "",
-      transactionPin: ""
-    };
-
-    activeDb.users.push(newUser);
-    activeDb.profiles.push(newProfile);
-
-    if (referrer) {
-      const referrerProfile = activeDb.profiles.find(p => p.userId === referrer!.id);
-      if (referrerProfile) referrerProfile.teamSize += 1;
-      activeDb.referrals.push({
-        id: "ref-" + Math.random().toString(36).substr(2, 9),
-        referrerId: referrer.id,
-        referredId: userId,
-        referredName: fullName,
-        referredPhone: phone,
-        referredVipLevel: 0,
+      const newUser: User = {
+        id: userId,
+        fullName,
+        phone,
+        email,
+        password,
+        isAdmin: phone === "0926193920" ? true : false,
+        status: "active",
         registrationDate: new Date().toISOString(),
-        rewardEarned: 0
+        referralCode: systemReferral,
+        referredBy: referrer ? referralCode : undefined
+      };
+
+      const newProfile: Profile = {
+        userId,
+        fullName,
+        phone,
+        email,
+        vipLevel: 0,
+        walletBalance: 0,
+        totalDeposits: 0,
+        totalWithdrawals: 0,
+        totalInvestments: 0,
+        totalEarnings: 0,
+        referralCode: systemReferral,
+        teamSize: 0,
+        registrationDate: new Date().toISOString(),
+        idCardFront: "",
+        idCardBack: "",
+        idSelfie: "",
+        idVerificationStatus: "unsubmitted",
+        bankName: "",
+        accountNumber: "",
+        accountHolderName: "",
+        transactionPin: ""
+      };
+
+      activeDb.users.push(newUser);
+      activeDb.profiles.push(newProfile);
+
+      if (referrer) {
+        const referrerProfile = activeDb.profiles.find(p => p.userId === referrer!.id);
+        if (referrerProfile) referrerProfile.teamSize += 1;
+        activeDb.referrals.push({
+          id: "ref-" + Math.random().toString(36).substr(2, 9),
+          referrerId: referrer.id,
+          referredId: userId,
+          referredName: fullName,
+          referredPhone: phone,
+          referredVipLevel: 0,
+          registrationDate: new Date().toISOString(),
+          rewardEarned: 0
+        });
+        console.log(`[Firebase registration] Referral matched. Set referrer registration to: ${referrer.id}`);
+      }
+
+      activeDb.notifications.push({
+        id: "not-" + Math.random().toString(36).substr(2, 9),
+        userId,
+        title: "Welcome to LUMORA!",
+        message: "Congratulations! Your account has been created. Connect with us via official CBE deposit to choose a VIP Investment plan.",
+        read: false,
+        date: new Date().toISOString()
       });
+
+      console.log(`[Firebase registration] Saving new user ${userId} and associated profile into client-side database which immediately triggers direct Firestore write.`);
+      saveLocalDB(activeDb);
+      console.log(`[Firebase registration success] Successfully registered. User ID: ${userId} saved in Firestore under 'users' collection.`);
+      return respondJSON(200, { user: newUser, profile: newProfile });
+    } catch (err: any) {
+      console.error("[Firebase registration fatal error] Exception caught during registration logic:", err);
+      return respondJSON(500, { error: "Registration failed on server: " + (err?.message || String(err)) });
     }
-
-    activeDb.notifications.push({
-      id: "not-" + Math.random().toString(36).substr(2, 9),
-      userId,
-      title: "Welcome to LUMORA!",
-      message: "Congratulations! Your account has been created. Connect with us via official CBE deposit to choose a VIP Investment plan.",
-      read: false,
-      date: new Date().toISOString()
-    });
-
-    saveLocalDB(activeDb);
-    return respondJSON(200, { user: newUser, profile: newProfile });
   }
 
   // 6. POST /api/auth/login
   if (pathname === '/api/auth/login' && method === 'POST') {
-    await ensureAuthDataSynced(4000);
-    const activeDb = loadLocalDB();
-    const { phone, password } = body;
-    const user = activeDb.users.find(u => u.phone === phone);
-    if (!user || user.password !== password) {
-      return respondJSON(401, { error: "Invalid telephone number or password credentials." });
+    try {
+      console.log("[Firebase login] Login request received for telephone number:", body.phone || "No phone");
+      await ensureAuthDataSynced(4000);
+      const activeDb = loadLocalDB();
+      const { phone, password } = body;
+      
+      const user = activeDb.users.find(u => u.phone === phone);
+      if (!user) {
+        console.warn("[Firebase login failure] Lookup failed: no user document found in Firestore 'users' collection with number:", phone);
+        return respondJSON(401, { error: "Invalid telephone number or password credentials." });
+      }
+      
+      if (user.password !== password) {
+        console.warn("[Firebase login failure] Invalid credential attempt: password does not match for phone:", phone);
+        return respondJSON(401, { error: "Invalid telephone number or password credentials." });
+      }
+
+      if (user.status === "suspended") {
+        console.warn("[Firebase login blocked] Suspended login attempted for phone:", phone);
+        return respondJSON(430, { error: "This profile has been suspended indefinitely for institutional compliance auditing. Please connect with Lumora Technical Desk." });
+      }
+
+      const profile = activeDb.profiles.find(p => p.userId === user.id || p.phone === phone);
+      console.log(`[Firebase login success] Authenticated through Firebase for user: ${user.id} (${user.fullName}).`);
+      return respondJSON(200, { user, profile });
+    } catch (err: any) {
+      console.error("[Firebase login fatal error] Exception caught during login verification:", err);
+      return respondJSON(500, { error: "Authentication system encountered an error: " + (err?.message || String(err)) });
     }
-    if (user.status === "suspended") {
-      return respondJSON(430, { error: "This profile has been suspended indefinitely for institutional compliance auditing. Please connect with Lumora Technical Desk." });
-    }
-    const profile = activeDb.profiles.find(p => p.userId === user.id || p.phone === phone);
-    return respondJSON(200, { user, profile });
   }
 
   // 7. POST /api/auth/submit-id
@@ -1599,11 +1627,23 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
 
   // 20. GET /api/admin/users
   if (pathname === '/api/admin/users' && method === 'GET') {
-    const usersWithProfiles = db.users.map(u => {
-      const p = db.profiles.find(pro => pro.userId === u.id);
-      return { ...u, profile: p };
-    });
-    return respondJSON(200, usersWithProfiles);
+    try {
+      console.log(`[Firebase Admin] Fetching users list. Current database count: ${db.users.length} users, ${db.profiles.length} profiles from real-time Firestore sync.`);
+      const usersWithProfiles = db.users.map(u => {
+        const p = db.profiles.find(pro => pro.userId === u.id);
+        const userInvestments = db.investments ? db.investments.filter(i => i.userId === u.id) : [];
+        return { 
+          ...u, 
+          profile: p,
+          investments: userInvestments
+        };
+      });
+      console.log(`[Firebase Admin Success] Loaded ${usersWithProfiles.length} total users with linked profiles and active investments.`);
+      return respondJSON(200, usersWithProfiles);
+    } catch (err: any) {
+      console.error("[Firebase Admin Error] Failed to retrieve or map users:", err);
+      return respondJSON(500, { error: "Failed to compile admin users: " + (err?.message || String(err)) });
+    }
   }
 
   // 21. POST /api/admin/users/status
