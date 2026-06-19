@@ -36,7 +36,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   const [depositFilter, setDepositFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
   const [withdrawalFilter, setWithdrawalFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
   const [loanFilter, setLoanFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
-  const [idFilter, setIdFilter] = useState<'all' | 'pending' | 'verified' | 'rejected' | 'unsubmitted'>('pending');
+  const [idFilter, setIdFilter] = useState<'all' | 'pending' | 'verified' | 'rejected' | 'unsubmitted' | 'skipped'>('pending');
   const [userStatusFilter, setUserStatusFilter] = useState<'all' | 'active' | 'suspended'>('all');
   
   // Custom Toast notification states
@@ -152,6 +152,16 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   useEffect(() => {
     fetchAllAdminData();
   }, [activeSubTab]);
+
+  useEffect(() => {
+    const handleDbUpdate = () => {
+      fetchAllAdminData();
+    };
+    window.addEventListener("lumoradb-updated", handleDbUpdate);
+    return () => {
+      window.removeEventListener("lumoradb-updated", handleDbUpdate);
+    };
+  }, []);
 
   useEffect(() => {
     if (selectedUserForEdit) {
@@ -947,7 +957,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
           {activeSubTab === 'id-verify' && (
             <div className="space-y-4">
               <div className="flex flex-wrap items-center gap-1.5 border-b border-slate-200/60 pb-3">
-                {(['unsubmitted', 'pending', 'verified', 'rejected', 'all'] as const).map((fil) => (
+                {(['unsubmitted', 'pending', 'verified', 'rejected', 'skipped', 'all'] as const).map((fil) => (
                   <button
                     key={fil}
                     onClick={() => setIdFilter(fil)}
