@@ -865,6 +865,20 @@ const db: LumoraDB = {
   eligibilityChecks: [],
 };
 
+const serverCollectionsSynced: Record<string, boolean> = {
+  users: false,
+  profiles: false,
+  investments: false,
+  deposits: false,
+  withdrawals: false,
+  transactions: false,
+  notifications: false,
+  referrals: false,
+  agreements: false,
+  loans: false,
+  eligibilityChecks: false,
+};
+
 function setupFirebaseSync() {
   const fDb = getFirestoreDb();
   if (!fDb) {
@@ -888,6 +902,7 @@ function setupFirebaseSync() {
 
   for (const col of collectionsToListen) {
     const unsubscribe = fDb.collection(col.name).onSnapshot((snapshot) => {
+      serverCollectionsSynced[col.name] = true;
       // If Firestore is completely empty but we have local memory data (e.g. Alem user or settings loaded on boot),
       // we must NOT wipe it out! Instead, we upload our loaded boot-state data to Firestore.
       if (snapshot.empty && col.array.length > 0) {
@@ -1348,6 +1363,28 @@ async function startServer() {
       console.error("[Automatic Yield Tracker Check Failed]:", e);
     }
   }, 60000);
+
+  // Middleware to ensure DB is loaded from Firestore before serving API requests under serverless Vercel runtime
+  app.use("/api", async (req, res, next) => {
+    if (firestoreSyncDisabled) {
+      return next();
+    }
+    const fDb = getFirestoreDb();
+    if (!fDb) {
+      return next();
+    }
+    
+    // Wait up to 3500ms for key tables to sync (specifically 'users' and 'profiles')
+    const start = Date.now();
+    while (!serverCollectionsSynced.users || !serverCollectionsSynced.profiles) {
+      if (Date.now() - start >= 3500) {
+        console.warn("[Server DB Sync Middleware] Wait for Firestore 'users' and 'profiles' sync timed out.");
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    next();
+  });
 
   // Trigger on every API request to guarantee immediate credit upon user loading or performing any operations
   app.use((req, res, next) => {
