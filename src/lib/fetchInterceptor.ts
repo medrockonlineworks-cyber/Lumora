@@ -570,8 +570,9 @@ function checkQuotaExceeded(err: any): boolean {
         } catch (e) {}
       }
       console.warn("[Client Firestore] Quota limit exceeded detected. Gracefully transitioning to full offline/local storage resiliency mode.");
-      unsubscribeAllClientListeners();
     }
+    // Always call unsubscribeAllClientListeners to clean up all registered listeners
+    unsubscribeAllClientListeners();
     return true;
   }
   return false;
@@ -723,6 +724,7 @@ export async function ensureAuthDataSynced(timeoutMs: number = 4000): Promise<vo
 let listenersInitialized = false;
 
 export function setupClientFirebaseSync() {
+  if (firestoreClientDisabled) return;
   if (listenersInitialized) return;
   const fDb = getFirestoreClientDb();
   if (!fDb) {
@@ -748,6 +750,10 @@ export function setupClientFirebaseSync() {
   ];
 
   for (const col of collectionsToListen) {
+    if (firestoreClientDisabled) {
+      unsubscribeAllClientListeners();
+      break;
+    }
     const unsub = onSnapshot(collection(fDb, col.name), (snapshot) => {
       if (col.name === "users" || col.name === "profiles") {
         initialSyncStatus[col.name] = true;
@@ -822,6 +828,11 @@ export function setupClientFirebaseSync() {
     activeClientUnsubscribers.push(unsub);
   }
 
+  if (firestoreClientDisabled) {
+    unsubscribeAllClientListeners();
+    return;
+  }
+
   // settings listener
   const unsubSettings = onSnapshot(doc(fDb, "settings", "global"), (docSnap) => {
     if (docSnap.exists()) {
@@ -841,6 +852,11 @@ export function setupClientFirebaseSync() {
     }
   });
   activeClientUnsubscribers.push(unsubSettings);
+
+  if (firestoreClientDisabled) {
+    unsubscribeAllClientListeners();
+    return;
+  }
 
   // chatHistory listener
   const unsubChat = onSnapshot(collection(fDb, "chatHistory"), (snapshot) => {
@@ -2447,6 +2463,29 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     }
     setupClientFirebaseSync();
     return respondJSON(200, { success: true, message: "Client database connection successfully reset! Transitioning back to Cloud sync..." });
+  }
+
+  // 37c. POST /api/admin/reset-system
+  if (pathname === '/api/admin/reset-system' && method === 'POST') {
+    const admins = db.users.filter(u => u.isAdmin);
+    const adminUserIds = new Set(admins.map(u => u.id));
+    
+    // Clear almost everything except admin accounts
+    db.users = admins;
+    db.profiles = db.profiles.filter(p => adminUserIds.has(p.userId));
+    db.investments = [];
+    db.deposits = [];
+    db.withdrawals = [];
+    db.transactions = [];
+    db.notifications = [];
+    db.referrals = [];
+    db.chatHistory = {};
+    db.loans = [];
+    db.cards = [];
+    db.cardTransactions = [];
+    
+    saveLocalDB(db);
+    return respondJSON(200, { success: true, message: "System successfully reset. All non-admin records have been erased." });
   }
 
   // 38. GET /api/investments/:userId

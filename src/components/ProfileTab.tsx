@@ -4,7 +4,7 @@ import {
   ArrowDownRight, Users, Copy, Key, Camera, FileText, Check,
   X, Sparkles, Upload, ChevronRight, ChevronDown, Globe, Info, CreditCard,
   Smartphone, Download, ExternalLink, QrCode, Monitor, Share2, Trophy,
-  Eye, EyeOff, Lock, ShieldAlert
+  Eye, EyeOff, Lock, ShieldAlert, RotateCcw
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useLanguage, LanguageCode, languages } from '../locale';
@@ -126,6 +126,39 @@ export default function ProfileTab({
 }: ProfileTabProps) {
   const { language, setLanguage, t, et } = useLanguage();
   const isQuotaExceeded = typeof window !== "undefined" && localStorage.getItem("lumora_firestore_client_disabled") === "true";
+
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [resetSuccess, setResetSuccess] = useState(false);
+  const [resetError, setResetError] = useState('');
+
+  const handleAppReset = async () => {
+    setResetting(true);
+    setResetError('');
+    try {
+      await fetch('/api/admin/reset-system', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      await fetch('/api/admin/reset-firestore-quota', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      localStorage.clear();
+      setResetSuccess(true);
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    } catch (err) {
+      console.error("System reset failed:", err);
+      setResetError(err instanceof Error ? err.message : 'System reset failed');
+      setResetting(false);
+    }
+  };
 
   const activeInvestments = (investments || []).filter(i => i.status === 'active');
   const highestActiveLevel = activeInvestments.length > 0
@@ -2192,8 +2225,8 @@ export default function ProfileTab({
         </form>
       </div>
 
-      {/* CARD 7: Sign Out Triggers (Secondary Elegant Frame) */}
-      <div className="pt-2 px-1">
+      {/* CARD 7: Sign Out and Reset Triggers (Secondary Elegant Frame) */}
+      <div className={`pt-2 px-1 ${isAdmin ? 'grid grid-cols-2 gap-3.5' : 'block'}`}>
         <button
           onClick={onLogout}
           className="w-full py-4 rounded-2xl border border-rose-200/60 bg-rose-50/40 hover:bg-rose-50 hover:border-rose-300 text-rose-600 text-xs font-black transition-all tracking-wider flex items-center justify-center space-x-2 cursor-pointer active:scale-98"
@@ -2201,6 +2234,22 @@ export default function ProfileTab({
           <LogOut className="w-4 h-4 stroke-[2.5]" />
           <span>{t.logout}</span>
         </button>
+
+        {isAdmin && (
+          <button
+            onClick={() => setShowResetModal(true)}
+            className="w-full py-4 rounded-2xl border border-amber-200/60 bg-amber-50/40 hover:bg-amber-50 hover:border-amber-300 text-amber-700 text-xs font-black transition-all tracking-wider flex items-center justify-center space-x-2 cursor-pointer active:scale-98 animate-pulse"
+          >
+            <RotateCcw className="w-4 h-4 stroke-[2.5]" />
+            <span>
+              {language === 'am' ? 'ሙሉ መተግበሪያን አድስ' :
+               language === 'om' ? 'App Reset Lamata' :
+               language === 'ti' ? 'ሙሉ መተግበሪያን አድስ' :
+               language === 'so' ? 'Dib u deji App' :
+               'Reset Application'}
+            </span>
+          </button>
+        )}
       </div>
 
       {/* Premium Avatar Collection & Self-Photo Upload Portals Modal overlay */}
@@ -2453,6 +2502,75 @@ export default function ProfileTab({
             >
               {language === 'am' ? 'እሺ ገብቶኛል' : 'Acknowledge Guide'}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Absolute Application Reset Confirmation Dialog Sheet */}
+      {showResetModal && (
+        <div className="fixed inset-0 bg-[#070d19]/80 backdrop-blur-md flex items-center justify-center p-4 z-[99999] text-slate-800 animate-in fade-in duration-200">
+          <div className="w-full max-w-sm bg-white rounded-[2rem] p-6 space-y-5 shadow-2xl relative border border-slate-100 text-center animate-in scale-in duration-200">
+            <div className="mx-auto w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center animate-bounce">
+              <RotateCcw className="w-6 h-6 stroke-[2.5]" />
+            </div>
+            
+            <div className="space-y-1.5">
+              <h3 className="font-display font-black text-sm text-slate-900 uppercase tracking-wider leading-none">
+                {language === 'am' ? 'መተግበሪያውን እንደገና ያስጀምሩ?' : 'Reset Application?'}
+              </h3>
+              <p className="text-[10px] text-slate-500 uppercase tracking-widest font-mono font-bold">
+                {language === 'am' ? 'ይህ እርምጃ ሊቀለበስ አይችልም' : 'This action is irreversible'}
+              </p>
+            </div>
+
+            <p className="text-[11px] text-slate-600 leading-relaxed font-semibold">
+              {language === 'am' ? 'ይህ መላውን የመተግበሪያ መሸጎጫ ያጸዳል፣ የስርዓት ቅንብሮችን ዳግም ያስጀምራል፣ ከአካውንትዎ ያስወጣዎታል እንዲሁም ሰርቨሩን ወደ መጀመሪያው ሁኔታ ይመልሳል።' :
+               language === 'om' ? 'Kun hojii uumame hunda ni haqa. Gara jalqabaatti deebisa.' :
+               'This operation will wipe your local database cache, clear settings, sign you out, and request a system-wide reset of the remote database engine.'}
+            </p>
+
+            {resetError && (
+              <div className="p-3 bg-rose-50 text-rose-700 text-[10px] font-bold rounded-xl border border-rose-150">
+                {resetError}
+              </div>
+            )}
+
+            {!resetSuccess ? (
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <button
+                  type="button"
+                  disabled={resetting}
+                  onClick={() => setShowResetModal(false)}
+                  className="py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer"
+                >
+                  {language === 'am' ? 'አቋርጥ' : 'Cancel'}
+                </button>
+                <button
+                  type="button"
+                  disabled={resetting}
+                  onClick={handleAppReset}
+                  className="py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer shadow-sm flex items-center justify-center space-x-1.5"
+                >
+                  {resetting ? (
+                    <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <span>
+                      {language === 'am' ? 'አረጋግጥ' : 'Confirm'}
+                    </span>
+                  )}
+                </button>
+              </div>
+            ) : (
+              <div className="p-4 bg-emerald-50 text-emerald-800 rounded-2xl border border-emerald-150 text-center space-y-2 animate-in fade-in">
+                <span className="inline-flex items-center space-x-1 bg-emerald-100 text-emerald-800 font-extrabold px-2.5 py-1 rounded-xl text-[9px] uppercase tracking-wider border border-emerald-300">
+                  <Check className="w-3 h-3 text-emerald-600 mr-0.5 animate-pulse" />
+                  <span>Success</span>
+                </span>
+                <p className="text-[10px] font-bold">
+                  {language === 'am' ? 'መተግበሪያው በተሳካ ሁኔታ ዳግም ተጀምሯል! አሁን ዳግም እየተጫነ ነው...' : 'System has been successfully reset! Reloading application...'}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}
