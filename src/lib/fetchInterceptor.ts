@@ -1951,7 +1951,22 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     const profile = db.profiles.find(p => p.userId === targetUserId);
     if (!profile) return respondJSON(404, { error: "Profile not found" });
 
-    profile.vipLevel = Number(vipLevel);
+    const targetVip = Number(vipLevel);
+    profile.vipLevel = targetVip;
+
+    const targetPlan = VIP_PLANS.find(plan => plan.level === targetVip);
+    if (targetPlan) {
+      db.investments.forEach(inv => {
+        if (inv.userId === targetUserId && inv.status === 'active') {
+          inv.planId = `vip-${targetPlan.level}`;
+          inv.planName = targetPlan.name;
+          inv.planLevel = targetPlan.level;
+          inv.amount = targetPlan.requiredInvestment;
+          inv.dailyRate = targetPlan.dailyRate;
+          inv.dailyReturn = Math.round(targetPlan.requiredInvestment * targetPlan.dailyRate);
+        }
+      });
+    }
 
     db.notifications.push({
       id: "not-" + Math.random().toString(36).substr(2, 9),
@@ -2467,12 +2482,13 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
 
   // 37c. POST /api/admin/reset-system
   if (pathname === '/api/admin/reset-system' && method === 'POST') {
-    const admins = db.users.filter(u => u.isAdmin);
-    const adminUserIds = new Set(admins.map(u => u.id));
-    
-    // Clear almost everything except admin accounts
-    db.users = admins;
-    db.profiles = db.profiles.filter(p => adminUserIds.has(p.userId));
+    try {
+      localStorage.removeItem('lumora_local_db');
+    } catch (e) {}
+
+    const initial = getInitialDB();
+    db.users = initial.users;
+    db.profiles = initial.profiles;
     db.investments = [];
     db.deposits = [];
     db.withdrawals = [];
@@ -2485,7 +2501,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     db.cardTransactions = [];
     
     saveLocalDB(db);
-    return respondJSON(200, { success: true, message: "System successfully reset. All non-admin records have been erased." });
+    return respondJSON(200, { success: true, message: "System successfully reset and restored to pristine fresh state." });
   }
 
   // 38. GET /api/investments/:userId

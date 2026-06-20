@@ -2746,7 +2746,23 @@ Instruct the user precisely on which page, component, or element to use to accom
     const p = db.profiles.find(profile => profile.userId === targetUserId);
     if (!p) return res.status(404).json({ error: "Profile not found" });
 
-    p.vipLevel = parseInt(vipLevel);
+    const targetVip = parseInt(vipLevel);
+    p.vipLevel = targetVip;
+
+    const targetPlan = VIP_PLANS.find(plan => plan.level === targetVip);
+    if (targetPlan) {
+      db.investments.forEach(inv => {
+        if (inv.userId === targetUserId && inv.status === 'active') {
+          inv.planId = `vip-${targetPlan.level}`;
+          inv.planName = targetPlan.name;
+          inv.planLevel = targetPlan.level;
+          inv.amount = targetPlan.requiredInvestment;
+          inv.dailyRate = targetPlan.dailyRate;
+          inv.dailyReturn = Math.round(targetPlan.requiredInvestment * targetPlan.dailyRate);
+        }
+      });
+    }
+
     saveDB(db);
     res.json({ success: true, profile: p });
   });
@@ -3241,23 +3257,56 @@ Instruct the user precisely on which page, component, or element to use to accom
   // ADMIN ACTION: Reset entire system data except admin users/profiles
   app.post("/api/admin/reset-system", (req, res) => {
     try {
-      const admins = db.users.filter(u => u.isAdmin);
-      db.users = admins;
+      // Delete local db file to trigger pristine rebuild
+      try {
+        if (fs.existsSync(DB_PATH)) {
+          fs.unlinkSync(DB_PATH);
+        }
+      } catch (err) {
+        console.error("Failed to delete DB file:", err);
+      }
 
-      const adminUserIds = new Set(admins.map(u => u.id));
-      db.profiles = db.profiles.filter(p => adminUserIds.has(p.userId));
+      // Track old keys in lastSynced to propagate deletions to Firestore
+      // Any key tracked in lastSynced but absent in localMap will be deleted from Firestore on sync
+      // We keep the keys in lastSynced, but clear the main memory arrays so localMap is empty
+      // and therefore deletions propagate.
 
-      db.investments = [];
-      db.deposits = [];
-      db.withdrawals = [];
-      db.transactions = [];
-      db.notifications = [];
-      db.referrals = [];
+      // Clear memory database references
+      db.users.length = 0;
+      db.profiles.length = 0;
+      db.investments.length = 0;
+      db.deposits.length = 0;
+      db.withdrawals.length = 0;
+      db.transactions.length = 0;
+      db.notifications.length = 0;
+      db.referrals.length = 0;
       db.chatHistory = {};
-      db.loans = [];
+      db.agreements.length = 0;
+      db.loans.length = 0;
+      if (db.eligibilityChecks) db.eligibilityChecks.length = 0;
+      if (db.adminLogs) db.adminLogs.length = 0;
 
+      // Reload fresh pristine seed data
+      const freshData = loadDB();
+      db.users.push(...freshData.users);
+      db.profiles.push(...freshData.profiles);
+      db.investments.push(...freshData.investments);
+      db.deposits.push(...freshData.deposits);
+      db.withdrawals.push(...freshData.withdrawals);
+      db.transactions.push(...freshData.transactions);
+      db.notifications.push(...freshData.notifications);
+      db.referrals.push(...freshData.referrals);
+      db.agreements.push(...freshData.agreements);
+      db.loans.push(...freshData.loans);
+      if (freshData.eligibilityChecks && db.eligibilityChecks) {
+        db.eligibilityChecks.push(...freshData.eligibilityChecks);
+      }
+      db.settings = freshData.settings;
+      db.chatHistory = freshData.chatHistory;
+
+      // Save database and propagate deletions and fresh seeds back to Firestore
       saveDB(db);
-      res.json({ success: true, message: "System successfully reset. All non-admin records have been erased." });
+      res.json({ success: true, message: "System successfully reset and restored to pristine fresh state." });
     } catch (error) {
       console.error("System reset failed:", error);
       res.status(500).json({ error: "System reset failed: " + (error instanceof Error ? error.message : String(error)) });
