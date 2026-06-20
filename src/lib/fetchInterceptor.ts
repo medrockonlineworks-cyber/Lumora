@@ -2560,7 +2560,7 @@ if (typeof window !== "undefined") {
 }
 
 if (typeof window !== "undefined") {
-  const originalFetch = window.fetch;
+  const originalFetch = window.fetch.bind(window);
   
   const customFetch = async function (this: any, input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
     const url = typeof input === 'string' 
