@@ -2279,6 +2279,51 @@ async function startServer() {
     res.json({ success: true, profile });
   });
 
+  // Change user login password
+  app.post("/api/profile/change-password", (req, res) => {
+    const { userId, currentPassword, newPassword } = req.body;
+    if (!userId || !currentPassword || !newPassword) {
+      return res.status(400).json({ error: "Missing required fields: userId, currentPassword, structural passwords" });
+    }
+    const user = db.users.find(u => u.id === userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    if (user.password !== currentPassword) {
+      return res.status(400).json({ error: "Incorrect current login password." });
+    }
+
+    const cleanPass = newPassword.trim();
+    if (cleanPass.length < 6 || cleanPass.length > 32) {
+      return res.status(400).json({ error: "New password must be between 6 and 32 characters." });
+    }
+
+    user.password = cleanPass;
+    saveDB(db);
+    res.json({ success: true, message: "Password updated successfully!" });
+  });
+
+  app.post("/api/profiles/change-password", (req, res) => {
+    const { userId, currentPassword, newPassword } = req.body;
+    if (!userId || !currentPassword || !newPassword) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+    const user = db.users.find(u => u.id === userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    if (user.password !== currentPassword) {
+      return res.status(400).json({ error: "Incorrect current login password." });
+    }
+
+    const cleanPass = newPassword.trim();
+    if (cleanPass.length < 6 || cleanPass.length > 32) {
+      return res.status(400).json({ error: "New password must be between 6 and 32 characters." });
+    }
+
+    user.password = cleanPass;
+    saveDB(db);
+    res.json({ success: true, message: "Password updated successfully!" });
+  });
+
   // Upload user profile picture as Base64 asset
   app.post("/api/profile/upload-avatar", (req, res) => {
     const { userId, base64Image, avatarBase64 } = req.body;
@@ -3216,6 +3261,21 @@ Instruct the user precisely on which page, component, or element to use to accom
     } catch (error) {
       console.error("System reset failed:", error);
       res.status(500).json({ error: "System reset failed: " + (error instanceof Error ? error.message : String(error)) });
+    }
+  });
+
+  // ADMIN ACTION: Reset Firestore quota offline mode file flag
+  app.post("/api/admin/reset-firestore-quota", (req, res) => {
+    try {
+      if (fs.existsSync(".firestore_disabled")) {
+        fs.unlinkSync(".firestore_disabled");
+      }
+      firestoreSyncDisabled = false;
+      // Re-initialize and sync
+      setupFirebaseSync();
+      res.json({ success: true, message: "Firestore Sync re-enabled. Attempting to connect..." });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message || String(e) });
     }
   });
 

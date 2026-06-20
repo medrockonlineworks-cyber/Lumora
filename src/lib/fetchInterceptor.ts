@@ -941,7 +941,18 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     } catch (_) {}
   }
   const method = init?.method?.toUpperCase() || 'GET';
-  const body = init?.body ? JSON.parse(init.body as string) : undefined;
+  let body: any = undefined;
+  if (init?.body) {
+    if (typeof init.body === 'string') {
+      try {
+        body = JSON.parse(init.body);
+      } catch (_) {
+        body = init.body;
+      }
+    } else {
+      body = init.body;
+    }
+  }
   
   const db = loadLocalDB();
   autoAllocateLocalDailyEarnings(db);
@@ -1636,6 +1647,29 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
 
     saveLocalDB(db);
     return respondJSON(200, { success: true, profile });
+  }
+
+  // 16b. POST /api/profiles/change-password or /api/profile/change-password
+  if ((pathname === '/api/profiles/change-password' || pathname === '/api/profile/change-password') && method === 'POST') {
+    const { userId, currentPassword, newPassword } = body;
+    if (!userId || !currentPassword || !newPassword) {
+      return respondJSON(400, { error: "Missing required fields" });
+    }
+    const user = db.users.find(u => u.id === userId);
+    if (!user) return respondJSON(404, { error: "User not found" });
+
+    if (user.password !== currentPassword) {
+      return respondJSON(400, { error: "Incorrect current login password." });
+    }
+
+    const cleanPass = newPassword.trim();
+    if (cleanPass.length < 6 || cleanPass.length > 32) {
+      return respondJSON(400, { error: "New password must be between 6 and 32 characters." });
+    }
+
+    user.password = cleanPass;
+    saveLocalDB(db);
+    return respondJSON(200, { success: true, message: "Password updated successfully!" });
   }
 
   // 17. GET /api/referrals/:userId
@@ -2400,6 +2434,19 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
   // 37. GET /api/admin/settings
   if (pathname === '/api/admin/settings' && method === 'GET') {
     return respondJSON(200, db.settings || DEFAULT_SETTINGS);
+  }
+
+  // 37b. POST /api/admin/reset-firestore-quota
+  if (pathname === '/api/admin/reset-firestore-quota' && method === 'POST') {
+    firestoreClientDisabled = false;
+    listenersInitialized = false;
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.removeItem("lumora_firestore_client_disabled");
+      } catch (e) {}
+    }
+    setupClientFirebaseSync();
+    return respondJSON(200, { success: true, message: "Client database connection successfully reset! Transitioning back to Cloud sync..." });
   }
 
   // 38. GET /api/investments/:userId

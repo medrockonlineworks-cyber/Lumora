@@ -92,6 +92,35 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   const [regInitialBalance, setRegInitialBalance] = useState('0');
   const [regMakeAdmin, setRegMakeAdmin] = useState(false);
 
+  // Firestore quota states
+  const [isQuotaExceededOnClient, setIsQuotaExceededOnClient] = useState(typeof window !== "undefined" && localStorage.getItem("lumora_firestore_client_disabled") === "true");
+  const [recalculatingQuota, setRecalculatingQuota] = useState(false);
+
+  const handleResetFirestoreQuota = async () => {
+    setRecalculatingQuota(true);
+    try {
+      const response = await fetch('/api/admin/reset-firestore-quota', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await response.json();
+      if (response.ok) {
+        showToast(data.message || "Cloud Sync re-enabled successfully!", "success");
+        setIsQuotaExceededOnClient(false);
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("lumora_firestore_client_disabled");
+        }
+        fetchAllAdminData();
+      } else {
+        showToast(data.error || "Failed to reset cloud sync.", "error");
+      }
+    } catch (e) {
+      showToast("Network error trying to reset cloud database connection.", "error");
+    } finally {
+      setRecalculatingQuota(false);
+    }
+  };
+
   const handleAdminRegisterUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!regName.trim() || !regPhone.trim() || !regEmail.trim() || !regPass.trim()) {
@@ -620,6 +649,40 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
           </button>
         </div>
       </div>
+
+      {/* Dynamic Firestore Quota Warning & Recovery Console */}
+      {isQuotaExceededOnClient && (
+        <div className="mb-5 p-4 rounded-2xl bg-amber-50/80 border border-amber-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 font-sans shadow-xs animate-fade-in" id="firestore-quota-warning-banner">
+          <div className="flex items-start space-x-3">
+            <div className="p-2 bg-amber-100 text-amber-800 rounded-xl shrink-0">
+              <ShieldAlert className="w-4 h-4" />
+            </div>
+            <div>
+              <h4 className="text-xs font-extrabold uppercase text-amber-900 tracking-wider">
+                Cloud Sync Running in Local-Resiliency Fallback Mode
+              </h4>
+              <p className="text-[10.5px] text-amber-800/90 font-medium mt-1 leading-relaxed max-w-3xl">
+                The cloud database (Firestore) has exceeded its Spark free daily limits (resource-exhausted). 
+                To maintain full security and operation, your session is leveraging local sandbox storage. 
+                All transactions, VIP updates, loans, and card logs remain fully functional.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleResetFirestoreQuota}
+            disabled={recalculatingQuota}
+            className="w-full md:w-auto shrink-0 px-4 py-2 bg-amber-800 hover:bg-amber-900 disabled:opacity-50 text-white font-bold text-[10px] uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-xs active:scale-97 flex items-center justify-center space-x-1.5"
+          >
+            {recalculatingQuota ? (
+              <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+            ) : (
+              <RefreshCw className="w-3 h-3" />
+            )}
+            <span>Reset Sync Check</span>
+          </button>
+        </div>
+      )}
 
       {/* Sub tabs navigation */}
       <div className="flex flex-wrap items-center gap-1.5 border-b border-slate-200/60 pb-3.5 mb-5 overflow-x-auto scrollbar-none">
