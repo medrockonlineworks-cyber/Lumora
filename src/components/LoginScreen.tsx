@@ -90,7 +90,14 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         body: JSON.stringify({ phone: logPhone, password: logPass })
       });
 
-      const data = await res.json();
+      const text = await res.text();
+      let data: any;
+      try {
+        data = JSON.parse(text);
+      } catch (parseErr) {
+        console.error("Login JSON parse failed:", text);
+        throw new Error(text ? text.substring(0, 100) : "Invalid response from server.");
+      }
       setLoading(false);
 
       if (res.ok && data.user) {
@@ -149,7 +156,14 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         })
       });
 
-      const data = await res.json();
+      const text = await res.text();
+      let data: any;
+      try {
+        data = JSON.parse(text);
+      } catch (parseErr) {
+        console.error("Register JSON parse failed:", text);
+        throw new Error(text ? text.substring(0, 100) : "Invalid response from server.");
+      }
       setLoading(false);
 
       if (res.ok && data.user) {
@@ -197,7 +211,14 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         })
       });
 
-      const data = await res.json();
+      const text = await res.text();
+      let data: any;
+      try {
+        data = JSON.parse(text);
+      } catch (parseErr) {
+        console.error("Reset-password JSON parse failed:", text);
+        throw new Error(text ? text.substring(0, 100) : "Invalid response from server.");
+      }
       setLoading(false);
 
       if (res.ok) {

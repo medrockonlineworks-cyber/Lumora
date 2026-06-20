@@ -2576,9 +2576,14 @@ if (typeof window !== "undefined") {
         const response = await originalFetch(input, init);
         const contentType = response.headers.get('content-type') || '';
         
-        // If the URL ends up resolving to HTML, the server is doing SPA routes wildcard (or Vercel 404 index.html)
-        if (response.status === 404 || contentType.includes('text/html')) {
-          console.warn(`API path (${url}) returned static HTML or 404. Falling back to Client-Side LocalStorage for this request.`);
+        // If the URL ends up resolving to HTML, or returns status code >= 500, or does not contain JSON format, fall back to Client-Side LocalStorage
+        if (
+          response.status === 404 || 
+          response.status >= 500 || 
+          contentType.includes('text/html') || 
+          !contentType.includes('application/json')
+        ) {
+          console.warn(`API path (${url}) returned status ${response.status} with content-type "${contentType}". Falling back to Client-Side LocalStorage for this request.`);
           return handleLocalAPI(url, init);
         }
         
