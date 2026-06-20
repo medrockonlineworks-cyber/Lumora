@@ -41,39 +41,20 @@ self.addEventListener('activate', (e) => {
 
 // Fetch Assets
 self.addEventListener('fetch', (e) => {
-  // Only handle GET requests. Pass POST, PUT, DELETE, etc. directly to the network.
+  const url = new URL(e.request.url);
+
+  // Pass all API requests directly to the network.
+  // API endpoints are dynamic database routes and are handled fully by our custom fetch interceptor in fetchInterceptor.ts.
+  if (url.pathname.includes('/api/')) {
+    return;
+  }
+
+  // Only handle GET requests for other assets. Pass POST, PUT, DELETE, etc. directly to the network.
   if (e.request.method !== 'GET') {
     return;
   }
   
-  const url = new URL(e.request.url);
-  
-  // Dynamic Network-First fallback to API cache for user dashboard information
-  if (url.pathname.includes('/api/') && e.request.method === 'GET') {
-    e.respondWith(
-      fetch(e.request)
-        .then((networkResponse) => {
-          if (networkResponse.status === 200) {
-            const responseClone = networkResponse.clone();
-            caches.open('lumora-api-cache-v1').then((cache) => {
-              cache.put(e.request, responseClone);
-            });
-          }
-          return networkResponse;
-        })
-        .catch(() => {
-          return caches.match(e.request).then((cachedResponse) => {
-            if (cachedResponse) {
-              return cachedResponse;
-            }
-            // Return appropriate empty JSON fallback if completely offline and not in cache
-            return new Response(JSON.stringify({ error: 'Offline Mode - No local data' }), {
-              headers: { 'Content-Type': 'application/json' }
-            });
-          });
-        })
-    );
-  } else if (e.request.mode === 'navigate' || url.pathname === '/' || url.pathname.endsWith('.html')) {
+  if (e.request.mode === 'navigate' || url.pathname === '/' || url.pathname.endsWith('.html')) {
     // Crucial: Network-First strategy for HTML index & navigations to guarantee instant updates on deploy!
     e.respondWith(
       fetch(e.request)

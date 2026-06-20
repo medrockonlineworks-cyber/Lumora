@@ -365,6 +365,14 @@ function loadLocalDB(): LumoraDB {
   if (data) {
     try {
       const parsed = JSON.parse(data) as LumoraDB;
+      if (!parsed.users) parsed.users = [];
+      if (!parsed.profiles) parsed.profiles = [];
+      if (!parsed.investments) parsed.investments = [];
+      if (!parsed.deposits) parsed.deposits = [];
+      if (!parsed.withdrawals) parsed.withdrawals = [];
+      if (!parsed.transactions) parsed.transactions = [];
+      if (!parsed.notifications) parsed.notifications = [];
+      if (!parsed.referrals) parsed.referrals = [];
       if (!parsed.loans) parsed.loans = [];
       if (!parsed.cards) parsed.cards = [];
       if (!parsed.cardTransactions) parsed.cardTransactions = [];
