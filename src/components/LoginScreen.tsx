@@ -107,9 +107,9 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       } else {
         setErrorMsg(data.error || 'Login failed. Please verify credentials.');
       }
-    } catch (err) {
+    } catch (err: any) {
       setLoading(false);
-      setErrorMsg('Connection error. Please try again.');
+      setErrorMsg('Connection error: ' + (err?.message || String(err)));
     }
   };
 
@@ -157,9 +157,9 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       } else {
         setErrorMsg(data.error || 'Registration failed.');
       }
-    } catch (err) {
+    } catch (err: any) {
       setLoading(false);
-      setErrorMsg('Connection error. Please try again.');
+      setErrorMsg('Registration connection error: ' + (err?.message || String(err)));
     }
   };
 
@@ -209,9 +209,9 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       } else {
         setErrorMsg(data.error || 'Password reset failed. Please try again.');
       }
-    } catch (err) {
+    } catch (err: any) {
       setLoading(false);
-      setErrorMsg('Connection error. Please try again.');
+      setErrorMsg('Reset connection error: ' + (err?.message || String(err)));
     }
   };
 

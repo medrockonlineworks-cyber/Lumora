@@ -1,4 +1,4 @@
-const CACHE_NAME = 'lumora-pwa-cache-v16';
+const CACHE_NAME = 'lumora-pwa-cache-v17';
 const ASSETS = [
   '/',
   '/index.html',
@@ -41,6 +41,11 @@ self.addEventListener('activate', (e) => {
 
 // Fetch Assets
 self.addEventListener('fetch', (e) => {
+  // Only handle GET requests. Pass POST, PUT, DELETE, etc. directly to the network.
+  if (e.request.method !== 'GET') {
+    return;
+  }
+  
   const url = new URL(e.request.url);
   
   // Dynamic Network-First fallback to API cache for user dashboard information
