@@ -17,7 +17,41 @@ import { getFirestore, Firestore } from "firebase-admin/firestore";
 import firebaseConfig from "./firebase-applet-config.json";
 
 let firestoreDb: Firestore | null = null;
-let firestoreSyncDisabled = false;
+let firestoreSyncDisabled = fs.existsSync(".firestore_disabled");
+let activeServerUnsubscribers: (() => void)[] = [];
+
+function unsubscribeAllServerListeners() {
+  console.log("[Firebase Admin] Unsubscribing all server-side real-time Firestore listeners due to quota limit.");
+  activeServerUnsubscribers.forEach(unsub => {
+    try {
+      unsub();
+    } catch (e) {
+      // ignore
+    }
+  });
+  activeServerUnsubscribers = [];
+}
+
+function checkServerQuotaExceeded(err: any): boolean {
+  if (!err) return false;
+  const msg = String(err.message || err.code || err || "").toLowerCase();
+  const code = String(err.code || "").toLowerCase();
+  if (msg.includes("quota") || msg.includes("resource-exhausted") || msg.includes("limit") || code.includes("resource-exhausted") || code.includes("8")) {
+    if (!firestoreSyncDisabled) {
+      firestoreSyncDisabled = true;
+      firestoreDb = null;
+      try {
+        fs.writeFileSync(".firestore_disabled", "true", "utf-8");
+      } catch (e) {
+        // ignore
+      }
+      console.warn("[Firebase Admin Diagnostic] Quota limit/Resource Exhausted detected. Transitioning server gracefully to offline-first local mode.");
+      unsubscribeAllServerListeners();
+    }
+    return true;
+  }
+  return false;
+}
 
 function getFirestoreDb(): Firestore | null {
   if (firestoreSyncDisabled) return null;
@@ -104,6 +138,9 @@ async function testFirestoreConnectivity(): Promise<boolean> {
       console.log(`[Firebase Diagnostic] Connectivity check SUCCEEDED for Project ID: "${firebaseConfig.projectId}"`);
       return true;
     } catch (err: any) {
+    if (checkServerQuotaExceeded(err)) {
+      return false;
+    }
     if (err && err.message && err.message.includes("PERMISSION_DENIED")) {
       console.warn("Firestore connectivity check returned PERMISSION_DENIED. This is expected in container sandboxes due to cross-project GCP IAM constraints. Gracefully falling back to local file storage.");
     } else {
@@ -702,6 +739,9 @@ async function syncToFirestore(latestDb: LumoraDB) {
         try {
           await fDb.collection(spec.name).doc(id).set(item);
         } catch (e: any) {
+          if (checkServerQuotaExceeded(e)) {
+            return;
+          }
           if (e && e.message && e.message.includes("PERMISSION_DENIED")) {
             console.warn(`Disabling Firestore sync due to PERMISSION_DENIED on ${spec.name}/${id}.`);
             firestoreSyncDisabled = true;
@@ -721,6 +761,9 @@ async function syncToFirestore(latestDb: LumoraDB) {
         try {
           await fDb.collection(spec.name).doc(id).delete();
         } catch (e: any) {
+          if (checkServerQuotaExceeded(e)) {
+            return;
+          }
           if (e && e.message && e.message.includes("PERMISSION_DENIED")) {
             console.warn(`Disabling Firestore sync due to PERMISSION_DENIED on deletion in ${spec.name}/${id}.`);
             firestoreSyncDisabled = true;
@@ -740,6 +783,9 @@ async function syncToFirestore(latestDb: LumoraDB) {
       try {
         await fDb.collection("settings").doc("global").set(latestDb.settings);
       } catch (e: any) {
+        if (checkServerQuotaExceeded(e)) {
+          return;
+        }
         if (e && e.message && e.message.includes("PERMISSION_DENIED")) {
           console.warn("Disabling Firestore sync due to PERMISSION_DENIED on settings.");
           firestoreSyncDisabled = true;
@@ -763,6 +809,9 @@ async function syncToFirestore(latestDb: LumoraDB) {
         try {
           await fDb.collection("chatHistory").doc(userId).set({ messages });
         } catch (e: any) {
+          if (checkServerQuotaExceeded(e)) {
+            return;
+          }
           if (e && e.message && e.message.includes("PERMISSION_DENIED")) {
             console.warn(`Disabling Firestore sync due to PERMISSION_DENIED on chatHistory for ${userId}.`);
             firestoreSyncDisabled = true;
@@ -908,6 +957,9 @@ function setupFirebaseSync() {
       }
     }, (error: any) => {
       console.error(`Firestore sync error on collection '${col.name}':`, error);
+      if (checkServerQuotaExceeded(error)) {
+        return;
+      }
       if (error && error.message && error.message.includes("PERMISSION_DENIED")) {
         console.warn(`Unsubscribing and disabling Firestore sync due to PERMISSION_DENIED on '${col.name}'.`);
         firestoreSyncDisabled = true;
@@ -918,6 +970,7 @@ function setupFirebaseSync() {
         }
       }
     });
+    activeServerUnsubscribers.push(unsubscribe);
   }
 
   // Listen to settings
@@ -941,6 +994,9 @@ function setupFirebaseSync() {
     }
   }, (error: any) => {
     console.error("Firestore sync error on collection 'settings':", error);
+    if (checkServerQuotaExceeded(error)) {
+      return;
+    }
     if (error && error.message && error.message.includes("PERMISSION_DENIED")) {
       console.warn("Unsubscribing and disabling settings sync due to PERMISSION_DENIED.");
       firestoreSyncDisabled = true;
@@ -951,6 +1007,7 @@ function setupFirebaseSync() {
       }
     }
   });
+  activeServerUnsubscribers.push(unsubscribeSettings);
 
   // Listen to chatHistory
   const unsubscribeChat = fDb.collection("chatHistory").onSnapshot((snapshot) => {
@@ -971,6 +1028,9 @@ function setupFirebaseSync() {
     }
   }, (error: any) => {
     console.error("Firestore sync error on collection 'chatHistory':", error);
+    if (checkServerQuotaExceeded(error)) {
+      return;
+    }
     if (error && error.message && error.message.includes("PERMISSION_DENIED")) {
       console.warn("Unsubscribing and disabling chatHistory sync due to PERMISSION_DENIED.");
       firestoreSyncDisabled = true;
@@ -981,6 +1041,7 @@ function setupFirebaseSync() {
       }
     }
   });
+  activeServerUnsubscribers.push(unsubscribeChat);
 }
 
 async function startServer() {

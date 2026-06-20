@@ -10,6 +10,7 @@ import {
 import { initializeApp } from "firebase/app";
 import { 
   getFirestore, 
+  initializeFirestore,
   collection, 
   doc, 
   setDoc, 
@@ -495,26 +496,89 @@ function sanitizeLocalDBBalances(db: LumoraDB) {
   return modified;
 }
 
-const lastSyncedClient: Record<string, Record<string, string>> = {
-  users: {},
-  profiles: {},
-  investments: {},
-  deposits: {},
-  withdrawals: {},
-  transactions: {},
-  notifications: {},
-  referrals: {},
-  agreements: {},
-  settings: {},
-  loans: {},
-  cards: {},
-  cardTransactions: {},
-  chatHistory: {}
-};
+const lastSyncedClient: Record<string, Record<string, string>> = (() => {
+  const defaultVal = {
+    users: {},
+    profiles: {},
+    investments: {},
+    deposits: {},
+    withdrawals: {},
+    transactions: {},
+    notifications: {},
+    referrals: {},
+    agreements: {},
+    settings: {},
+    loans: {},
+    cards: {},
+    cardTransactions: {},
+    chatHistory: {}
+  };
+  if (typeof window !== "undefined") {
+    try {
+      const saved = localStorage.getItem("lumora_last_synced_client");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        Object.keys(defaultVal).forEach(k => {
+          if (!parsed[k]) parsed[k] = {};
+        });
+        return parsed;
+      }
+    } catch (e) {
+      console.warn("Failed to parse lastSyncedClient:", e);
+    }
+  }
+  return defaultVal;
+})();
+
+function saveLastSyncedClient() {
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem("lumora_last_synced_client", JSON.stringify(lastSyncedClient));
+    } catch (e) {
+      console.warn("Failed to save lastSyncedClient:", e);
+    }
+  }
+}
 
 let firestoreClientDb: any = null;
+let firestoreClientDisabled = typeof window !== "undefined" && localStorage.getItem("lumora_firestore_client_disabled") === "true";
+let activeClientUnsubscribers: (() => void)[] = [];
+
+function unsubscribeAllClientListeners() {
+  console.log("[Client Firestore] Unsubscribing all client-side real-time Firestore listeners due to quota limit.");
+  activeClientUnsubscribers.forEach(unsub => {
+    try {
+      unsub();
+    } catch (e) {
+      // ignore
+    }
+  });
+  activeClientUnsubscribers = [];
+}
+
+function checkQuotaExceeded(err: any): boolean {
+  if (!err) return false;
+  const msg = String(err.message || err || "").toLowerCase();
+  const code = String(err.code || "").toLowerCase();
+  if (msg.includes("quota") || msg.includes("resource-exhausted") || msg.includes("limit") || code.includes("resource-exhausted")) {
+    if (!firestoreClientDisabled) {
+      firestoreClientDisabled = true;
+      firestoreClientDb = null;
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("lumora_firestore_client_disabled", "true");
+        } catch (e) {}
+      }
+      console.warn("[Client Firestore] Quota limit exceeded detected. Gracefully transitioning to full offline/local storage resiliency mode.");
+      unsubscribeAllClientListeners();
+    }
+    return true;
+  }
+  return false;
+}
 
 function getFirestoreClientDb() {
+  if (firestoreClientDisabled) return null;
   if (firestoreClientDb) return firestoreClientDb;
   if (!firebaseConfig.projectId || firebaseConfig.projectId === "YOUR_PROJECT_ID") {
     return null;
@@ -528,10 +592,16 @@ function getFirestoreClientDb() {
       messagingSenderId: firebaseConfig.messagingSenderId,
       appId: firebaseConfig.appId
     });
-    firestoreClientDb = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+    firestoreClientDb = initializeFirestore(app, {
+      experimentalForceLongPolling: true,
+      experimentalAutoDetectLongPolling: true
+    }, firebaseConfig.firestoreDatabaseId);
     console.log(`[Firebase Client Diagnostic] Connected successfully to Firebase Project ID: "${firebaseConfig.projectId}" and Database ID: "${firebaseConfig.firestoreDatabaseId}"`);
     return firestoreClientDb;
   } catch (err) {
+    if (checkQuotaExceeded(err)) {
+      return null;
+    }
     console.error("[Client Firestore] Failed to initialize:", err);
     return null;
   }
@@ -565,9 +635,7 @@ async function syncClientToFirestore(latestDb: LumoraDB) {
           localMap.set(id, item);
         }
       }
-    }
-
-    // 1. Identify updates & creations
+    }    // 1. Identify updates & creations
     for (const [id, item] of localMap.entries()) {
       const json = JSON.stringify(item);
       if (lastSyncedClient[spec.name][id] !== json) {
@@ -575,7 +643,9 @@ async function syncClientToFirestore(latestDb: LumoraDB) {
         try {
           await setDoc(doc(fDb, spec.name, id), item);
         } catch (e) {
-          console.error(`[Client Firestore] Error saving ${spec.name}/${id}:`, e);
+          if (!checkQuotaExceeded(e)) {
+            console.error(`[Client Firestore] Error saving ${spec.name}/${id}:`, e);
+          }
         }
       }
     }
@@ -588,7 +658,9 @@ async function syncClientToFirestore(latestDb: LumoraDB) {
         try {
           await deleteDoc(doc(fDb, spec.name, id));
         } catch (e) {
-          console.error(`[Client Firestore] Error deleting ${spec.name}/${id}:`, e);
+          if (!checkQuotaExceeded(e)) {
+            console.error(`[Client Firestore] Error deleting ${spec.name}/${id}:`, e);
+          }
         }
       }
     }
@@ -602,7 +674,9 @@ async function syncClientToFirestore(latestDb: LumoraDB) {
       try {
         await setDoc(doc(fDb, "settings", "global"), latestDb.settings);
       } catch (e) {
-        console.error("[Client Firestore] Error saving settings:", e);
+        if (!checkQuotaExceeded(e)) {
+          console.error("[Client Firestore] Error saving settings:", e);
+        }
       }
     }
   }
@@ -616,10 +690,13 @@ async function syncClientToFirestore(latestDb: LumoraDB) {
       try {
         await setDoc(doc(fDb, "chatHistory", userId), { messages });
       } catch (e) {
-        console.error(`[Client Firestore] Error saving chatHistory for ${userId}:`, e);
+        if (!checkQuotaExceeded(e)) {
+          console.error(`[Client Firestore] Error saving chatHistory for ${userId}:`, e);
+        }
       }
     }
   }
+  saveLastSyncedClient();
 }
 
 const initialSyncStatus: { users: boolean; profiles: boolean } = {
@@ -671,7 +748,7 @@ export function setupClientFirebaseSync() {
   ];
 
   for (const col of collectionsToListen) {
-    onSnapshot(collection(fDb, col.name), (snapshot) => {
+    const unsub = onSnapshot(collection(fDb, col.name), (snapshot) => {
       if (col.name === "users" || col.name === "profiles") {
         initialSyncStatus[col.name] = true;
       }
@@ -727,6 +804,7 @@ export function setupClientFirebaseSync() {
       if (updated || (snapshot.empty && targetArray.length > 0 && Object.keys(lastSyncedClient[col.name]).length > 0)) {
         targetArray.length = 0;
         targetArray.push(...Array.from(localMap.values()));
+        saveLastSyncedClient();
         localStorage.setItem('lumora_local_db', JSON.stringify(currentDb));
 
         if (typeof window !== "undefined") {
@@ -734,31 +812,38 @@ export function setupClientFirebaseSync() {
         }
       }
     }, (error) => {
-      console.error(`[Client Firestore] Listener error on '${col.name}':`, error);
+      if (!checkQuotaExceeded(error)) {
+        console.error(`[Client Firestore] Listener error on '${col.name}':`, error);
+      }
       if (col.name === "users" || col.name === "profiles") {
         initialSyncStatus[col.name] = true;
       }
     });
+    activeClientUnsubscribers.push(unsub);
   }
 
   // settings listener
-  onSnapshot(doc(fDb, "settings", "global"), (docSnap) => {
+  const unsubSettings = onSnapshot(doc(fDb, "settings", "global"), (docSnap) => {
     if (docSnap.exists()) {
       const data = docSnap.data();
       const currentDb = loadLocalDB();
       currentDb.settings = data as AppSettings;
       lastSyncedClient.settings["global"] = JSON.stringify(data);
+      saveLastSyncedClient();
       localStorage.setItem('lumora_local_db', JSON.stringify(currentDb));
       if (typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent("lumoradb-updated", { detail: { collection: "settings" } }));
       }
     }
   }, (error) => {
-    console.error("[Client Firestore] Listener error on settings:", error);
+    if (!checkQuotaExceeded(error)) {
+      console.error("[Client Firestore] Listener error on settings:", error);
+    }
   });
+  activeClientUnsubscribers.push(unsubSettings);
 
   // chatHistory listener
-  onSnapshot(collection(fDb, "chatHistory"), (snapshot) => {
+  const unsubChat = onSnapshot(collection(fDb, "chatHistory"), (snapshot) => {
     const currentDb = loadLocalDB();
     if (!currentDb.chatHistory) currentDb.chatHistory = {};
     let updated = false;
@@ -773,14 +858,18 @@ export function setupClientFirebaseSync() {
     });
 
     if (updated) {
+      saveLastSyncedClient();
       localStorage.setItem('lumora_local_db', JSON.stringify(currentDb));
       if (typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent("lumoradb-updated", { detail: { collection: "chatHistory" } }));
       }
     }
   }, (error) => {
-    console.error("[Client Firestore] Listener error on chatHistory:", error);
+    if (!checkQuotaExceeded(error)) {
+      console.error("[Client Firestore] Listener error on chatHistory:", error);
+    }
   });
+  activeClientUnsubscribers.push(unsubChat);
 }
 
 function saveLocalDB(db: LumoraDB) {
