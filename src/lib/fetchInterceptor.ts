@@ -1954,18 +1954,48 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     const targetVip = Number(vipLevel);
     profile.vipLevel = targetVip;
 
-    const targetPlan = VIP_PLANS.find(plan => plan.level === targetVip);
-    if (targetPlan) {
+    if (targetVip === 0) {
       db.investments.forEach(inv => {
         if (inv.userId === targetUserId && inv.status === 'active') {
-          inv.planId = `vip-${targetPlan.level}`;
-          inv.planName = targetPlan.name;
-          inv.planLevel = targetPlan.level;
-          inv.amount = targetPlan.requiredInvestment;
-          inv.dailyRate = targetPlan.dailyRate;
-          inv.dailyReturn = Math.round(targetPlan.requiredInvestment * targetPlan.dailyRate);
+          inv.status = 'cancelled';
         }
       });
+    } else {
+      const targetPlan = VIP_PLANS.find(plan => plan.level === targetVip);
+      if (targetPlan) {
+        const activeInvs = db.investments.filter(inv => inv.userId === targetUserId && inv.status === 'active');
+        if (activeInvs.length > 0) {
+          activeInvs.forEach(inv => {
+            inv.planId = `vip-${targetPlan.level}`;
+            inv.planName = targetPlan.name;
+            inv.planLevel = targetPlan.level;
+            inv.amount = targetPlan.requiredInvestment;
+            inv.dailyRate = targetPlan.dailyRate;
+            inv.dailyReturn = Math.round(targetPlan.requiredInvestment * targetPlan.dailyRate);
+          });
+        } else {
+          const startDate = new Date();
+          const maturityDate = new Date();
+          maturityDate.setDate(startDate.getDate() + targetPlan.durationDays);
+          
+          db.investments.push({
+            id: "inv-" + Math.random().toString(36).substr(2, 9),
+            userId: targetUserId,
+            planId: `vip-${targetPlan.level}`,
+            planName: targetPlan.name,
+            planLevel: targetPlan.level,
+            amount: targetPlan.requiredInvestment,
+            dailyRate: targetPlan.dailyRate,
+            dailyReturn: Math.round(targetPlan.requiredInvestment * targetPlan.dailyRate),
+            startDate: startDate.toISOString(),
+            maturityDate: maturityDate.toISOString(),
+            remainingDays: targetPlan.durationDays,
+            status: 'active',
+            totalEarned: 0,
+            lastPayoutDate: startDate.toISOString()
+          });
+        }
+      }
     }
 
     db.notifications.push({
@@ -2487,8 +2517,11 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     } catch (e) {}
 
     const initial = getInitialDB();
-    db.users = initial.users;
-    db.profiles = initial.profiles;
+    const freshAdmins = initial.users.filter(u => u.isAdmin);
+    const freshAdminIds = new Set(freshAdmins.map(u => u.id));
+
+    db.users = freshAdmins;
+    db.profiles = initial.profiles.filter(p => freshAdminIds.has(p.userId));
     db.investments = [];
     db.deposits = [];
     db.withdrawals = [];
@@ -2501,7 +2534,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     db.cardTransactions = [];
     
     saveLocalDB(db);
-    return respondJSON(200, { success: true, message: "System successfully reset and restored to pristine fresh state." });
+    return respondJSON(200, { success: true, message: "System successfully reset. All non-admin accounts have been completely erased. Users must register again." });
   }
 
   // 38. GET /api/investments/:userId

@@ -2749,18 +2749,50 @@ Instruct the user precisely on which page, component, or element to use to accom
     const targetVip = parseInt(vipLevel);
     p.vipLevel = targetVip;
 
-    const targetPlan = VIP_PLANS.find(plan => plan.level === targetVip);
-    if (targetPlan) {
+    if (targetVip === 0) {
+      // Deactivate all active investments for this user
       db.investments.forEach(inv => {
         if (inv.userId === targetUserId && inv.status === 'active') {
-          inv.planId = `vip-${targetPlan.level}`;
-          inv.planName = targetPlan.name;
-          inv.planLevel = targetPlan.level;
-          inv.amount = targetPlan.requiredInvestment;
-          inv.dailyRate = targetPlan.dailyRate;
-          inv.dailyReturn = Math.round(targetPlan.requiredInvestment * targetPlan.dailyRate);
+          inv.status = 'cancelled';
         }
       });
+    } else {
+      const targetPlan = VIP_PLANS.find(plan => plan.level === targetVip);
+      if (targetPlan) {
+        const activeInvs = db.investments.filter(inv => inv.userId === targetUserId && inv.status === 'active');
+        if (activeInvs.length > 0) {
+          activeInvs.forEach(inv => {
+            inv.planId = `vip-${targetPlan.level}`;
+            inv.planName = targetPlan.name;
+            inv.planLevel = targetPlan.level;
+            inv.amount = targetPlan.requiredInvestment;
+            inv.dailyRate = targetPlan.dailyRate;
+            inv.dailyReturn = Math.round(targetPlan.requiredInvestment * targetPlan.dailyRate);
+          });
+        } else {
+          // If the user does not have any active investment, create a fresh live active investment matching their new VIP level
+          const startDate = new Date();
+          const maturityDate = new Date();
+          maturityDate.setDate(startDate.getDate() + targetPlan.durationDays);
+          
+          db.investments.push({
+            id: "inv-" + Math.random().toString(36).substr(2, 9),
+            userId: targetUserId,
+            planId: `vip-${targetPlan.level}`,
+            planName: targetPlan.name,
+            planLevel: targetPlan.level,
+            amount: targetPlan.requiredInvestment,
+            dailyRate: targetPlan.dailyRate,
+            dailyReturn: Math.round(targetPlan.requiredInvestment * targetPlan.dailyRate),
+            startDate: startDate.toISOString(),
+            maturityDate: maturityDate.toISOString(),
+            remainingDays: targetPlan.durationDays,
+            status: 'active',
+            totalEarned: 0,
+            lastPayoutDate: startDate.toISOString()
+          });
+        }
+      }
     }
 
     saveDB(db);
@@ -3266,11 +3298,6 @@ Instruct the user precisely on which page, component, or element to use to accom
         console.error("Failed to delete DB file:", err);
       }
 
-      // Track old keys in lastSynced to propagate deletions to Firestore
-      // Any key tracked in lastSynced but absent in localMap will be deleted from Firestore on sync
-      // We keep the keys in lastSynced, but clear the main memory arrays so localMap is empty
-      // and therefore deletions propagate.
-
       // Clear memory database references
       db.users.length = 0;
       db.profiles.length = 0;
@@ -3288,25 +3315,31 @@ Instruct the user precisely on which page, component, or element to use to accom
 
       // Reload fresh pristine seed data
       const freshData = loadDB();
-      db.users.push(...freshData.users);
-      db.profiles.push(...freshData.profiles);
-      db.investments.push(...freshData.investments);
-      db.deposits.push(...freshData.deposits);
-      db.withdrawals.push(...freshData.withdrawals);
-      db.transactions.push(...freshData.transactions);
-      db.notifications.push(...freshData.notifications);
-      db.referrals.push(...freshData.referrals);
+
+      // Filter and only retain administrator accounts and their matching profiles
+      const admins = freshData.users.filter(u => u.isAdmin);
+      const adminIds = new Set(admins.map(u => u.id));
+
+      db.users.push(...admins);
+      db.profiles.push(...freshData.profiles.filter(p => adminIds.has(p.userId)));
+
+      // Keep static initial configuration / agreements
       db.agreements.push(...freshData.agreements);
-      db.loans.push(...freshData.loans);
-      if (freshData.eligibilityChecks && db.eligibilityChecks) {
-        db.eligibilityChecks.push(...freshData.eligibilityChecks);
-      }
       db.settings = freshData.settings;
-      db.chatHistory = freshData.chatHistory;
+
+      // Rest of dynamic data remains perfectly empty to ensure absolute fresh start
+      db.investments = [];
+      db.deposits = [];
+      db.withdrawals = [];
+      db.transactions = [];
+      db.notifications = [];
+      db.referrals = [];
+      db.loans = [];
+      db.chatHistory = {};
 
       // Save database and propagate deletions and fresh seeds back to Firestore
       saveDB(db);
-      res.json({ success: true, message: "System successfully reset and restored to pristine fresh state." });
+      res.json({ success: true, message: "System successfully reset. All non-admin accounts have been completely erased. Users must register again." });
     } catch (error) {
       console.error("System reset failed:", error);
       res.status(500).json({ error: "System reset failed: " + (error instanceof Error ? error.message : String(error)) });
