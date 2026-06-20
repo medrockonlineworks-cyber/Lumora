@@ -168,6 +168,7 @@ interface LumoraDB {
   settings: AppSettings;
   loans: Loan[];
   eligibilityChecks?: EligibilityCheck[];
+  adminLogs?: any[];
 }
 
 // Global default settings
@@ -2507,6 +2508,143 @@ Instruct the user precisely on which page, component, or element to use to accom
       };
     });
     res.json(list);
+  });
+
+  // Register a user by Admin
+  app.post("/api/admin/users/register", (req, res) => {
+    try {
+      const { fullName, phone, email, password, referralCode, initialVipLevel, initialBalance, makeAdmin } = req.body;
+      console.log("[Admin Backend Registration] Request received for phone:", phone || "None");
+
+      if (!fullName || !phone || !email || !password) {
+        return res.status(400).json({ error: "All fields: Name, Phone, Email, and Password are required." });
+      }
+
+      const cleanName = fullName.toString().trim();
+      if (cleanName.length < 2 || cleanName.length > 64) {
+        return res.status(400).json({ error: "Full name must be between 2 and 64 characters." });
+      }
+
+      const cleanPhone = phone.toString().trim();
+      const phoneRegex = /^(09|07|\+251)[0-9]{8}$/;
+      if (!phoneRegex.test(cleanPhone)) {
+        return res.status(400).json({ error: "Invalid phone number. Must start with 09, 07, or +251, with exactly 9 or 10 digits." });
+      }
+
+      const cleanEmail = email.toString().trim();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(cleanEmail)) {
+        return res.status(400).json({ error: "Invalid email address format." });
+      }
+
+      const cleanPass = password.toString();
+      if (cleanPass.length < 6 || cleanPass.length > 32) {
+        return res.status(400).json({ error: "Password must be between 6 and 32 characters in length." });
+      }
+
+      const userExists = db.users.some(u => u.phone === cleanPhone);
+      if (userExists) {
+        return res.status(409).json({ error: "This phone number is already registered." });
+      }
+
+      const userId = "user-" + Math.random().toString(36).substr(2, 9);
+      const systemReferral = "LUM" + Math.random().toString(36).substr(2, 5).toUpperCase();
+
+      // Check if referralCode matches any user
+      let referrer: any = undefined;
+      if (referralCode) {
+        referrer = db.users.find(u => u.referralCode === referralCode);
+      }
+
+      const newUser: any = {
+        id: userId,
+        fullName: cleanName,
+        phone: cleanPhone,
+        email: cleanEmail,
+        password: cleanPass,
+        isAdmin: !!makeAdmin,
+        status: "active",
+        registrationDate: new Date().toISOString(),
+        referralCode: systemReferral,
+        referredBy: referrer ? referralCode : undefined
+      };
+
+      const vipLvl = parseInt(initialVipLevel) || 0;
+      const walletAmt = parseFloat(initialBalance) || 0;
+
+      const newProfile: any = {
+        userId,
+        fullName: cleanName,
+        phone: cleanPhone,
+        email: cleanEmail,
+        vipLevel: vipLvl,
+        walletBalance: walletAmt,
+        totalDeposits: walletAmt > 0 ? walletAmt : 0,
+        totalWithdrawals: 0,
+        totalInvestments: 0,
+        totalEarnings: 0,
+        referralCode: systemReferral,
+        teamSize: 0,
+        registrationDate: new Date().toISOString(),
+        idCardFront: "",
+        idCardBack: "",
+        idSelfie: "",
+        idVerificationStatus: "unsubmitted",
+        bankName: "",
+        accountNumber: "",
+        accountHolderName: "",
+        transactionPin: ""
+      };
+
+      db.users.push(newUser);
+      db.profiles.push(newProfile);
+
+      if (referrer) {
+        const referrerProfile = db.profiles.find(p => p.userId === referrer.id);
+        if (referrerProfile) {
+          referrerProfile.teamSize += 1;
+        }
+        
+        const newReferralRelation: any = {
+          id: "ref-" + Math.random().toString(36).substr(2, 9),
+          referrerId: referrer.id,
+          referredId: userId,
+          referredName: cleanName,
+          referredPhone: cleanPhone,
+          referredVipLevel: vipLvl,
+          registrationDate: new Date().toISOString(),
+          rewardEarned: 0
+        };
+        db.referrals.push(newReferralRelation);
+      }
+
+      // Add welcome notification
+      db.notifications.push({
+        id: "not-" + Math.random().toString(36).substr(2, 9),
+        userId,
+        title: "Welcome to LUMORA!",
+        message: "Congratulations! Your account has been registered by an Administrator. Connect with us via official CBE deposit to choose a VIP Investment plan.",
+        read: false,
+        date: new Date().toISOString()
+      });
+
+      // Add Admin Action Log
+      db.adminLogs = db.adminLogs || [];
+      db.adminLogs.push({
+        id: "log-" + Math.random().toString(36).substr(2, 9),
+        adminId: "admin-system",
+        action: "Register User",
+        details: `Registered new user ${cleanName} (${cleanPhone}) with initial VIP ${vipLvl} and balance ${walletAmt} ETB.`,
+        date: new Date().toISOString()
+      });
+
+      saveDB(db);
+      console.log(`[Admin Backend Registration Success] Registered ${userId} successfully.`);
+      res.json({ success: true, user: newUser, profile: newProfile });
+    } catch (err: any) {
+      console.error("[Admin Backend Registration Exception]", err);
+      res.status(500).json({ error: "Internal server error during admin registration flow." });
+    }
   });
 
   // Suspend or Activate user

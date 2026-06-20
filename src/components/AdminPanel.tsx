@@ -80,7 +80,82 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   const [showBalanceConfirm, setShowBalanceConfirm] = useState(false);
   const [newPasswordValue, setNewPasswordValue] = useState('');
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
-  
+
+  // Admin explicit register states
+  const [showRegisterUserModal, setShowRegisterUserModal] = useState(false);
+  const [regName, setRegName] = useState('');
+  const [regPhone, setRegPhone] = useState('');
+  const [regEmail, setRegEmail] = useState('');
+  const [regPass, setRegPass] = useState('');
+  const [regReferralCode, setRegReferralCode] = useState('');
+  const [regInitialVip, setRegInitialVip] = useState('0');
+  const [regInitialBalance, setRegInitialBalance] = useState('0');
+  const [regMakeAdmin, setRegMakeAdmin] = useState(false);
+
+  const handleAdminRegisterUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!regName.trim() || !regPhone.trim() || !regEmail.trim() || !regPass.trim()) {
+      showToast("All mandatory fields (Name, Phone, Email, Password) must be provided.", "error");
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(regEmail.trim())) {
+      showToast("Please provide a valid email structure.", "error");
+      return;
+    }
+
+    // Phone validation
+    const phoneRegex = /^(09|07|\+251)[0-9]{8}$/;
+    if (!phoneRegex.test(regPhone.trim())) {
+      showToast("Invalid phone. Must start with 09, 07, or +251, with 9 or 10 digits.", "error");
+      return;
+    }
+
+    setActionLoading('admin-register');
+    try {
+      const res = await fetch('/api/admin/users/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: regName.trim(),
+          phone: regPhone.trim(),
+          email: regEmail.trim(),
+          password: regPass.trim(),
+          referralCode: regReferralCode.toUpperCase().trim(),
+          initialVipLevel: parseInt(regInitialVip) || 0,
+          initialBalance: parseFloat(regInitialBalance) || 0,
+          makeAdmin: regMakeAdmin
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        showToast(`User ${regName} registered successfully!`, "success");
+        // Reset fields
+        setRegName('');
+        setRegPhone('');
+        setRegEmail('');
+        setRegPass('');
+        setRegReferralCode('');
+        setRegInitialVip('0');
+        setRegInitialBalance('0');
+        setRegMakeAdmin(false);
+        setShowRegisterUserModal(false);
+        // Refresh users list
+        fetchAllAdminData();
+      } else {
+        showToast(data.error || "Registration failed.", "error");
+      }
+    } catch (err: any) {
+      console.error(err);
+      showToast("Connection error: " + (err.message || String(err)), "error");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   // System Settings state inputs
   const [cbeAccountName, setCbeAccountName] = useState('');
   const [cbeAccountNumber, setCbeAccountNumber] = useState('');
@@ -1102,20 +1177,31 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
           {activeSubTab === 'users' && (
             <div className="space-y-4">
               {/* Status filter controls for Users */}
-              <div className="flex items-center space-x-2 border-b border-slate-200/60 pb-3">
-                {(['all', 'active', 'suspended'] as const).map((fil) => (
-                  <button
-                    key={fil}
-                    onClick={() => setUserStatusFilter(fil)}
-                    className={`px-3.5 py-1.5 rounded-lg text-[9.5px] font-black uppercase tracking-wider transition-all cursor-pointer ${
-                      userStatusFilter === fil 
-                        ? 'bg-[#0A3D91] text-white' 
-                        : 'text-slate-500 hover:text-slate-900 bg-white border border-slate-200/60'
-                    }`}
-                  >
-                    {fil === 'all' ? 'All Accounts' : fil === 'active' ? 'Active' : 'Suspended'} ({users.filter(u => fil === 'all' ? true : u.status === fil).length})
-                  </button>
-                ))}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-200/60 pb-3 gap-3">
+                <div className="flex items-center space-x-2">
+                  {(['all', 'active', 'suspended'] as const).map((fil) => (
+                    <button
+                      key={fil}
+                      onClick={() => setUserStatusFilter(fil)}
+                      className={`px-3.5 py-1.5 rounded-lg text-[9.5px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+                        userStatusFilter === fil 
+                          ? 'bg-[#0A3D91] text-white' 
+                          : 'text-slate-500 hover:text-slate-900 bg-white border border-slate-200/60'
+                      }`}
+                    >
+                      {fil === 'all' ? 'All Accounts' : fil === 'active' ? 'Active' : 'Suspended'} ({users.filter(u => fil === 'all' ? true : u.status === fil).length})
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowRegisterUserModal(true)}
+                  className="flex items-center space-x-1.5 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-sm cursor-pointer active:scale-95 w-fit"
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span>Register Member</span>
+                </button>
               </div>
 
               <div className="overflow-x-auto rounded-2xl border border-slate-200/50 bg-white shadow-3xs">
@@ -1954,6 +2040,184 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                   Send the Reason
                 </button>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ADMIN REGISTRATION STATION MODAL */}
+      <AnimatePresence>
+        {showRegisterUserModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[1000] bg-slate-950/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 border border-slate-200 shadow-2xl relative space-y-5 my-8 animate-in fade-in zoom-in-95 duration-150"
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  setShowRegisterUserModal(false);
+                }}
+                className="absolute top-4 right-4 p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+              >
+                <XCircle className="w-5 h-5" />
+              </button>
+
+              <div className="border-b border-slate-100 pb-3">
+                <div className="flex items-center space-x-2">
+                  <UserPlus className="w-5 h-5 text-emerald-600" />
+                  <h4 className="font-display font-black text-xs text-[#0A3D91] uppercase tracking-wider">
+                    Register a New Member
+                  </h4>
+                </div>
+                <p className="text-slate-500 text-[10.5px] mt-1 font-medium">
+                  Direct system authorization to create customer accounts and instantiate starting parameters.
+                </p>
+              </div>
+
+              <form onSubmit={handleAdminRegisterUser} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Name */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Full Name *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Almaz Kebede"
+                      value={regName}
+                      onChange={(e) => setRegName(e.target.value)}
+                      className="w-full p-3 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#0A3D91]"
+                    />
+                  </div>
+
+                  {/* Phone */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Phone Number *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. 0912345678"
+                      value={regPhone}
+                      onChange={(e) => setRegPhone(e.target.value)}
+                      className="w-full p-3 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-semibold font-mono focus:outline-none focus:ring-1 focus:ring-[#0A3D91]"
+                    />
+                  </div>
+
+                  {/* Email */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Email Address *</label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="e.g. user@example.com"
+                      value={regEmail}
+                      onChange={(e) => setRegEmail(e.target.value)}
+                      className="w-full p-3 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#0A3D91]"
+                    />
+                  </div>
+
+                  {/* Password */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Password *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Min 6 characters"
+                      value={regPass}
+                      onChange={(e) => setRegPass(e.target.value)}
+                      className="w-full p-3 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#0A3D91]"
+                    />
+                  </div>
+
+                  {/* Referral (Optional) */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Referrer Code (Optional)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. LUMabc12"
+                      value={regReferralCode}
+                      onChange={(e) => setRegReferralCode(e.target.value)}
+                      className="w-full p-3 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-semibold uppercase tracking-wider focus:outline-none focus:ring-1 focus:ring-[#0A3D91]"
+                    />
+                  </div>
+
+                  {/* VIP Level */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Starting VIP level</label>
+                    <select
+                      value={regInitialVip}
+                      onChange={(e) => setRegInitialVip(e.target.value)}
+                      className="w-full p-3 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#0A3D91]"
+                    >
+                      <option value="0">VIP 0 (Regular User)</option>
+                      {[...Array(15)].map((_, i) => (
+                        <option key={i + 1} value={i + 1}>VIP {i + 1}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Initial Balance */}
+                  <div className="space-y-1 sm:col-span-2">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Starting Wallet Balance (ETB)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="e.g. 500.00"
+                      value={regInitialBalance}
+                      onChange={(e) => setRegInitialBalance(e.target.value)}
+                      className="w-full p-3 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#0A3D91]"
+                    />
+                  </div>
+                </div>
+
+                {/* Make Admin checkbox */}
+                <div className="flex items-center space-x-2 pt-2">
+                  <input
+                    type="checkbox"
+                    id="regMakeAdmin"
+                    checked={regMakeAdmin}
+                    onChange={(e) => setRegMakeAdmin(e.target.checked)}
+                    className="w-4 h-4 text-[#0A3D91] border-slate-300 rounded focus:ring-[#0A3D91]"
+                  />
+                  <label htmlFor="regMakeAdmin" className="text-[10.5px] font-bold text-slate-700 uppercase tracking-wide cursor-pointer select-none">
+                    Grant Administrator (Root) Privileges
+                  </label>
+                </div>
+
+                <div className="flex space-x-2 pt-4 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowRegisterUserModal(false);
+                    }}
+                    className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 font-extrabold text-[10.5px] text-slate-700 uppercase tracking-wider rounded-xl transition-all cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={actionLoading === 'admin-register'}
+                    className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 font-extrabold text-[10.5px] text-white uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center space-x-1.5"
+                  >
+                    {actionLoading === 'admin-register' ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <UserPlus className="w-4 h-4" />
+                        <span>Register User</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
             </motion.div>
           </motion.div>
         )}
