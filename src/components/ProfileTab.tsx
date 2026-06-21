@@ -401,6 +401,9 @@ export default function ProfileTab({
 
   // User Password Change States
   const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [showFinancialRecords, setShowFinancialRecords] = useState(false);
+  const [selectedLedgerType, setSelectedLedgerType] = useState<'deposits' | 'withdrawals'>('deposits');
+  const [ledgerStatusFilter, setLedgerStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -1977,40 +1980,248 @@ export default function ProfileTab({
             </form>
           </div>
         )}
-      </div>
 
-      {/* CARD 5b: Lumora Mobile Application Portal */}
-      <div className="rounded-[2.2rem] bg-white border border-slate-100 shadow-sm overflow-hidden text-left">
-        {/* Toggle header button */}
         <button
-          type="button"
-          onClick={() => setShowPWADetails(!showPWADetails)}
-          className="w-full p-6 pb-4 flex items-center justify-between hover:bg-slate-50/50 active:bg-slate-50 transition-colors text-left focus:outline-none"
+          onClick={() => setShowFinancialRecords(!showFinancialRecords)}
+          className="w-full flex items-center justify-between p-3.5 rounded-2xl hover:bg-slate-100 text-xs text-slate-900 font-black border-t border-slate-100 transition-all cursor-pointer group animate-fade-in"
         >
-          <div className="flex items-center space-x-2.5 justify-start">
-            <div className="p-2.5 bg-[#0A3D91]/10 text-[#0A3D91] rounded-2xl">
-              <Smartphone className="w-4.5 h-4.5 text-[#0A3D91] animate-pulse" />
+          <div className="flex items-center space-x-3.5">
+            <div className="p-2 bg-amber-100 text-amber-700 rounded-xl group-hover:bg-amber-200 transition-all">
+              <Coins className="w-4.5 h-4.5 text-amber-700" />
             </div>
-            <div>
-              <h4 className="font-display font-black text-sm text-[#0A3D91] uppercase tracking-wider leading-none">
-                PWA Mobile Application
-              </h4>
-              <p className="text-[9.5px] text-slate-500 font-medium mt-1">
-                {showPWADetails ? 'Click to hide details' : 'Click to view installation details'}
-              </p>
+            <div className="text-left">
+              <span className="block text-slate-950 text-[11.5px] font-black leading-none">
+                {language === 'am' ? 'የፋይናንስ መዝገቦች' :
+                 language === 'om' ? 'Galmeewwan Faayinaansii' :
+                 language === 'ti' ? 'ፋይናንሳዊ መዛግብቲ' :
+                 language === 'so' ? 'Diiwaanada Maaliyadda' :
+                 'Financial Records'}
+              </span>
+              <span className="text-[8.5px] text-amber-800 block tracking-widest uppercase font-mono mt-1 font-extrabold">
+                {language === 'am' ? 'ገቢዎችና ወጪዎች' :
+                 language === 'om' ? 'Galii fi Baasii' :
+                 language === 'ti' ? 'እቶትን ወጻእን' :
+                 language === 'so' ? 'Dhigashada & Qaadashada' :
+                 'Deposits & Withdrawals'}
+              </span>
             </div>
           </div>
-          
-          <div className="flex items-center space-x-2">
-            <LumoraLogo size="xs" type="icon" />
-            <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${showPWADetails ? 'rotate-180' : ''}`} />
+          <ChevronRight className={`w-4 h-4 text-slate-700 transition-transform duration-200 ${showFinancialRecords ? 'rotate-90' : ''}`} />
+        </button>
+
+        {showFinancialRecords && (
+          <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl mt-2 space-y-4 font-sans text-left animate-in fade-in duration-200">
+            <h4 className="font-display font-black text-[11px] text-[#0A3D91] uppercase tracking-widest border-b border-slate-200 pb-2 flex items-center justify-between">
+              <div className="flex items-center space-x-1.5">
+                <Coins className="w-3.5 h-3.5 text-[#0A3D91]" />
+                <span>
+                  {language === 'am' ? 'የገንዘብ እንቅስቃሴ ታሪክ' : 'Transaction Ledgers'}
+                </span>
+              </div>
+            </h4>
+
+            {/* Sub-tabs: Deposits and Withdrawals */}
+            <div className="grid grid-cols-2 gap-2 p-1 bg-slate-200/60 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setSelectedLedgerType('deposits')}
+                className={`py-2 rounded-lg font-black text-[10px] uppercase tracking-wider transition-all cursor-pointer text-center ${
+                  selectedLedgerType === 'deposits'
+                    ? 'bg-[#0A3D91] text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-950 bg-transparent'
+                }`}
+              >
+                {language === 'am' ? 'የተቀማጭ መዝገብ' : 'Deposit Records'} ({deposits.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedLedgerType('withdrawals')}
+                className={`py-2 rounded-lg font-black text-[10px] uppercase tracking-wider transition-all cursor-pointer text-center ${
+                  selectedLedgerType === 'withdrawals'
+                    ? 'bg-[#0A3D91] text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-950 bg-transparent'
+                }`}
+              >
+                {language === 'am' ? 'የወጪ መዝገብ' : 'Withdrawal Records'} ({withdrawals.length})
+              </button>
+            </div>
+
+            {/* Filter Row: All, Pending, Approved, Rejected */}
+            <div className="flex flex-wrap gap-1.5 pb-1">
+              {['all', 'pending', 'approved', 'rejected'].map((status) => {
+                const isActive = ledgerStatusFilter === status;
+                let count = 0;
+                if (selectedLedgerType === 'deposits') {
+                  count = status === 'all' ? deposits.length : deposits.filter(d => d.status === status).length;
+                } else {
+                  count = status === 'all' ? withdrawals.length : withdrawals.filter(w => w.status === status).length;
+                }
+
+                return (
+                  <button
+                    key={status}
+                    type="button"
+                    onClick={() => setLedgerStatusFilter(status as any)}
+                    className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border transition-all cursor-pointer flex items-center space-x-1.5 ${
+                      isActive
+                        ? status === 'pending' ? 'bg-amber-100 text-amber-800 border-amber-300 shadow-3xs'
+                        : status === 'approved' ? 'bg-emerald-100 text-emerald-800 border-emerald-300 shadow-3xs'
+                        : status === 'rejected' ? 'bg-rose-100 text-rose-800 border-rose-300 shadow-3xs'
+                        : 'bg-slate-800 text-white border-slate-800 shadow-3xs'
+                        : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200'
+                    }`}
+                  >
+                    <span>{status}</span>
+                    <span className="bg-slate-950/5 px-1 py-0.5 rounded text-[8px] font-black">{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Render items based on chosen subtab and filter status */}
+            <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1 scrollbar-none">
+              {selectedLedgerType === 'deposits' ? (
+                (() => {
+                  const items = deposits.filter((d) => ledgerStatusFilter === 'all' || d.status === ledgerStatusFilter);
+                  if (items.length === 0) {
+                    return (
+                      <div className="p-6 rounded-2xl bg-white border border-slate-100 flex flex-col items-center justify-center text-center">
+                        <Coins className="w-8 h-8 text-slate-300 stroke-[1.5] mb-2" />
+                        <p className="text-[10px] text-slate-700 uppercase font-bold tracking-wider">No matching deposits found</p>
+                      </div>
+                    );
+                  }
+                  return items.map((d) => (
+                    <div
+                      key={d.id}
+                      className="p-3 rounded-xl bg-white border border-slate-200 flex justify-between items-center shadow-3xs relative overflow-hidden"
+                    >
+                      {d.status === 'approved' && (
+                        <div className="absolute right-[24%] top-[-4px] opacity-100 pointer-events-none z-0 transform scale-75 origin-top-right select-none">
+                          <LumoraStamp text="APPROVED" variant="green" size="xs" tilted={true} highContrast={true} />
+                        </div>
+                      )}
+                      {d.status === 'rejected' && (
+                        <div className="absolute right-[24%] top-[-4px] opacity-100 pointer-events-none z-0 transform scale-75 origin-top-right select-none">
+                          <LumoraStamp text="REJECTED" variant="rose" size="xs" tilted={true} highContrast={true} />
+                        </div>
+                      )}
+
+                      <div className="relative z-10 text-left">
+                        <h5 className="text-[11px] font-display font-black text-slate-950">
+                          {(d.amount ?? 0).toLocaleString()} ETB
+                        </h5>
+                        <p className="text-[8px] text-slate-700 uppercase font-mono font-black mt-0.5">
+                          Time: {new Date(d.submittedAt).toLocaleDateString()}
+                        </p>
+                        {d.bankReference && (
+                          <p className="text-[7.5px] text-[#0180FE] font-mono font-black mt-1 select-all">
+                            Ref: {d.bankReference}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right relative z-10 font-sans">
+                        <span className={`text-[8px] font-black px-2 py-0.5 rounded-full border uppercase tracking-wider ${
+                          d.status === 'approved' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
+                          d.status === 'rejected' ? 'bg-rose-100 text-rose-800 border-rose-300' :
+                          'bg-amber-100 text-amber-800 border-amber-300 animate-pulse'
+                        }`}>
+                          {d.status}
+                        </span>
+                        {d.status === 'rejected' && d.rejectionReason && (
+                          <p className="text-[7.5px] text-rose-800 mt-1 max-w-[120px] truncate font-black font-sans">
+                            Notes: {d.rejectionReason}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ));
+                })()
+              ) : (
+                (() => {
+                  const items = withdrawals.filter((w) => ledgerStatusFilter === 'all' || w.status === ledgerStatusFilter);
+                  if (items.length === 0) {
+                    return (
+                      <div className="p-6 rounded-2xl bg-white border border-slate-100 flex flex-col items-center justify-center text-center">
+                        <ArrowUpRight className="w-8 h-8 text-slate-300 stroke-[1.5] mb-2" />
+                        <p className="text-[10px] text-slate-700 uppercase font-bold tracking-wider">No matching withdrawals found</p>
+                      </div>
+                    );
+                  }
+                  return items.map((w) => (
+                    <div
+                      key={w.id}
+                      className="p-3 rounded-xl bg-white border border-slate-200 flex justify-between items-center shadow-3xs relative overflow-hidden"
+                    >
+                      {w.status === 'approved' && (
+                        <div className="absolute right-[24%] top-[-4px] opacity-100 pointer-events-none z-0 transform scale-75 origin-top-right select-none">
+                          <LumoraStamp text="APPROVED" variant="green" size="xs" tilted={true} highContrast={true} />
+                        </div>
+                      )}
+                      {w.status === 'rejected' && (
+                        <div className="absolute right-[24%] top-[-4px] opacity-100 pointer-events-none z-0 transform scale-75 origin-top-right select-none">
+                          <LumoraStamp text="REJECTED" variant="rose" size="xs" tilted={true} highContrast={true} />
+                        </div>
+                      )}
+
+                      <div className="relative z-10 text-left">
+                        <h5 className="text-[11px] font-display font-black text-slate-950">
+                          {(w.amount ?? 0).toLocaleString()} ETB
+                        </h5>
+                        <p className="text-[8px] text-slate-700 uppercase font-mono font-black mt-0.5">
+                          Time: {new Date(w.submittedAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="text-right relative z-10 font-sans">
+                        <span className={`text-[8px] font-black px-2 py-0.5 rounded-full border uppercase tracking-wider ${
+                          w.status === 'approved' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
+                          w.status === 'rejected' ? 'bg-rose-100 text-rose-800 border-rose-300' :
+                          'bg-amber-100 text-amber-800 border-amber-300 animate-pulse'
+                        }`}>
+                          {w.status}
+                        </span>
+                        {w.status === 'rejected' && w.rejectionReason && (
+                          <p className="text-[7.5px] text-rose-800 mt-1 max-w-[120px] truncate font-black font-sans">
+                            Notes: {w.rejectionReason}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ));
+                })()
+              )}
+            </div>
           </div>
+        )}
+
+        <button
+          onClick={() => setShowPWADetails(!showPWADetails)}
+          className="w-full flex items-center justify-between p-3.5 rounded-2xl hover:bg-slate-100 text-xs text-slate-900 font-black border-t border-slate-100 transition-all cursor-pointer group animate-fade-in"
+        >
+          <div className="flex items-center space-x-3.5">
+            <div className="p-2 bg-[#0A3D91]/15 text-[#0A3D91] rounded-xl group-hover:bg-[#0A3D91]/25 transition-all">
+              <Smartphone className="w-4.5 h-4.5 text-[#0A3D91]" />
+            </div>
+            <div className="text-left">
+              <span className="block text-slate-950 text-[11.5px] font-black leading-none">
+                {language === 'am' ? 'አፕሊኬሽን' :
+                 language === 'om' ? 'Aappilikeeshinii' :
+                 language === 'ti' ? 'ኣፕሊኬሽን' :
+                 language === 'so' ? 'App-ka' :
+                 'Application'}
+              </span>
+              <span className="text-[8.5px] text-[#0A3D91] block tracking-widest uppercase font-mono mt-1 font-extrabold text-blue-800">
+                App
+              </span>
+            </div>
+          </div>
+          <ChevronRight className={`w-4 h-4 text-slate-700 transition-transform duration-200 ${showPWADetails ? 'rotate-90' : ''}`} />
         </button>
 
         {showPWADetails && (
-          <div className="px-6 pb-6 pt-2 border-t border-slate-50/50 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl mt-2 space-y-4 font-sans text-left animate-in fade-in duration-200">
             {/* Dynamic PWA Installation Action Trigger Button */}
-            <div className="space-y-3 pt-1">
+            <div className="space-y-3">
               {isAppInstalled ? (
                 <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-150 text-center space-y-1.5 animate-in fade-in">
                   <span className="inline-flex items-center space-x-1 bg-emerald-100 text-emerald-800 font-black px-2.5 py-1 rounded-xl text-[9px] uppercase tracking-wider border border-emerald-300">
@@ -2032,18 +2243,18 @@ export default function ProfileTab({
                   onClick={handlePWAInstall}
                   className="w-full py-3 bg-[#0A3D91] hover:bg-[#072A66] text-white transition-all active:scale-98 font-black text-[11px] rounded-xl shadow cursor-pointer flex items-center justify-center space-x-2"
                 >
-                  <Download className="w-4 h-4 text-white" />
+                  <Download className="w-4 h-4 text-white animate-bounce" />
                   <span>Install Lumora Mobile App (PWA)</span>
                 </button>
               )}
             </div>
 
             {/* Unified Instructions - Grid layout */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Chrome / Android Guide */}
               <div className="bg-slate-50/70 p-3.5 rounded-2xl border border-slate-200/80 space-y-2 text-left text-slate-800 font-sans text-xs">
                 <p className="font-bold text-[10px] text-[#0A3D91] uppercase tracking-wider border-b border-slate-200 pb-1 mb-1.5 flex items-center">
-                  <span className="w-2 h-2 rounded-full bg-amber-500 mr-1.5"></span>
+                  <span className="w-2 h-2 rounded-full bg-amber-500 mr-1.5 animate-pulse"></span>
                   Chrome & Android Instructions
                 </p>
                 <div className="flex items-start space-x-1.5">
@@ -2063,7 +2274,7 @@ export default function ProfileTab({
               {/* Safari / iOS Guide */}
               <div className="bg-slate-50/70 p-3.5 rounded-2xl border border-slate-200/80 space-y-2 text-left text-slate-800 font-sans text-xs">
                 <p className="font-bold text-[10px] text-[#0A3D91] uppercase tracking-wider border-b border-slate-200 pb-1 mb-1.5 flex items-center">
-                  <span className="w-2 h-2 rounded-full bg-blue-500 mr-1.5"></span>
+                  <span className="w-2 h-2 rounded-full bg-blue-500 mr-1.5 animate-pulse"></span>
                   Safari & iPhone Instructions
                 </p>
                 <div className="flex items-start space-x-1.5">
@@ -2091,145 +2302,6 @@ export default function ProfileTab({
           </div>
         )}
       </div>
-
-      {/* CARD 6: Interactive Transaction Ledger (Deposits & Withdrawals) */}
-      <div className="space-y-4 px-1">
-        {/* Header & Tabs */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-            <h4 className="font-display font-black text-xs text-slate-700 tracking-wider uppercase">
-              Financial Records
-            </h4>
-            
-            {/* Elegant Segmented Control */}
-            <div className="p-0.5 bg-slate-100 rounded-xl border border-slate-200/60 flex text-[10px] font-black uppercase tracking-wider self-start sm:self-auto select-none">
-              <button
-                onClick={() => setActiveLedgerTab('deposits')}
-                className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
-                  activeLedgerTab === 'deposits' 
-                    ? 'bg-[#0A3D91] text-white shadow-xs' 
-                    : 'text-slate-600 hover:text-slate-800'
-                }`}
-              >
-                Deposits ({deposits.length})
-              </button>
-              <button
-                onClick={() => setActiveLedgerTab('cashouts')}
-                className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
-                  activeLedgerTab === 'cashouts' 
-                    ? 'bg-[#0A3D91] text-white shadow-xs' 
-                    : 'text-slate-600 hover:text-slate-800'
-                }`}
-              >
-                Cashouts ({withdrawals.length})
-              </button>
-            </div>
-          </div>
-
-          <div className="space-y-2.5">
-            {activeLedgerTab === 'deposits' ? (
-              deposits.length === 0 ? (
-                <div className="p-6 rounded-2xl bg-white border border-slate-100 flex flex-col items-center justify-center text-center">
-                  <Coins className="w-8 h-8 text-slate-300 stroke-[1.5] mb-2" />
-                  <p className="text-[10px] text-slate-700 uppercase font-bold tracking-wider">No deposits recorded yet</p>
-                </div>
-              ) : (
-                deposits.map((d) => (
-                  <div 
-                    key={d.id}
-                    className="p-4 rounded-2xl bg-white border border-slate-200 flex justify-between items-center shadow-xs relative overflow-hidden"
-                  >
-                    {d.status === 'approved' && (
-                      <div className="absolute right-[24%] top-[-4px] opacity-100 pointer-events-none z-0 transform scale-80 origin-top-right select-none">
-                        <LumoraStamp text="APPROVED" variant="green" size="xs" tilted={true} highContrast={true} />
-                      </div>
-                    )}
-                    {d.status === 'rejected' && (
-                      <div className="absolute right-[24%] top-[-4px] opacity-100 pointer-events-none z-0 transform scale-80 origin-top-right select-none">
-                        <LumoraStamp text="REJECTED" variant="rose" size="xs" tilted={true} highContrast={true} />
-                      </div>
-                    )}
-
-                    <div className="relative z-10">
-                      <h5 className="text-[12.5px] font-display font-black text-slate-950">
-                        {(d.amount ?? 0).toLocaleString()} ETB
-                      </h5>
-                      <p className="text-[8.5px] text-slate-700 uppercase font-mono font-black mt-0.5">
-                        Deposit Time: {new Date(d.submittedAt).toLocaleDateString()}
-                      </p>
-                      {d.bankReference && (
-                        <p className="text-[8px] text-[#0180FE] font-mono font-black mt-1 select-all">
-                          Ref: {d.bankReference}
-                        </p>
-                      )}
-                    </div>
-                    <div className="text-right relative z-10 font-sans">
-                      <span className={`text-[8.5px] font-black px-3 py-1 rounded-full border uppercase tracking-wider ${
-                        d.status === 'approved' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
-                        d.status === 'rejected' ? 'bg-rose-100 text-rose-800 border-rose-300' :
-                        'bg-amber-100 text-amber-800 border-amber-300 animate-pulse'
-                      }`}>
-                        {d.status}
-                      </span>
-                      {d.status === 'rejected' && d.rejectionReason && (
-                        <p className="text-[8px] text-rose-800 mt-1 max-w-[150px] truncate font-black font-sans">
-                          Notes: {d.rejectionReason}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ))
-              )
-            ) : (
-              withdrawals.length === 0 ? (
-                <div className="p-6 rounded-2xl bg-white border border-slate-100 flex flex-col items-center justify-center text-center">
-                  <ArrowUpRight className="w-8 h-8 text-slate-300 stroke-[1.5] mb-2" />
-                  <p className="text-[10px] text-slate-700 uppercase font-bold tracking-wider">No cashouts recorded yet</p>
-                </div>
-              ) : (
-                withdrawals.map((w) => (
-                  <div 
-                    key={w.id}
-                    className="p-4 rounded-2xl bg-white border border-slate-200 flex justify-between items-center shadow-xs relative overflow-hidden"
-                  >
-                    {w.status === 'approved' && (
-                      <div className="absolute right-[24%] top-[-4px] opacity-100 pointer-events-none z-0 transform scale-80 origin-top-right select-none">
-                        <LumoraStamp text="APPROVED" variant="green" size="xs" tilted={true} highContrast={true} />
-                      </div>
-                    )}
-                    {w.status === 'rejected' && (
-                      <div className="absolute right-[24%] top-[-4px] opacity-100 pointer-events-none z-0 transform scale-80 origin-top-right select-none">
-                        <LumoraStamp text="REJECTED" variant="rose" size="xs" tilted={true} highContrast={true} />
-                      </div>
-                    )}
-
-                    <div className="relative z-10">
-                      <h5 className="text-[12.5px] font-display font-black text-slate-950">
-                        {(w.amount ?? 0).toLocaleString()} ETB
-                      </h5>
-                      <p className="text-[8.5px] text-slate-700 uppercase font-mono font-black mt-0.5">
-                        Wire Time: {new Date(w.submittedAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="text-right relative z-10 font-sans">
-                      <span className={`text-[8.5px] font-black px-3 py-1 rounded-full border uppercase tracking-wider ${
-                        w.status === 'approved' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
-                        w.status === 'rejected' ? 'bg-rose-100 text-rose-800 border-rose-300' :
-                        'bg-amber-100 text-amber-800 border-amber-300 animate-pulse'
-                      }`}>
-                        {w.status}
-                      </span>
-                      {w.status === 'rejected' && w.rejectionReason && (
-                        <p className="text-[8px] text-rose-800 mt-1 max-w-[150px] truncate font-black font-sans">
-                          Notes: {w.rejectionReason}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ))
-              )
-            )}
-          </div>
-        </div>
 
 
 
