@@ -14,13 +14,19 @@ interface AdminPanelProps {
 }
 
 export default function AdminPanel({ onBack }: AdminPanelProps) {
-  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'deposits' | 'withdrawals' | 'id-verify' | 'users' | 'loans' | 'settings' | 'cards'>('overview');
+  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'deposits' | 'withdrawals' | 'id-verify' | 'users' | 'loans' | 'settings' | 'cards' | 'audit-logs'>('overview');
   const [stats, setStats] = useState<any>(null);
   const [users, setUsers] = useState<any[]>([]);
   const [deposits, setDeposits] = useState<Deposit[]>([]);
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
   const [loans, setLoans] = useState<Loan[]>([]);
   const [settings, setSettings] = useState<AppSettings | null>(null);
+  const [adminLogs, setAdminLogs] = useState<any[]>([]);
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
+  const [showPurgeConfirm, setShowPurgeConfirm] = useState(false);
+  const [purgeConfirmWord, setPurgeConfirmWord] = useState('');
+  const [userToDelete, setUserToDelete] = useState<any | null>(null);
   
   // Card admin states
   const [allCards, setAllCards] = useState<any[]>([]);
@@ -201,17 +207,23 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   const fetchAllAdminData = async () => {
     setLoading(true);
     try {
-      const [resStats, resUsers, resDeposits, resWithdrawals, resLoans, resSettings] = await Promise.all([
+      const [resStats, resUsers, resDeposits, resWithdrawals, resLoans, resSettings, resLogs] = await Promise.all([
         fetch('/api/admin/stats'),
         fetch('/api/admin/users'),
         fetch('/api/admin/deposits'),
         fetch('/api/admin/withdrawals'),
         fetch('/api/admin/loans'),
-        fetch('/api/admin/settings')
+        fetch('/api/admin/settings'),
+        fetch('/api/admin/logs')
       ]);
 
       if (resStats.ok) setStats(await resStats.json());
       if (resUsers.ok) setUsers(await resUsers.json());
+      if (resLogs && resLogs.ok) {
+        const lgs = await resLogs.json();
+        lgs.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setAdminLogs(lgs);
+      }
       if (resDeposits.ok) {
         const deps = await resDeposits.json();
         // Sort newest first
@@ -524,6 +536,101 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
     }
   };
 
+  const handleDeleteIndividualUser = async (userId: string) => {
+    const adminId = localStorage.getItem('lumora_user_id');
+    if (!adminId) {
+      showToast("Session expired. Please log in again.", "error");
+      return;
+    }
+    setActionLoading(`delete-user-${userId}`);
+    try {
+      const res = await fetch('/api/admin/users/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, adminId })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(data.message || "User account deleted successfully.", "success");
+        setSelectedUserIds(prev => prev.filter(id => id !== userId));
+        fetchAllAdminData();
+      } else {
+        showToast(data.error || "Failed to delete user account.", "error");
+      }
+    } catch (err: any) {
+      console.error(err);
+      showToast("Network error deleting user.", "error");
+    } finally {
+      setActionLoading(null);
+      setUserToDelete(null);
+    }
+  };
+
+  const handleDeleteBulkUsers = async () => {
+    const adminId = localStorage.getItem('lumora_user_id');
+    if (!adminId) {
+      showToast("Session expired. Please log in again.", "error");
+      return;
+    }
+    setActionLoading('delete-bulk');
+    try {
+      const res = await fetch('/api/admin/users/delete-bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userIds: selectedUserIds, adminId })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(data.message || "Selected accounts deleted successfully.", "success");
+        setSelectedUserIds([]);
+        fetchAllAdminData();
+      } else {
+        showToast(data.error || "Failed to bulk delete accounts.", "error");
+      }
+    } catch (err: any) {
+      console.error(err);
+      showToast("Network error during bulk deletion.", "error");
+    } finally {
+      setActionLoading(null);
+      setShowBulkDeleteConfirm(false);
+    }
+  };
+
+  const handleDeleteAllUsers = async () => {
+    const adminId = localStorage.getItem('lumora_user_id');
+    if (!adminId) {
+      showToast("Session expired. Please log in again.", "error");
+      return;
+    }
+    if (purgeConfirmWord !== "DELETE ALL USERS") {
+      showToast("Verification text must match perfectly.", "error");
+      return;
+    }
+    setActionLoading('delete-all');
+    try {
+      const res = await fetch('/api/admin/users/delete-all', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adminId })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(data.message || "Global customer database wiped completely.", "success");
+        setSelectedUserIds([]);
+        setPurgeConfirmWord('');
+        fetchAllAdminData();
+      } else {
+        showToast(data.error || "Core wipe failed.", "error");
+      }
+    } catch (err: any) {
+      console.error(err);
+      showToast("Network error resetting global files.", "error");
+    } finally {
+      setActionLoading(null);
+      setShowPurgeConfirm(false);
+    }
+  };
+
   // Handle save global system settings
   const handleSaveSettings = async () => {
     setActionLoading('save-settings');
@@ -735,7 +842,8 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
           { id: 'users', label: 'Users Manager', icon: Users },
           { id: 'cards', label: 'LUMORA Cards', icon: CreditCard, count: allCards.filter(c => c.status === 'pending').length },
           { id: 'loans', label: 'Loans Board', icon: FileText, count: loans.filter(l => l.status === 'pending').length },
-          { id: 'settings', label: 'Settings', icon: Settings }
+          { id: 'settings', label: 'Settings', icon: Settings },
+          { id: 'audit-logs', label: 'Audit Logs', icon: ShieldCheck }
         ].map((tab) => {
           const Icon = tab.icon;
           const isActive = activeSubTab === tab.id;
@@ -1278,53 +1386,121 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
           )}
 
           {/* TAB 5: USERS MANAGER */}
-          {activeSubTab === 'users' && (
-            <div className="space-y-4">
-              {/* Status filter controls for Users */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-200/60 pb-3 gap-3">
-                <div className="flex items-center space-x-2">
-                  {(['all', 'active', 'suspended'] as const).map((fil) => (
+          {activeSubTab === 'users' && (() => {
+            const currentAdminId = typeof window !== "undefined" ? localStorage.getItem('lumora_user_id') : null;
+            const loggedInAdmin = users.find(u => u.id === currentAdminId);
+            const isSuperAdmin = loggedInAdmin?.phone === "0926193920" || loggedInAdmin?.email === "leykunjemaneh3@gmail.com" || loggedInAdmin?.isSuperAdmin;
+
+            return (
+              <div className="space-y-4">
+                {/* Status filter controls for Users */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-200/60 pb-3 gap-3">
+                  <div className="flex items-center space-x-2">
+                    {(['all', 'active', 'suspended'] as const).map((fil) => (
+                      <button
+                        key={fil}
+                        onClick={() => setUserStatusFilter(fil)}
+                        className={`px-3.5 py-1.5 rounded-lg text-[9.5px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+                          userStatusFilter === fil 
+                            ? 'bg-[#0A3D91] text-white' 
+                            : 'text-slate-500 hover:text-slate-900 bg-white border border-slate-200/60'
+                        }`}
+                      >
+                        {fil === 'all' ? 'All Accounts' : fil === 'active' ? 'Active' : 'Suspended'} ({users.filter(u => fil === 'all' ? true : u.status === fil).length})
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center space-x-2.5">
+                    {isSuperAdmin && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPurgeConfirmWord('');
+                          setShowPurgeConfirm(true);
+                        }}
+                        className="flex items-center space-x-1.5 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider bg-rose-600 hover:bg-rose-700 text-white transition-all shadow-sm cursor-pointer active:scale-95"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Delete All Users</span>
+                      </button>
+                    )}
+
                     <button
-                      key={fil}
-                      onClick={() => setUserStatusFilter(fil)}
-                      className={`px-3.5 py-1.5 rounded-lg text-[9.5px] font-black uppercase tracking-wider transition-all cursor-pointer ${
-                        userStatusFilter === fil 
-                          ? 'bg-[#0A3D91] text-white' 
-                          : 'text-slate-500 hover:text-slate-900 bg-white border border-slate-200/60'
-                      }`}
+                      type="button"
+                      onClick={() => setShowRegisterUserModal(true)}
+                      className="flex items-center space-x-1.5 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-sm cursor-pointer active:scale-95 shadow-xs"
                     >
-                      {fil === 'all' ? 'All Accounts' : fil === 'active' ? 'Active' : 'Suspended'} ({users.filter(u => fil === 'all' ? true : u.status === fil).length})
+                      <UserPlus className="w-3.5 h-3.5" />
+                      <span>Register Member</span>
                     </button>
-                  ))}
+                  </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setShowRegisterUserModal(true)}
-                  className="flex items-center space-x-1.5 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-sm cursor-pointer active:scale-95 w-fit"
-                >
-                  <UserPlus className="w-3.5 h-3.5" />
-                  <span>Register Member</span>
-                </button>
-              </div>
+                {/* Bulk delete floating banner */}
+                {selectedUserIds.length > 0 && (
+                  <div className="flex items-center justify-between p-3.5 bg-rose-50 border border-rose-200/70 rounded-2xl shadow-3xs animate-in slide-in-from-top duration-200">
+                    <div className="flex items-center space-x-2">
+                      <div className="p-1.5 bg-rose-100 rounded-lg text-rose-600">
+                        <Trash2 className="w-4 h-4 stroke-[2.5]" />
+                      </div>
+                      <span className="text-[11px] font-black text-rose-800 uppercase tracking-wider">
+                        {selectedUserIds.length} customer user account(s) selected
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedUserIds([])}
+                        className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-500 hover:text-slate-800"
+                      >
+                        Deselect
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowBulkDeleteConfirm(true)}
+                        className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center space-x-1"
+                      >
+                        <span>Delete Accounts</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
 
-              <div className="overflow-x-auto rounded-2xl border border-slate-200/50 bg-white shadow-3xs">
-                <table className="w-full min-w-[1350px] text-left border-collapse">
-                  <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200 text-[9.5px] text-slate-500 font-black uppercase tracking-wider">
-                      <th className="p-3 w-[220px]">User Identity</th>
-                      <th className="p-3 w-[200px]">System Passwords</th>
-                      <th className="p-3 w-[260px]">Withdrawal Bank Account</th>
-                      <th className="p-3 w-[180px]">Ledgers & VIP</th>
-                      <th className="p-3 w-[280px]">Verification & Restrictions</th>
-                      <th className="p-3 text-right">Auditor Console</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 text-xs">
-                    {filteredUserList.map((usr) => {
-                      const prof = usr.profile || {};
-                      return (
-                        <tr key={usr.id} className="hover:bg-slate-50/40">
+                <div className="overflow-x-auto rounded-2xl border border-slate-200/50 bg-white shadow-3xs">
+                  <table className="w-full min-w-[1400px] text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-200 text-[9.5px] text-slate-500 font-black uppercase tracking-wider">
+                        <th className="p-3 w-[45px] text-center">
+                          <input 
+                            type="checkbox" 
+                            className="rounded text-[#0A3D91] border-slate-300 w-4 h-4 cursor-pointer"
+                            checked={filteredUserList.length > 0 && filteredUserList.every(u => selectedUserIds.includes(u.id))}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                const allIds = filteredUserList.map(u => u.id);
+                                setSelectedUserIds(prev => Array.from(new Set([...prev, ...allIds])));
+                              } else {
+                                const allIds = filteredUserList.map(u => u.id);
+                                setSelectedUserIds(prev => prev.filter(id => !allIds.includes(id)));
+                              }
+                            }}
+                          />
+                        </th>
+                        <th className="p-3 w-[220px]">User Identity</th>
+                        <th className="p-3 w-[200px]">System Passwords</th>
+                        <th className="p-3 w-[260px]">Withdrawal Bank Account</th>
+                        <th className="p-3 w-[180px]">Ledgers & VIP</th>
+                        <th className="p-3 w-[280px]">Verification & Restrictions</th>
+                        <th className="p-3 text-right">Auditor Console</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 text-xs">
+                      {filteredUserList.map((usr) => {
+                        const prof = usr.profile || {};
+                        const isChecked = selectedUserIds.includes(usr.id);
+                        return (
+                          <tr key={usr.id} className={`hover:bg-slate-50/40 transition-all ${isChecked ? 'bg-rose-50/10' : ''}`}>
                           {/* Col 1: Name, Phone, ID, Registration Date */}
                           <td className="p-3">
                             <p className="font-bold text-slate-800 text-[12px]">{usr.fullName || "Unregistered Member"}</p>
@@ -1572,7 +1748,8 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                 </table>
               </div>
             </div>
-          )}
+            );
+          })()}
 
           {/* TAB 6: LOANS BOARD */}
           {activeSubTab === 'loans' && (
@@ -2929,6 +3106,195 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                   type="button"
                   onClick={() => setWithdrawalActionConfirm(null)}
                   className="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-black uppercase tracking-wider rounded-xl cursor-pointer transition-all text-center"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* INDIVIDUAL USER DELETE CONFIRM MODAL */}
+      <AnimatePresence>
+        {userToDelete && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[1001] bg-slate-950/50 backdrop-blur-xs flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              className="bg-white rounded-3xl max-w-sm w-full p-5 border border-slate-200/80 shadow-2xl space-y-4"
+            >
+              <div className="flex items-center space-x-2.5 text-rose-600">
+                <div className="p-2 bg-rose-50 rounded-xl">
+                  <ShieldAlert className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-display font-black text-xs uppercase tracking-wider">Delete User Account?</h4>
+                  <p className="text-slate-400 text-[9px] font-bold uppercase tracking-widest leading-none mt-1">This action is irreversible</p>
+                </div>
+              </div>
+
+              <div className="p-3.5 bg-rose-50/55 border border-rose-100/80 rounded-2xl text-xs font-semibold text-slate-700 leading-normal">
+                Are you sure you want to permanently delete <strong className="text-rose-700 font-extrabold">{userToDelete.fullName}</strong> ({userToDelete.phone})? 
+                This will purge their wallet balances, transactions, deposits, withdrawals, agreements, and credential states from all local registers.
+              </div>
+
+              <div className="flex space-x-2">
+                <button
+                  type="button"
+                  disabled={actionLoading === `delete-user-${userToDelete.id}`}
+                  onClick={() => handleDeleteIndividualUser(userToDelete.id)}
+                  className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 font-extrabold text-[10.5px] text-white uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center space-x-1"
+                >
+                  {actionLoading === `delete-user-${userToDelete.id}` ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Confirm Delete</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUserToDelete(null)}
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 font-extrabold text-[10.5px] text-slate-700 uppercase tracking-wider rounded-xl transition-all cursor-pointer text-center"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* BULK USER DELETE CONFIRM MODAL */}
+      <AnimatePresence>
+        {showBulkDeleteConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[1001] bg-slate-950/50 backdrop-blur-xs flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              className="bg-white rounded-3xl max-w-sm w-full p-5 border border-slate-200/80 shadow-2xl space-y-4"
+            >
+              <div className="flex items-center space-x-2.5 text-rose-600">
+                <div className="p-2 bg-rose-50 rounded-xl">
+                  <ShieldAlert className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-display font-black text-xs uppercase tracking-wider">Delete Multiple Accounts?</h4>
+                  <p className="text-slate-400 text-[9px] font-bold uppercase tracking-widest leading-none mt-1">Irreversible Bulk Operation</p>
+                </div>
+              </div>
+
+              <div className="p-3.5 bg-rose-50/55 border border-rose-100/80 rounded-2xl text-xs font-semibold text-slate-700 leading-normal">
+                You are about to permanently delete <strong className="text-rose-700 font-extrabold">{selectedUserIds.length}</strong> selected customer accounts. All related profiles, ledgers, investments, loans, and historical logs will be destroyed. This cannot be undone.
+              </div>
+
+              <div className="flex space-x-2">
+                <button
+                  type="button"
+                  disabled={actionLoading === 'delete-bulk'}
+                  onClick={handleDeleteBulkUsers}
+                  className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 font-extrabold text-[10.5px] text-white uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center space-x-1"
+                >
+                  {actionLoading === 'delete-bulk' ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Delete Accounts</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowBulkDeleteConfirm(false)}
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 font-extrabold text-[10.5px] text-slate-700 uppercase tracking-wider rounded-xl transition-all cursor-pointer text-center"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* GLOBAL DATABASE PURGE / PURGE ALL USERS CONFIRM MODAL */}
+      <AnimatePresence>
+        {showPurgeConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[1001] bg-slate-950/50 backdrop-blur-xs flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              className="bg-white rounded-3xl max-w-sm w-full p-5 border border-slate-200/80 shadow-2xl space-y-4"
+            >
+              <div className="flex items-center space-x-2.5 text-rose-600">
+                <div className="p-2 bg-rose-100 rounded-xl">
+                  <ShieldAlert className="w-5 h-5 stroke-[2.5]" />
+                </div>
+                <div>
+                  <h4 className="font-display font-black text-xs uppercase tracking-wider text-rose-700">Purge Customer Database?</h4>
+                  <p className="text-rose-500 text-[9px] font-bold uppercase tracking-widest leading-none mt-1">Super Administrative Destruct Option</p>
+                </div>
+              </div>
+
+              <div className="p-3.5 bg-rose-50 border border-rose-105 rounded-2xl text-[11px] font-semibold text-rose-900 leading-normal">
+                WARNING: This will permanently delete ALL customer accounts (non-admin accounts) and clear all investment portfolios, CBE deposits, loan requests, cards, and transaction history. Only registered administrator credentials will be preserved.
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-black text-slate-500 uppercase tracking-wider">Type <span className="text-rose-600 font-extrabold font-mono hover:underline select-all">DELETE ALL USERS</span> to authorize:</label>
+                <input
+                  type="text"
+                  placeholder="Type verification text here"
+                  value={purgeConfirmWord}
+                  onChange={(e) => setPurgeConfirmWord(e.target.value)}
+                  className="w-full p-3 bg-red-50/20 border border-rose-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-rose-500 text-center uppercase placeholder:normal-case font-mono"
+                />
+              </div>
+
+              <div className="flex space-x-2">
+                <button
+                  type="button"
+                  disabled={actionLoading === 'delete-all' || purgeConfirmWord !== 'DELETE ALL USERS'}
+                  onClick={handleDeleteAllUsers}
+                  className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:opacity-40 disabled:cursor-not-allowed font-extrabold text-[10.5px] text-white uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center space-x-1"
+                >
+                  {actionLoading === 'delete-all' ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Confirm Mass Purge</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPurgeConfirm(false);
+                    setPurgeConfirmWord('');
+                  }}
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 font-extrabold text-[10.5px] text-slate-700 uppercase tracking-wider rounded-xl transition-all cursor-pointer text-center"
                 >
                   Cancel
                 </button>

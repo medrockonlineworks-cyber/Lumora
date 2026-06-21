@@ -2631,6 +2631,164 @@ Instruct the user precisely on which page, component, or element to use to accom
     res.json(list);
   });
 
+  // Individual User Delete by Admin
+  app.post("/api/admin/users/delete", (req, res) => {
+    const { userId, adminId } = req.body;
+    if (!adminId) return res.status(400).json({ error: "Admin authentication ID required." });
+    
+    const adminUser = db.users.find(u => u.id === adminId && u.isAdmin);
+    if (!adminUser) return res.status(403).json({ error: "Only authorized administrators can delete accounts." });
+
+    const targetUser = db.users.find(u => u.id === userId);
+    if (!targetUser) return res.status(404).json({ error: "Target user not found." });
+
+    if (targetUser.isAdmin) {
+      return res.status(403).json({ error: "Administrator accounts cannot be deleted." });
+    }
+
+    // Comprehensive data wipe
+    db.users = db.users.filter(u => u.id !== userId);
+    db.profiles = db.profiles.filter(p => p.userId !== userId);
+    db.investments = db.investments.filter(inv => inv.userId !== userId);
+    db.deposits = db.deposits.filter(dep => dep.userId !== userId);
+    db.withdrawals = db.withdrawals.filter(w => w.userId !== userId);
+    db.transactions = db.transactions.filter(t => t.userId !== userId);
+    db.notifications = db.notifications.filter(n => n.userId !== userId);
+    db.referrals = db.referrals.filter(ref => ref.referrerId !== userId && ref.referredId !== userId);
+    db.loans = db.loans.filter(l => l.userId !== userId);
+    db.eligibilityChecks = db.eligibilityChecks ? db.eligibilityChecks.filter(c => c.userId !== userId) : [];
+    if (db.chatHistory && db.chatHistory[userId]) {
+      delete db.chatHistory[userId];
+    }
+    if (db.cards) {
+      db.cards = db.cards.filter((c: any) => c.userId !== userId);
+    }
+    if (db.cardTransactions) {
+      db.cardTransactions = db.cardTransactions.filter((ct: any) => ct.userId !== userId);
+    }
+
+    // Push into Admin Logs
+    db.adminLogs = db.adminLogs || [];
+    db.adminLogs.push({
+      id: "log-" + Math.random().toString(36).substr(2, 9),
+      adminId: adminUser.id,
+      adminName: adminUser.fullName,
+      action: "Delete User Account",
+      userAffected: `${targetUser.fullName} (${targetUser.phone})`,
+      date: new Date().toISOString()
+    });
+
+    saveDB(db);
+    res.json({ success: true, message: `Account for ${targetUser.fullName} has been successfully deleted.` });
+  });
+
+  // Bulk Users Delete by Admin
+  app.post("/api/admin/users/delete-bulk", (req, res) => {
+    const { userIds, adminId } = req.body;
+    if (!adminId) return res.status(400).json({ error: "Admin authentication ID required." });
+    if (!Array.isArray(userIds) || userIds.length === 0) return res.status(400).json({ error: "No user IDs provided." });
+
+    const adminUser = db.users.find(u => u.id === adminId && u.isAdmin);
+    if (!adminUser) return res.status(403).json({ error: "Only authorized administrators can delete accounts." });
+
+    let deletedCount = 0;
+    const deletedNames: string[] = [];
+
+    for (const userId of userIds) {
+      const targetUser = db.users.find(u => u.id === userId);
+      if (targetUser && !targetUser.isAdmin) {
+        db.users = db.users.filter(u => u.id !== userId);
+        db.profiles = db.profiles.filter(p => p.userId !== userId);
+        db.investments = db.investments.filter(inv => inv.userId !== userId);
+        db.deposits = db.deposits.filter(dep => dep.userId !== userId);
+        db.withdrawals = db.withdrawals.filter(w => w.userId !== userId);
+        db.transactions = db.transactions.filter(t => t.userId !== userId);
+        db.notifications = db.notifications.filter(n => n.userId !== userId);
+        db.referrals = db.referrals.filter(ref => ref.referrerId !== userId && ref.referredId !== userId);
+        db.loans = db.loans.filter(l => l.userId !== userId);
+        db.eligibilityChecks = db.eligibilityChecks ? db.eligibilityChecks.filter(c => c.userId !== userId) : [];
+        if (db.chatHistory && db.chatHistory[userId]) {
+          delete db.chatHistory[userId];
+        }
+        if (db.cards) {
+          db.cards = db.cards.filter((c: any) => c.userId !== userId);
+        }
+        if (db.cardTransactions) {
+          db.cardTransactions = db.cardTransactions.filter((ct: any) => ct.userId !== userId);
+        }
+        deletedCount++;
+        deletedNames.push(`${targetUser.fullName} (${targetUser.phone})`);
+      }
+    }
+
+    if (deletedCount > 0) {
+      db.adminLogs = db.adminLogs || [];
+      db.adminLogs.push({
+        id: "log-" + Math.random().toString(36).substr(2, 9),
+        adminId: adminUser.id,
+        adminName: adminUser.fullName,
+        action: "Bulk Delete Users",
+        userAffected: `${deletedCount} Users [${deletedNames.slice(0, 3).join(", ")}${deletedCount > 3 ? "..." : ""}]`,
+        date: new Date().toISOString()
+      });
+      saveDB(db);
+    }
+
+    res.json({ success: true, message: `Successfully deleted ${deletedCount} user account(s).` });
+  });
+
+  // Delete All Users (Super Admin only!)
+  app.post("/api/admin/users/delete-all", (req, res) => {
+    const { adminId } = req.body;
+    if (!adminId) return res.status(400).json({ error: "Admin authentication ID required." });
+
+    const adminUser = db.users.find(u => u.id === adminId && u.isAdmin);
+    if (!adminUser) return res.status(403).json({ error: "Only authorized administrators can access this feature." });
+
+    // Super Admin check
+    const isSuper = adminUser.phone === "0926193920" || adminUser.email === "leykunjemaneh3@gmail.com" || (adminUser as any).isSuperAdmin;
+    if (!isSuper) {
+      return res.status(403).json({ error: "Access Denied: Only Super Administrators can purge all user accounts." });
+    }
+
+    // Keep only core administrators
+    const preservedAdmins = db.users.filter(u => u.isAdmin);
+    db.users = preservedAdmins;
+    db.profiles = db.profiles.filter(p => preservedAdmins.some(adm => adm.id === p.userId));
+    
+    // Clear all other data
+    db.investments = [];
+    db.deposits = [];
+    db.withdrawals = [];
+    db.transactions = [];
+    db.notifications = [];
+    db.referrals = [];
+    db.loans = [];
+    db.eligibilityChecks = [];
+    db.chatHistory = {};
+    db.cards = [];
+    db.cardTransactions = [];
+
+    // Log the massive action
+    db.adminLogs = db.adminLogs || [];
+    db.adminLogs.push({
+      id: "log-" + Math.random().toString(36).substr(2, 9),
+      adminId: adminUser.id,
+      adminName: adminUser.fullName,
+      action: "PURGE ALL USERS & CORE GLOBAL DATABASE",
+      userAffected: "ALL Registered Customers (Wipeout)",
+      date: new Date().toISOString()
+    });
+
+    saveDB(db);
+    res.json({ success: true, message: "WARNING SUCCESSFUL: All non-admin accounts and global customer files have been permanently wiped from the core servers." });
+  });
+
+  // Get Admin Logs
+  app.get("/api/admin/logs", (req, res) => {
+    res.json(db.adminLogs || []);
+  });
+
   // Register a user by Admin
   app.post("/api/admin/users/register", (req, res) => {
     try {

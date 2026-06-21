@@ -4,7 +4,7 @@ import {
   ArrowDownRight, Users, Copy, Key, Camera, FileText, Check,
   X, Sparkles, Upload, ChevronRight, ChevronDown, Globe, Info, CreditCard,
   Smartphone, Download, ExternalLink, QrCode, Monitor, Share2, Trophy,
-  Eye, EyeOff, Lock, ShieldAlert, RotateCcw
+  Eye, EyeOff, Lock, ShieldAlert, RotateCcw, Trash2
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useLanguage, LanguageCode, languages } from '../locale';
@@ -2863,15 +2863,15 @@ export default function ProfileTab({
         ) : (
           <button
             onClick={() => setShowResetModal(true)}
-            className="w-full py-4 rounded-2xl border border-amber-200/60 bg-amber-50/40 hover:bg-amber-50 hover:border-amber-300 text-amber-700 text-xs font-black transition-all tracking-wider flex items-center justify-center space-x-2 cursor-pointer active:scale-98"
+            className="w-full py-4 rounded-2xl border border-rose-200/60 bg-rose-50/40 hover:bg-rose-55 hover:border-rose-300 text-rose-600 text-xs font-black transition-all tracking-wider flex items-center justify-center space-x-2 cursor-pointer active:scale-98"
           >
-            <RotateCcw className="w-4 h-4 stroke-[2.5]" />
+            <Trash2 className="w-4 h-4 stroke-[2.5]" />
             <span>
-              {language === 'am' ? 'አካውንቴን አድስ' :
-               language === 'om' ? 'Akauntii hara’umsi' :
-               language === 'ti' ? 'አካውንተይ ሓድሽ' :
-               language === 'so' ? 'Dib u deji Akoonkayga' :
-               'Reset My Account'}
+              {language === 'am' ? 'አካውንት ሰርዝ' :
+               language === 'om' ? 'Akauntii haqi' :
+               language === 'ti' ? 'አካውንት ሰርዝ' :
+               language === 'so' ? 'Tirtir Akoonka' :
+               'Delete Account'}
             </span>
           </button>
         )}
@@ -3135,8 +3135,8 @@ export default function ProfileTab({
       {showResetModal && (
         <div className="fixed inset-0 bg-[#070d19]/80 backdrop-blur-md flex items-center justify-center p-4 z-[99999] text-slate-800 animate-in fade-in duration-200">
           <div className="w-full max-w-sm bg-white rounded-[2rem] p-6 space-y-5 shadow-2xl relative border border-slate-100 text-center animate-in scale-in duration-200">
-            <div className="mx-auto w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center animate-bounce">
-              <RotateCcw className="w-6 h-6 stroke-[2.5]" />
+            <div className={`mx-auto w-12 h-12 rounded-full flex items-center justify-center ${isAdmin ? 'bg-amber-100 text-amber-600 animate-bounce' : 'bg-rose-100 text-rose-600 animate-pulse'}`}>
+              {isAdmin ? <RotateCcw className="w-6 h-6 stroke-[2.5]" /> : <Trash2 className="w-6 h-6 stroke-[2.5]" />}
             </div>
             
             <div className="space-y-1.5">
@@ -3144,7 +3144,7 @@ export default function ProfileTab({
                 {isAdmin ? (
                   language === 'am' ? 'ሙሉ መተግበሪያን ዳግም ያስጀምሩ?' : 'Reset Entire System?'
                 ) : (
-                  language === 'am' ? 'አካውንትዎን እንደገና ያስጀምሩ?' : 'Reset Your Account?'
+                  language === 'am' ? 'አካውንት ሰርዝ' : 'Delete Account'
                 )}
               </h3>
               <p className="text-[10px] text-rose-500 uppercase tracking-widest font-mono font-bold">
@@ -3158,8 +3158,7 @@ export default function ProfileTab({
                 language === 'om' ? 'Kun hojii uumame hunda ni haqa. Gara jalqabaatti deebisa.' :
                 'This operation will wipe your local database cache, clear settings, sign you out, and request a system-wide reset of the remote database engine.'
               ) : (
-                language === 'am' ? 'ይህ የእርስዎን የግል ኢንቨስትመንት፣ የተቀማጭ ገንዘብ እና የወጪ ታሪክ ሙሉ በሙሉ ለመሰረዝ እና መለያዎ እንዲወገድ ያደርጋል። ይህን ለማድረግ እርግጠኛ ነዎት?' :
-                'This will permanently erase all your personal investments, active plans, deposit and withdrawal history, transaction records, and completely delete your account from our system database. You must register a new account to play again.'
+                'Are you sure you want to permanently delete your account? This action cannot be undone.'
               )}
             </p>
 
