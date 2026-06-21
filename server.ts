@@ -171,6 +171,7 @@ interface LumoraDB {
   adminLogs?: any[];
   cards?: any[];
   cardTransactions?: any[];
+  deletedUsers?: string[];
 }
 
 // Global default settings
@@ -214,6 +215,9 @@ function loadDB(): LumoraDB {
       if (!db.eligibilityChecks) {
         db.eligibilityChecks = [];
       }
+      if (!db.deletedUsers) {
+        db.deletedUsers = [];
+      }
       let dbUpdated = false;
       if (db.users) {
         const henokExists = db.users.some(u => u.phone === "0926193920" || u.id === "user-0kw1ojisk");
@@ -231,64 +235,6 @@ function loadDB(): LumoraDB {
           });
           dbUpdated = true;
         }
-
-        const recoveredUserExists = db.users.some(u => u.phone === "0926193921" || u.id === "user-0926193921");
-        if (!recoveredUserExists) {
-          db.users.push({
-            id: "user-0926193921",
-            fullName: "Recovered User",
-            phone: "0926193921",
-            email: "0926193921@lumora.net",
-            password: "000001",
-            isAdmin: false,
-            status: "active",
-            registrationDate: new Date().toISOString(),
-            referralCode: "LUMRECOV"
-          });
-          dbUpdated = true;
-        } else {
-          db.users.forEach(u => {
-            if (u.phone === "0926193921" && u.password !== "000001") {
-              u.password = "000001";
-              dbUpdated = true;
-            }
-          });
-        }
-
-        const extraRecoveries = [
-          { id: "user-w7g0wkoqu", fullName: "Leulseger Ashenafi", phone: "0951560276", email: "0951560276@lumora.net", password: "78907890", referralCode: "LUMLEULS", bankName: "Commercial Bank of Ethiopia (CBE)", transactionPin: "1234" },
-          { id: "user-06auq6jd8", fullName: "Daniel gutu", phone: "0981051800", email: "0981051800@lumora.net", password: "051800", referralCode: "LUMDANIEL", bankName: "Commercial Bank of Ethiopia (CBE)", transactionPin: "1234" },
-          { id: "user-7ni8y6uyg", fullName: "Asegid alebachew", phone: "0978907890", email: "0978907890@lumora.net", password: "78907890", referralCode: "LUMASEGID", bankName: "Commercial Bank of Ethiopia (CBE)", transactionPin: "1234" },
-          { id: "user-8qqmqao5q", fullName: "Kidus alehign", phone: "0989898888", email: "0989898888@lumora.net", password: "89898989", referralCode: "LUMKIDUS", bankName: "Commercial Bank of Ethiopia (CBE)", transactionPin: "1234" },
-          { id: "user-0ey692o7u", fullName: "Alem debebe", phone: "0934187334", email: "0934187334@lumora.net", password: "000001", referralCode: "LUMALEM", bankName: "Commercial Bank of Ethiopia (CBE)", transactionPin: "1234" }
-        ];
-
-        extraRecoveries.forEach(extra => {
-          const exists = db.users.some(u => u.phone === extra.phone || u.id === extra.id);
-          if (!exists) {
-            db.users.push({
-              id: extra.id,
-              fullName: extra.fullName,
-              phone: extra.phone,
-              email: extra.email,
-              password: extra.password,
-              isAdmin: false,
-              status: "active",
-              registrationDate: new Date().toISOString(),
-              referralCode: extra.referralCode
-            });
-            dbUpdated = true;
-          } else {
-            db.users.forEach(u => {
-              if (u.phone === extra.phone || u.id === extra.id) {
-                if (!u.password || u.password !== extra.password) {
-                  u.password = extra.password;
-                  dbUpdated = true;
-                }
-              }
-            });
-          }
-        });
 
         db.users.forEach(user => {
           if (user.phone === "0926193920") {
@@ -343,72 +289,6 @@ function loadDB(): LumoraDB {
           });
           dbUpdated = true;
         }
-
-        const recoveredProfileExists = db.profiles.some(p => p.phone === "0926193921" || p.userId === "user-0926193921");
-        if (!recoveredProfileExists) {
-          db.profiles.push({
-            userId: "user-0926193921",
-            fullName: "Recovered User",
-            phone: "0926193921",
-            email: "0926193921@lumora.net",
-            vipLevel: 0,
-            walletBalance: 0,
-            totalDeposits: 0,
-            totalWithdrawals: 0,
-            totalInvestments: 0,
-            totalEarnings: 0,
-            referralCode: "LUMRECOV",
-            teamSize: 0,
-            registrationDate: new Date().toISOString(),
-            idCardFront: "",
-            idCardBack: "",
-            idVerificationStatus: "unsubmitted",
-            bankName: "Commercial Bank of Ethiopia (CBE)",
-            accountNumber: "",
-            accountHolderName: "Recovered User",
-            transactionPin: "1234",
-            idSelfie: ""
-          });
-          dbUpdated = true;
-        }
-
-        const extraRecoveriesProfiles = [
-          { id: "user-w7g0wkoqu", fullName: "Leulseger Ashenafi", phone: "0951560276", email: "0951560276@lumora.net", referralCode: "LUMLEULS", bankName: "Commercial Bank of Ethiopia (CBE)" },
-          { id: "user-06auq6jd8", fullName: "Daniel gutu", phone: "0981051800", email: "0981051800@lumora.net", referralCode: "LUMDANIEL", bankName: "Commercial Bank of Ethiopia (CBE)" },
-          { id: "user-7ni8y6uyg", fullName: "Asegid alebachew", phone: "0978907890", email: "0978907890@lumora.net", referralCode: "LUMASEGID", bankName: "Commercial Bank of Ethiopia (CBE)" },
-          { id: "user-8qqmqao5q", fullName: "Kidus alehign", phone: "0989898888", email: "0989898888@lumora.net", referralCode: "LUMKIDUS", bankName: "Commercial Bank of Ethiopia (CBE)" },
-          { id: "user-0ey692o7u", fullName: "Alem debebe", phone: "0934187334", email: "0934187334@lumora.net", referralCode: "LUMALEM", bankName: "Commercial Bank of Ethiopia (CBE)" }
-        ];
-
-        extraRecoveriesProfiles.forEach(extra => {
-          const exists = db.profiles.some(p => p.phone === extra.phone || p.userId === extra.id);
-          if (!exists) {
-            db.profiles.push({
-              userId: extra.id,
-              fullName: extra.fullName,
-              phone: extra.phone,
-              email: extra.email,
-              vipLevel: 0,
-              walletBalance: 0,
-              totalDeposits: 0,
-              totalWithdrawals: 0,
-              totalInvestments: 0,
-              totalEarnings: 0,
-              referralCode: extra.referralCode,
-              teamSize: 0,
-              registrationDate: new Date().toISOString(),
-              idCardFront: "",
-              idCardBack: "",
-              idVerificationStatus: "unsubmitted",
-              bankName: extra.bankName,
-              accountNumber: "",
-              accountHolderName: extra.fullName,
-              transactionPin: "1234",
-              idSelfie: ""
-            });
-            dbUpdated = true;
-          }
-        });
 
         db.profiles.forEach(p => {
           if (p.phone === "0926193920") {
@@ -974,10 +854,10 @@ function setupFirebaseSync() {
         }
       }
     }, (error: any) => {
-      console.error(`Firestore sync error on collection '${col.name}':`, error);
       if (checkServerQuotaExceeded(error)) {
         return;
       }
+      console.error(`Firestore sync error on collection '${col.name}':`, error);
       if (error && error.message && error.message.includes("PERMISSION_DENIED")) {
         console.warn(`Unsubscribing and disabling Firestore sync due to PERMISSION_DENIED on '${col.name}'.`);
         firestoreSyncDisabled = true;
@@ -1011,10 +891,10 @@ function setupFirebaseSync() {
       lastSynced.settings["global"] = JSON.stringify(data);
     }
   }, (error: any) => {
-    console.error("Firestore sync error on collection 'settings':", error);
     if (checkServerQuotaExceeded(error)) {
       return;
     }
+    console.error("Firestore sync error on collection 'settings':", error);
     if (error && error.message && error.message.includes("PERMISSION_DENIED")) {
       console.warn("Unsubscribing and disabling settings sync due to PERMISSION_DENIED.");
       firestoreSyncDisabled = true;
@@ -1045,10 +925,10 @@ function setupFirebaseSync() {
       }
     }
   }, (error: any) => {
-    console.error("Firestore sync error on collection 'chatHistory':", error);
     if (checkServerQuotaExceeded(error)) {
       return;
     }
+    console.error("Firestore sync error on collection 'chatHistory':", error);
     if (error && error.message && error.message.includes("PERMISSION_DENIED")) {
       console.warn("Unsubscribing and disabling chatHistory sync due to PERMISSION_DENIED.");
       firestoreSyncDisabled = true;
@@ -1423,7 +1303,7 @@ async function startServer() {
 
   // Health check
   app.get("/api/health", (req, res) => {
-    res.json({ status: "ok" });
+    res.json({ status: "ok", firestoreSyncDisabled });
   });
 
   // User Auth - Session / Persistent check
@@ -1530,6 +1410,10 @@ async function startServer() {
         accountHolderName: "",
         transactionPin: "" // No initial PIN
       };
+
+      if (db.deletedUsers) {
+        db.deletedUsers = db.deletedUsers.filter(p => p !== phone);
+      }
 
       db.users.push(newUser);
       db.profiles.push(newProfile);
@@ -1677,6 +1561,10 @@ async function startServer() {
       }
 
       const cleanPhone = phone.toString().trim();
+      if (db.deletedUsers && db.deletedUsers.includes(cleanPhone)) {
+        console.warn("[Firebase Backend Login Failure] Lookup blocked: phone number has been permanently deleted:", cleanPhone);
+        return res.status(401).json({ error: "This account has been permanently deleted. Please register a new account." });
+      }
       const user = db.users.find(u => u.phone === cleanPhone);
       const profile = user ? db.profiles.find(p => p.userId === user.id || p.phone === phone) : undefined;
 
@@ -2339,6 +2227,13 @@ async function startServer() {
       return res.status(403).json({ error: "Administrator accounts cannot be deleted. Please use the administrative Factory Reset in the Admin Panel." });
     }
 
+    if (user.phone) {
+      if (!db.deletedUsers) db.deletedUsers = [];
+      if (!db.deletedUsers.includes(user.phone)) {
+        db.deletedUsers.push(user.phone);
+      }
+    }
+
     // Filter out user data from database arrays
     db.users = db.users.filter(u => u.id !== userId);
     db.profiles = db.profiles.filter(p => p.userId !== userId);
@@ -2646,6 +2541,13 @@ Instruct the user precisely on which page, component, or element to use to accom
       return res.status(403).json({ error: "Administrator accounts cannot be deleted." });
     }
 
+    if (targetUser.phone) {
+      if (!db.deletedUsers) db.deletedUsers = [];
+      if (!db.deletedUsers.includes(targetUser.phone)) {
+        db.deletedUsers.push(targetUser.phone);
+      }
+    }
+
     // Comprehensive data wipe
     db.users = db.users.filter(u => u.id !== userId);
     db.profiles = db.profiles.filter(p => p.userId !== userId);
@@ -2697,6 +2599,12 @@ Instruct the user precisely on which page, component, or element to use to accom
     for (const userId of userIds) {
       const targetUser = db.users.find(u => u.id === userId);
       if (targetUser && !targetUser.isAdmin) {
+        if (targetUser.phone) {
+          if (!db.deletedUsers) db.deletedUsers = [];
+          if (!db.deletedUsers.includes(targetUser.phone)) {
+            db.deletedUsers.push(targetUser.phone);
+          }
+        }
         db.users = db.users.filter(u => u.id !== userId);
         db.profiles = db.profiles.filter(p => p.userId !== userId);
         db.investments = db.investments.filter(inv => inv.userId !== userId);
@@ -2750,6 +2658,15 @@ Instruct the user precisely on which page, component, or element to use to accom
     if (!isSuper) {
       return res.status(403).json({ error: "Access Denied: Only Super Administrators can purge all user accounts." });
     }
+
+    // Track deleted users before cleaning
+    const nonAdmins = db.users.filter(u => !u.isAdmin);
+    if (!db.deletedUsers) db.deletedUsers = [];
+    nonAdmins.forEach(u => {
+      if (u.phone && !db.deletedUsers!.includes(u.phone)) {
+        db.deletedUsers!.push(u.phone);
+      }
+    });
 
     // Keep only core administrators
     const preservedAdmins = db.users.filter(u => u.isAdmin);

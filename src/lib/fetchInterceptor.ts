@@ -36,6 +36,7 @@ interface LumoraDB {
   cardTransactions?: CardTransaction[];
   eligibilityChecks?: EligibilityCheck[];
   adminLogs?: any[];
+  deletedUsers?: string[];
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -102,72 +103,6 @@ function getInitialDB(): LumoraDB {
         status: "active",
         registrationDate: new Date().toISOString(),
         referralCode: "LUMOTU23"
-      },
-      {
-        id: "user-0926193921",
-        fullName: "Recovered User",
-        phone: "0926193921",
-        email: "0926193921@lumora.net",
-        password: "000001",
-        isAdmin: false,
-        status: "active",
-        registrationDate: new Date().toISOString(),
-        referralCode: "LUMRECOV"
-      },
-      {
-        id: "user-w7g0wkoqu",
-        fullName: "Leulseger Ashenafi",
-        phone: "0951560276",
-        email: "0951560276@lumora.net",
-        password: "78907890",
-        isAdmin: false,
-        status: "active",
-        registrationDate: new Date().toISOString(),
-        referralCode: "LUMLEULS"
-      },
-      {
-        id: "user-06auq6jd8",
-        fullName: "Daniel gutu",
-        phone: "0981051800",
-        email: "0981051800@lumora.net",
-        password: "051800",
-        isAdmin: false,
-        status: "active",
-        registrationDate: new Date().toISOString(),
-        referralCode: "LUMDANIEL"
-      },
-      {
-        id: "user-7ni8y6uyg",
-        fullName: "Asegid alebachew",
-        phone: "0978907890",
-        email: "0978907890@lumora.net",
-        password: "78907890",
-        isAdmin: false,
-        status: "active",
-        registrationDate: new Date().toISOString(),
-        referralCode: "LUMASEGID"
-      },
-      {
-        id: "user-8qqmqao5q",
-        fullName: "Kidus alehign",
-        phone: "0989898888",
-        email: "0989898888@lumora.net",
-        password: "89898989",
-        isAdmin: false,
-        status: "active",
-        registrationDate: new Date().toISOString(),
-        referralCode: "LUMKIDUS"
-      },
-      {
-        id: "user-0ey692o7u",
-        fullName: "Alem debebe",
-        phone: "0934187334",
-        email: "0934187334@lumora.net",
-        password: "000001",
-        isAdmin: false,
-        status: "active",
-        registrationDate: new Date().toISOString(),
-        referralCode: "LUMALEM"
       }
     ],
     profiles: [
@@ -195,156 +130,6 @@ function getInitialDB(): LumoraDB {
         idSelfie: "",
         incomeBalance: 0,
         depositBalance: 20000000
-      },
-      {
-        userId: "user-0926193921",
-        fullName: "Recovered User",
-        phone: "0926193921",
-        email: "0926193921@lumora.net",
-        vipLevel: 2,
-        walletBalance: 8500,
-        totalDeposits: 8500,
-        totalWithdrawals: 0,
-        totalInvestments: 0,
-        totalEarnings: 0,
-        referralCode: "LUMRECOV",
-        teamSize: 0,
-        registrationDate: new Date().toISOString(),
-        idCardFront: "",
-        idCardBack: "",
-        idVerificationStatus: "unsubmitted",
-        bankName: "Commercial Bank of Ethiopia (CBE)",
-        accountNumber: "",
-        accountHolderName: "Recovered User",
-        transactionPin: "1234",
-        idSelfie: "",
-        incomeBalance: 0,
-        depositBalance: 8500
-      },
-      {
-        userId: "user-w7g0wkoqu",
-        fullName: "Leulseger Ashenafi",
-        phone: "0951560276",
-        email: "0951560276@lumora.net",
-        vipLevel: 5,
-        walletBalance: 53500,
-        totalDeposits: 53500,
-        totalWithdrawals: 0,
-        totalInvestments: 0,
-        totalEarnings: 0,
-        referralCode: "LUMLEULS",
-        teamSize: 0,
-        registrationDate: new Date().toISOString(),
-        idCardFront: "",
-        idCardBack: "",
-        idVerificationStatus: "unsubmitted",
-        bankName: "Commercial Bank of Ethiopia (CBE)",
-        accountNumber: "",
-        accountHolderName: "Leulseger Ashenafi",
-        transactionPin: "1234",
-        idSelfie: "",
-        incomeBalance: 0,
-        depositBalance: 53500
-      },
-      {
-        userId: "user-06auq6jd8",
-        fullName: "Daniel gutu",
-        phone: "0981051800",
-        email: "0981051800@lumora.net",
-        vipLevel: 4,
-        walletBalance: 28500,
-        totalDeposits: 28500,
-        totalWithdrawals: 0,
-        totalInvestments: 0,
-        totalEarnings: 0,
-        referralCode: "LUMDANIEL",
-        teamSize: 0,
-        registrationDate: new Date().toISOString(),
-        idCardFront: "",
-        idCardBack: "",
-        idVerificationStatus: "unsubmitted",
-        bankName: "Commercial Bank of Ethiopia (CBE)",
-        accountNumber: "",
-        accountHolderName: "Daniel gutu",
-        transactionPin: "1234",
-        idSelfie: "",
-        incomeBalance: 0,
-        depositBalance: 28500
-      },
-      {
-        userId: "user-7ni8y6uyg",
-        fullName: "Asegid alebachew",
-        phone: "0978907890",
-        email: "0978907890@lumora.net",
-        vipLevel: 3,
-        walletBalance: 12500,
-        totalDeposits: 12500,
-        totalWithdrawals: 0,
-        totalInvestments: 0,
-        totalEarnings: 0,
-        referralCode: "LUMASEGID",
-        teamSize: 0,
-        registrationDate: new Date().toISOString(),
-        idCardFront: "",
-        idCardBack: "",
-        idVerificationStatus: "unsubmitted",
-        bankName: "Commercial Bank of Ethiopia (CBE)",
-        accountNumber: "",
-        accountHolderName: "Asegid alebachew",
-        transactionPin: "1234",
-        idSelfie: "",
-        incomeBalance: 0,
-        depositBalance: 12500
-      },
-      {
-        userId: "user-8qqmqao5q",
-        fullName: "Kidus alehign",
-        phone: "0989898888",
-        email: "0989898888@lumora.net",
-        vipLevel: 6,
-        walletBalance: 105000,
-        totalDeposits: 105000,
-        totalWithdrawals: 0,
-        totalInvestments: 0,
-        totalEarnings: 0,
-        referralCode: "LUMKIDUS",
-        teamSize: 0,
-        registrationDate: new Date().toISOString(),
-        idCardFront: "",
-        idCardBack: "",
-        idVerificationStatus: "unsubmitted",
-        bankName: "Commercial Bank of Ethiopia (CBE)",
-        accountNumber: "",
-        accountHolderName: "Kidus alehign",
-        transactionPin: "1234",
-        idSelfie: "",
-        incomeBalance: 0,
-        depositBalance: 105000
-      },
-      {
-        userId: "user-0ey692o7u",
-        fullName: "Alem debebe",
-        phone: "0934187334",
-        email: "0934187334@lumora.net",
-        vipLevel: 3,
-        walletBalance: 15000,
-        totalDeposits: 15000,
-        totalWithdrawals: 0,
-        totalInvestments: 0,
-        totalEarnings: 0,
-        referralCode: "LUMALEM",
-        teamSize: 0,
-        registrationDate: new Date().toISOString(),
-        idCardFront: "",
-        idCardBack: "",
-        idVerificationStatus: "unsubmitted",
-        bankName: "Commercial Bank of Ethiopia (CBE)",
-        accountNumber: "",
-        accountHolderName: "Alem debebe",
-        transactionPin: "1234",
-        idSelfie: "",
-        incomeBalance: 0,
-        depositBalance: 15000
       }
     ],
     investments: [],
@@ -358,7 +143,8 @@ function getInitialDB(): LumoraDB {
     settings: DEFAULT_SETTINGS,
     loans: [],
     cards: [],
-    cardTransactions: []
+    cardTransactions: [],
+    deletedUsers: []
   };
 }
 
@@ -379,6 +165,7 @@ function loadLocalDB(): LumoraDB {
       if (!parsed.loans) parsed.loans = [];
       if (!parsed.cards) parsed.cards = [];
       if (!parsed.cardTransactions) parsed.cardTransactions = [];
+      if (!parsed.deletedUsers) parsed.deletedUsers = [];
       db = parsed;
     } catch {
       db = getInitialDB();
@@ -788,9 +575,11 @@ export function setupClientFirebaseSync() {
           const localItem = localMap.get(id);
           const localJson = localItem ? JSON.stringify(localItem) : null;
 
+          // Always track the item's remote state so we register its existence on Firestore
+          lastSyncedClient[col.name][id] = remoteJson;
+
           if (localJson !== remoteJson) {
             localMap.set(id, data);
-            lastSyncedClient[col.name][id] = remoteJson;
             updated = true;
           }
         }
@@ -984,7 +773,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
 
   // 1. GET /api/health
   if (pathname === '/api/health' && method === 'GET') {
-    return respondJSON(200, { status: "ok" });
+    return respondJSON(200, { status: "ok", firestoreSyncDisabled: true });
   }
 
   // 2. GET /api/plans
@@ -1071,6 +860,10 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
         transactionPin: ""
       };
 
+      if (activeDb.deletedUsers) {
+        activeDb.deletedUsers = activeDb.deletedUsers.filter(p => p !== phone);
+      }
+
       activeDb.users.push(newUser);
       activeDb.profiles.push(newProfile);
 
@@ -1118,6 +911,10 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       const { phone, password } = body;
       
       const user = activeDb.users.find(u => u.phone === phone);
+      if (activeDb.deletedUsers && activeDb.deletedUsers.includes((phone || "").toString().trim())) {
+        console.warn("[Firebase login failure] Lookup blocked: phone number has been permanently deleted:", phone);
+        return respondJSON(401, { error: "This account has been permanently deleted. Please register a new account." });
+      }
       if (!user) {
         console.warn("[Firebase login failure] Lookup failed: no user document found in Firestore 'users' collection with number:", phone);
         return respondJSON(401, { error: "Invalid telephone number or password credentials." });
@@ -1703,6 +1500,13 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       return respondJSON(403, { error: "Administrator accounts cannot be deleted. Please use the administrative Factory Reset in the Admin Panel." });
     }
 
+    if (user.phone) {
+      if (!db.deletedUsers) db.deletedUsers = [];
+      if (!db.deletedUsers.includes(user.phone)) {
+        db.deletedUsers.push(user.phone);
+      }
+    }
+
     // Filter out user data
     db.users = db.users.filter(u => u.id !== userId);
     db.profiles = db.profiles.filter(p => p.userId !== userId);
@@ -1713,6 +1517,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     db.notifications = db.notifications.filter(n => n.userId !== userId);
     db.referrals = db.referrals.filter(ref => ref.referrerId !== userId && ref.referredId !== userId);
     db.loans = db.loans.filter(l => l.userId !== userId);
+    db.eligibilityChecks = db.eligibilityChecks ? db.eligibilityChecks.filter(c => c.userId !== userId) : [];
     if (db.chatHistory && db.chatHistory[userId]) {
       delete db.chatHistory[userId];
     }
@@ -1974,6 +1779,13 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       return respondJSON(403, { error: "Administrator accounts cannot be deleted." });
     }
 
+    if (targetUser.phone) {
+      if (!db.deletedUsers) db.deletedUsers = [];
+      if (!db.deletedUsers.includes(targetUser.phone)) {
+        db.deletedUsers.push(targetUser.phone);
+      }
+    }
+
     db.users = db.users.filter(u => u.id !== userId);
     db.profiles = db.profiles.filter(p => p.userId !== userId);
     db.investments = db.investments.filter(inv => inv.userId !== userId);
@@ -2023,6 +1835,12 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     for (const userId of userIds) {
       const targetUser = db.users.find(u => u.id === userId);
       if (targetUser && !targetUser.isAdmin) {
+        if (targetUser.phone) {
+          if (!db.deletedUsers) db.deletedUsers = [];
+          if (!db.deletedUsers.includes(targetUser.phone)) {
+            db.deletedUsers.push(targetUser.phone);
+          }
+        }
         db.users = db.users.filter(u => u.id !== userId);
         db.profiles = db.profiles.filter(p => p.userId !== userId);
         db.investments = db.investments.filter(inv => inv.userId !== userId);
@@ -2075,6 +1893,14 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     if (!isSuper) {
       return respondJSON(403, { error: "Access Denied: Only Super Administrators can purge all user accounts." });
     }
+
+    const nonAdmins = db.users.filter(u => !u.isAdmin);
+    if (!db.deletedUsers) db.deletedUsers = [];
+    nonAdmins.forEach(u => {
+      if (u.phone && !db.deletedUsers!.includes(u.phone)) {
+        db.deletedUsers!.push(u.phone);
+      }
+    });
 
     const preservedAdmins = db.users.filter(u => u.isAdmin);
     db.users = preservedAdmins;
@@ -3102,6 +2928,36 @@ if (typeof window !== "undefined") {
   // Always use the real Express/Firestore backend for production consistency; do not default to client local storage.
   fallbackToLocalDB = false;
   console.log("[Client Firestore] Running in real Express full-stack mode with primary Firebase Firestore backend.");
+
+  // Check backend health/quota status first to avoid firing redundant listener threads when quota exists
+  fetch("/api/health")
+    .then(async (res) => {
+      if (res.ok) {
+        const hData = await res.json();
+        if (hData && hData.firestoreSyncDisabled) {
+          console.warn("[Client Firestore] Server reported Firestore is disabled/quota limited. Disabling client-side sync.");
+          firestoreClientDisabled = true;
+          try {
+            localStorage.setItem("lumora_firestore_client_disabled", "true");
+          } catch (e) {}
+          unsubscribeAllClientListeners();
+        } else {
+          // Reactivate client sync if it was previously disabled but now restored by admin
+          if (firestoreClientDisabled && (!hData || !hData.firestoreSyncDisabled)) {
+            firestoreClientDisabled = false;
+            try {
+              localStorage.removeItem("lumora_firestore_client_disabled");
+            } catch (e) {}
+            setTimeout(() => {
+              setupClientFirebaseSync();
+            }, 50);
+          }
+        }
+      }
+    })
+    .catch(err => {
+      console.warn("[Client Firestore] Health check fetch exception:", err);
+    });
 
   // Trigger real-time client-side Firestore listener subscriptions to receive remote updates (e.g., from Admin actions)
   setTimeout(() => {
