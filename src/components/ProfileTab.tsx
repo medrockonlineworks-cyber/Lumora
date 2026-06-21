@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useLanguage, LanguageCode, languages } from '../locale';
-import { Profile, Withdrawal, Loan, Referral, Investment, Deposit } from '../types';
+import { Profile, Withdrawal, Loan, Referral, Investment, Deposit, CardTransaction } from '../types';
 import LoanCalculator from './LoanCalculator';
 import LumoraLogo from './LumoraLogo';
 import LumoraStamp from './LumoraStamp';
@@ -404,6 +404,33 @@ export default function ProfileTab({
   const [showLiquidityLoan, setShowLiquidityLoan] = useState(false);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [showFinancialRecords, setShowFinancialRecords] = useState(false);
+  const [showLoansFinancialRecords, setShowLoansFinancialRecords] = useState(false);
+  const [showCardTransactions, setShowCardTransactions] = useState(false);
+  const [cardTransactions, setCardTransactions] = useState<CardTransaction[]>([]);
+  const [loadingCardTransactions, setLoadingCardTransactions] = useState(false);
+
+  const fetchCardTransactions = async () => {
+    if (!profile?.userId) return;
+    try {
+      setLoadingCardTransactions(true);
+      const res = await fetch(`/api/cards?userId=${profile.userId}`);
+      const data = await res.json();
+      if (res.ok) {
+        setCardTransactions(data.transactions || []);
+      }
+    } catch (err) {
+      console.error("Error loading card transactions in profile:", err);
+    } finally {
+      setLoadingCardTransactions(false);
+    }
+  };
+
+  useEffect(() => {
+    if (showCardTransactions) {
+      fetchCardTransactions();
+    }
+  }, [showCardTransactions, profile?.userId]);
+
   const [selectedLedgerType, setSelectedLedgerType] = useState<'deposits' | 'withdrawals'>('deposits');
   const [ledgerStatusFilter, setLedgerStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [currentPassword, setCurrentPassword] = useState('');
@@ -1886,6 +1913,296 @@ export default function ProfileTab({
           </div>
         )}
 
+        {/* Loans Financial Records Button */}
+        <button
+          onClick={() => setShowLoansFinancialRecords(!showLoansFinancialRecords)}
+          className="w-full flex items-center justify-between p-3.5 rounded-2xl hover:bg-slate-100 text-xs text-slate-900 font-black border-t border-slate-100 transition-all cursor-pointer group animate-fade-in"
+        >
+          <div className="flex items-center space-x-3.5">
+            <div className="p-2 bg-indigo-100 text-indigo-700 rounded-xl group-hover:bg-indigo-200 transition-all">
+              <FileText className="w-4.5 h-4.5 text-indigo-700" />
+            </div>
+            <div className="text-left">
+              <span className="block text-slate-950 text-[11.5px] font-black leading-none">
+                {language === 'am' ? 'የብድር ፋይናንስ መዝገቦች' :
+                 language === 'om' ? 'Galmeewwan Faayinaansii Liqii' :
+                 language === 'ti' ? 'ፋይናንሳዊ መዛግብቲ ልቃሕ' :
+                 language === 'so' ? 'Diiwaanada Maaliyadda Amaahda' :
+                 'Loans Financial Records'}
+              </span>
+              <span className="text-[8.5px] text-indigo-800 block tracking-widest uppercase font-mono mt-1 font-extrabold">
+                {language === 'am' ? 'አጠቃላይ የብድር ታሪክና ክፍያዎች' :
+                 language === 'om' ? 'Seenaa fi Kafaltii Liqii' :
+                 language === 'ti' ? 'ናይ ልቃሕ ታሪኽን ክፍሊትን' :
+                 language === 'so' ? 'Taariikhda & Kafaladda Amaahda' :
+                 'Loan Schedule & Overdue Tracking'}
+              </span>
+            </div>
+          </div>
+          <ChevronRight className={`w-4 h-4 text-slate-700 transition-transform duration-200 ${showLoansFinancialRecords ? 'rotate-90' : ''}`} />
+        </button>
+
+        {showLoansFinancialRecords && (
+          <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl mt-2 space-y-4 font-sans text-left animate-in fade-in duration-200">
+            <h4 className="font-display font-black text-[11px] text-[#0A3D91] uppercase tracking-widest border-b border-slate-200 pb-2 flex items-center justify-between">
+              <div className="flex items-center space-x-1.5">
+                <FileText className="w-3.5 h-3.5 text-[#0A3D91]" />
+                <span>
+                  {language === 'am' ? 'የብድር ፋይናንስ ዝርዝሮች' : 'Sovereign Loan Schedule'}
+                </span>
+              </div>
+            </h4>
+
+            {/* Loans list or empty state */}
+            <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1 scrollbar-none">
+              {!loans || loans.length === 0 ? (
+                <div className="p-6 rounded-2xl bg-white border border-slate-100 flex flex-col items-center justify-center text-center">
+                  <FileText className="w-8 h-8 text-slate-300 stroke-[1.5] mb-2" />
+                  <p className="text-[10px] text-slate-700 uppercase font-black tracking-wider">
+                    {language === 'am' ? 'ያሉ ብድሮች አልተገኙም' : 'No loans registered yet'}
+                  </p>
+                </div>
+              ) : (
+                loans.map((l) => {
+                  const tenure = l.tenureMonths || 6;
+                  const flatMonthlyRate = 0.015;
+                  const totalRepayable = l.amount + (l.amount * flatMonthlyRate * tenure);
+                  let remainingRepaymentBalance = 0;
+                  let monthsElapsed = 0;
+
+                  if (l.status === 'approved') {
+                    const startDate = new Date(l.reviewedAt || l.submittedAt);
+                    const now = new Date();
+                    const diffTime = Math.abs(now.getTime() - startDate.getTime());
+                    monthsElapsed = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 30.4375));
+                    const monthlyInstallment = totalRepayable / tenure;
+                    remainingRepaymentBalance = monthsElapsed >= tenure ? 0 : (totalRepayable - (monthsElapsed * monthlyInstallment));
+                  } else if (l.status === 'pending') {
+                    remainingRepaymentBalance = totalRepayable;
+                  }
+
+                  const percentServed = Math.min(100, Math.floor((monthsElapsed / tenure) * 100));
+                  const monthlyInstallmentAmt = totalRepayable / tenure;
+
+                  return (
+                    <div key={l.id} className="p-3.5 bg-white border border-slate-200 rounded-2xl space-y-3 font-sans shadow-3xs relative overflow-hidden text-left leading-normal">
+                      {l.status === 'approved' && (
+                        <div className="absolute right-2 top-0 pointer-events-none transform scale-50 origin-top-right">
+                          <LumoraStamp text="APPROVED" variant="green" size="xs" tilted={true} highContrast={true} />
+                        </div>
+                      )}
+                      {l.status === 'rejected' && (
+                        <div className="absolute right-2 top-0 pointer-events-none transform scale-50 origin-top-right">
+                          <LumoraStamp text="REJECTED" variant="rose" size="xs" tilted={true} highContrast={true} />
+                        </div>
+                      )}
+                      
+                      {/* Top Header Row of each loan block */}
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <span className="text-[8px] font-mono font-black text-slate-400 block uppercase tracking-wider">
+                            ID: SVR-LN-{l.id.substring(0,6).toUpperCase()}
+                          </span>
+                          <span className="font-extrabold text-slate-900 text-xs mt-0.5 block">
+                            {(l.amount ?? 0).toLocaleString()} ETB
+                          </span>
+                        </div>
+                        <span className={`text-[8px] font-black px-2 py-0.5 rounded-full border uppercase tracking-wider ${
+                          l.status === 'approved' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' :
+                          l.status === 'rejected' ? 'bg-rose-50 text-rose-800 border-rose-200' :
+                          'bg-amber-50 text-amber-800 border-amber-200 animate-pulse'
+                        }`}>
+                          {l.status}
+                        </span>
+                      </div>
+
+                      {/* Detail list grid */}
+                      <div className="grid grid-cols-2 gap-2 text-[9px] border-t border-slate-100 pt-2.5">
+                        <div>
+                          <p className="text-slate-450 font-bold">
+                            {language === 'am' ? 'የቆይታ ጊዜ' : 'Tenure Duration'}
+                          </p>
+                          <p className="text-slate-900 font-extrabold mt-0.5">
+                            {tenure} {language === 'am' ? 'ወራት' : 'Months'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-slate-450 font-bold">
+                            {language === 'am' ? 'ወርሃዊ ክፍያ' : 'Monthly Payment'}
+                          </p>
+                          <p className="text-slate-900 font-mono font-black mt-0.5 text-blue-700">
+                            {monthlyInstallmentAmt.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ETB
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-slate-450 font-bold">
+                            {language === 'am' ? 'ጠቅላላ የሚከፈል' : 'Total Repayable'}
+                          </p>
+                          <p className="text-slate-900 font-mono font-black mt-0.5">
+                            {totalRepayable.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ETB
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-slate-450 font-bold">
+                            {language === 'am' ? 'ቀሪ ዕዳ' : 'Remaining Balance'}
+                          </p>
+                          <p className={`font-mono font-black mt-0.5 ${remainingRepaymentBalance > 0 ? 'text-[#C1272D]' : 'text-emerald-600'}`}>
+                            {remainingRepaymentBalance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ETB
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Progress bar for Approved active loans */}
+                      {l.status === 'approved' && (
+                        <div className="space-y-1.5 pt-1.5 border-t border-slate-100">
+                          <div className="flex justify-between items-center text-[8.5px] font-bold text-slate-500">
+                            <span>{language === 'am' ? 'የክክፍያ ሂደት' : 'Amortization Progress'}</span>
+                            <span className="font-mono text-slate-800 font-black">
+                              {monthsElapsed} / {tenure} {language === 'am' ? 'ወራት ተከፍሏል' : 'Months paid'} ({percentServed}%)
+                            </span>
+                          </div>
+                          <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-205/50">
+                            <div 
+                              className="bg-gradient-to-r from-emerald-500 to-teal-500 h-full rounded-full transition-all duration-500"
+                              style={{ width: `${percentServed}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Timeline dates info */}
+                      <div className="text-[7.5px] font-mono text-slate-400 flex justify-between pt-1 uppercase">
+                        <span>
+                          {language === 'am' ? 'የቀረበበት ቀን' : 'Requested'}: {new Date(l.submittedAt).toLocaleDateString()}
+                        </span>
+                        {l.reviewedAt && (
+                          <span>
+                            {language === 'am' ? 'የጸደቀበት ቀን' : 'Approved Date'}: {new Date(l.reviewedAt).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* LumoraCard Transaction Records Button */}
+        <button
+          onClick={() => setShowCardTransactions(!showCardTransactions)}
+          className="w-full flex items-center justify-between p-3.5 rounded-2xl hover:bg-slate-100 text-xs text-slate-900 font-black border-t border-slate-100 transition-all cursor-pointer group animate-fade-in"
+        >
+          <div className="flex items-center space-x-3.5">
+            <div className="p-2 bg-blue-100 text-blue-700 rounded-xl group-hover:bg-blue-200 transition-all">
+              <CreditCard className="w-4.5 h-4.5 text-blue-700" />
+            </div>
+            <div className="text-left">
+              <span className="block text-slate-950 text-[11.5px] font-black leading-none">
+                {language === 'am' ? 'የሉሞራ ካርድ ግብይት መዝገቦች' :
+                 language === 'om' ? 'Galmeewwan Hojiirra Oolmaa Kaardii' :
+                 language === 'ti' ? 'መዛግብቲ ትራንዛክሽን ካርድ ሉሞራ' :
+                 language === 'so' ? 'Diiwaanada Transakshanka Kaarka' :
+                 'LumoraCard Transaction Records'}
+              </span>
+              <span className="text-[8.5px] text-blue-800 block tracking-widest uppercase font-mono mt-1 font-extrabold">
+                {language === 'am' ? 'የካርድ ክፍያዎችና መሙያ ታሪክ' :
+                 language === 'om' ? 'Seenaa Kafaltii fi Recharge' :
+                 language === 'ti' ? 'ታሪኽ ክፍሊትን ሪቻርጅን' :
+                 language === 'so' ? 'Diiwaanka Hubinta Kaarka' :
+                 'Card Spending & Recharge Ledgers'}
+              </span>
+            </div>
+          </div>
+          <ChevronRight className={`w-4 h-4 text-slate-700 transition-transform duration-200 ${showCardTransactions ? 'rotate-90' : ''}`} />
+        </button>
+
+        {showCardTransactions && (
+          <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl mt-2 space-y-4 font-sans text-left animate-in fade-in duration-200">
+            <h4 className="font-display font-black text-[11px] text-[#0A3D91] uppercase tracking-widest border-b border-slate-200 pb-2 flex items-center justify-between">
+              <div className="flex items-center space-x-1.5">
+                <CreditCard className="w-3.5 h-3.5 text-[#0A3D91]" />
+                <span>
+                  {language === 'am' ? 'የሉሞራ ካርድ ግብይቶች' : 'LumoraCard Transactions'}
+                </span>
+              </div>
+            </h4>
+
+            {loadingCardTransactions ? (
+              <div className="p-8 flex flex-col items-center justify-center space-y-2">
+                <span className="w-6 h-6 border-2 border-blue-600/30 border-t-blue-600 rounded-full animate-spin" />
+                <span className="text-[9px] text-slate-500 font-extrabold uppercase tracking-wider">
+                  {language === 'am' ? 'መረጃ በመጫን ላይ...' : 'Fetching card logs...'}
+                </span>
+              </div>
+            ) : (
+              <div className="space-y-2.5 max-h-[400px] overflow-y-auto pr-1 scrollbar-none">
+                {!cardTransactions || cardTransactions.length === 0 ? (
+                  <div className="p-6 rounded-2xl bg-white border border-slate-100 flex flex-col items-center justify-center text-center">
+                    <CreditCard className="w-8 h-8 text-slate-300 stroke-[1.5] mb-2" />
+                    <p className="text-[10px] text-slate-705 uppercase font-black tracking-wider">
+                      {language === 'am' ? 'ምንም የካርድ ግብይቶች አልተገኙም' : 'No card transactions captured yet'}
+                    </p>
+                  </div>
+                ) : (
+                  cardTransactions.map((tx) => {
+                    const isCompleted = tx.status === 'completed';
+                    const isFailed = tx.status === 'failed';
+
+                    // Determine type flag
+                    const isDebit = ['online_purchase', 'card_freeze'].includes(tx.type);
+
+                    return (
+                      <div key={tx.id} className="p-3 bg-white border border-slate-200 rounded-2xl flex justify-between items-center shadow-3xs relative overflow-hidden transition-all hover:border-slate-300">
+                        {isCompleted && (
+                          <div className="absolute right-[22%] top-[-4px] pointer-events-none z-0 transform scale-60 origin-top-right">
+                            <LumoraStamp text="COMPLETED" variant="green" size="xs" tilted={true} highContrast={true} />
+                          </div>
+                        )}
+                        {isFailed && (
+                          <div className="absolute right-[22%] top-[-4px] pointer-events-none z-0 transform scale-60 origin-top-right">
+                            <LumoraStamp text="FAILED" variant="rose" size="xs" tilted={true} highContrast={true} />
+                          </div>
+                        )}
+
+                        <div className="relative z-10 text-left space-y-0.5">
+                          <h5 className="text-[11px] font-display font-black text-slate-950 flex items-center space-x-1.5">
+                            <span className={isDebit ? 'text-slate-900' : 'text-emerald-600'}>
+                              {isDebit ? '-' : '+'}${tx.amount.toFixed(2)} USD
+                            </span>
+                            {tx.amountEtb && (
+                              <span className="text-[8.5px] text-slate-450 font-mono font-bold">
+                                ({tx.amountEtb.toLocaleString()} ETB)
+                              </span>
+                            )}
+                          </h5>
+                          <p className="text-[9px] text-slate-800 font-bold leading-tight">
+                            {tx.description}
+                          </p>
+                          <p className="text-[7.5px] text-slate-450 font-mono font-black uppercase tracking-wider">
+                            Type: {tx.type.replace('_', ' ')} • {new Date(tx.date).toLocaleDateString()}
+                          </p>
+                        </div>
+
+                        <div className="text-right relative z-10 font-sans shrink-0 ml-2">
+                          <span className={`text-[7.5px] font-black px-2 py-0.5 rounded-full border uppercase tracking-wider ${
+                            isCompleted ? 'bg-emerald-50 text-emerald-800 border-emerald-200' :
+                            isFailed ? 'bg-rose-50 text-rose-800 border-rose-200' :
+                            'bg-amber-50 text-amber-800 border-amber-200 animate-pulse'
+                          }`}>
+                            {tx.status}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         <button
           onClick={() => setShowInvitationNetwork(!showInvitationNetwork)}
           className="w-full flex items-center justify-between p-3.5 rounded-2xl hover:bg-slate-100 text-xs text-slate-900 font-black border-t border-slate-100 transition-all cursor-pointer group animate-fade-in"
@@ -2070,7 +2387,40 @@ export default function ProfileTab({
               </span>
             </div>
           </div>
-          <ChevronRight className={`w-4 h-4 text-slate-700 transition-transform duration-200 ${showLiquidityLoan ? 'rotate-90' : ''}`} />
+          <div className="flex items-center space-x-2 shrink-0">
+            {(() => {
+              const hasVip = profile.vipLevel >= 4;
+              const hasId = profile.idVerificationStatus === 'verified';
+              if (hasVip && hasId) {
+                return (
+                  <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 rounded-lg text-[8px] font-black uppercase tracking-wider flex items-center space-x-1 shrink-0">
+                    <span className="w-1 h-1 bg-emerald-500 rounded-full animate-ping" />
+                    <span>
+                      {language === 'am' ? 'የተከፈተ' :
+                       language === 'om' ? 'Banyameera' :
+                       language === 'ti' ? 'ተኸፊቱ' :
+                       language === 'so' ? 'Furan' :
+                       'Unlocked'}
+                    </span>
+                  </span>
+                );
+              }
+              const percent = (hasVip ? 50 : 0) + (hasId ? 50 : 0);
+              return (
+                <span className="px-2 py-0.5 bg-slate-100 text-slate-600 border border-slate-200 rounded-lg text-[8px] font-black uppercase tracking-wider flex items-center space-x-1 shrink-0">
+                  <span className={`w-1 h-1 ${percent === 50 ? 'bg-amber-500 animate-pulse' : 'bg-slate-400'} rounded-full`} />
+                  <span>
+                    {language === 'am' ? `${percent}% ተከፍቷል` :
+                     language === 'om' ? `${percent}% Banamee` :
+                     language === 'ti' ? `${percent}% ተኸፊቱ` :
+                     language === 'so' ? `${percent}% Furan` :
+                     `${percent}% Unlocked`}
+                  </span>
+                </span>
+              );
+            })()}
+            <ChevronRight className={`w-4 h-4 text-slate-700 transition-transform duration-200 ${showLiquidityLoan ? 'rotate-90' : ''}`} />
+          </div>
         </button>
 
         {showLiquidityLoan && (
@@ -2127,18 +2477,92 @@ export default function ProfileTab({
               )}
             </div>
 
-            <div className="pt-2 border-t border-slate-200 space-y-2">
-              <span className="text-[9px] font-black text-slate-500 block uppercase tracking-wider pl-0.5">
-                {language === 'am' ? 'የብድር አገልግሎት ማግኛ ደረጃ' : 'Sovereign Loan Unlock Tracker'}
-              </span>
+            <div className="pt-4 border-t border-slate-200 space-y-4">
+              {/* Sovereign Loan Unlock Tracker high-fidelity widget */}
+              <div className="p-5.5 rounded-[1.8rem] bg-[#F8FAFC]/50 border-2 border-dashed border-blue-200/80 font-sans space-y-4">
+                <div className="flex items-center space-x-2.5 pb-2.5 border-b border-indigo-50">
+                  <Shield className="w-4 h-4 text-[#0A3D91]" />
+                  <h4 className="text-[11px] font-black text-[#0A3D91] uppercase tracking-wider">
+                    {language === 'am' ? 'የብድር አገልግሎት ማግኛ ደረጃ' : 'Sovereign Loan Unlock Tracker'}
+                  </h4>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3">
+                  {/* Condition 1: VIP 3+ (Active Plan Level) */}
+                  <div className={`p-3 rounded-[1.1rem] border flex items-center justify-between transition-all ${
+                    profile.vipLevel >= 4 
+                      ? 'bg-emerald-50/20 border-emerald-100/80 text-emerald-950' 
+                      : 'bg-[#FFFDF0] border-amber-205 text-amber-950'
+                  }`}>
+                    <div className="flex items-center space-x-2.5">
+                      <span className={`text-sm font-black select-none ${profile.vipLevel >= 4 ? 'text-emerald-500 font-sans' : 'text-amber-500 font-serif italic'}`}>
+                        {profile.vipLevel >= 4 ? "✓" : "✗"}
+                      </span>
+                      <span className="text-[10.5px] font-bold text-slate-800">
+                        {language === 'am' ? 'ቪአይፒ ደረጃ 3 ወይም ከዚያ በላይ መሆን' : 'Active Plan Level: VIP Level 3+'}
+                      </span>
+                    </div>
+                    <span className="text-[9.5px] font-mono font-black px-2.5 py-1 rounded-[8px] bg-white border border-slate-900 text-slate-900">
+                      VIP {profile.vipLevel === 1 ? 0 : profile.vipLevel - 1} / 3
+                    </span>
+                  </div>
+
+                  {/* Condition 2: ID Auditing & Compliance */}
+                  <div className={`p-3 rounded-[1.1rem] border flex items-center justify-between transition-all ${
+                    profile.idVerificationStatus === 'verified' 
+                      ? 'bg-emerald-50/20 border-emerald-100/80 text-emerald-950' 
+                      : 'bg-[#FFF5F6] border-rose-200 text-rose-950'
+                  }`}>
+                    <div className="flex items-center space-x-2.5">
+                      <span className={`text-sm font-black select-none ${profile.idVerificationStatus === 'verified' ? 'text-emerald-500 font-sans' : 'text-rose-400 font-serif italic'}`}>
+                        {profile.idVerificationStatus === 'verified' ? "✓" : "✗"}
+                      </span>
+                      <span className="text-[10.5px] font-bold text-slate-800">
+                        {language === 'am' ? 'የብሔራዊ መታወቂያ መረጋገጥ (ID Verified)' : 'National ID Auditing & Compliance'}
+                      </span>
+                    </div>
+                    <span className={`text-[8px] font-mono font-black px-2.5 py-1 rounded-[6px] uppercase tracking-wider ${
+                      profile.idVerificationStatus === 'verified' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-[#C1272D] border border-rose-200/50'
+                    }`}>
+                      {profile.idVerificationStatus === 'verified' ? (language === 'am' ? 'የተረጋገጠ' : 'VERIFIED') :
+                       profile.idVerificationStatus === 'pending' ? (language === 'am' ? 'በሂደት ላይ' : 'PENDING') :
+                       (language === 'am' ? 'ያልቀረበ' : 'UNSUBMITTED')}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Status indicator row */}
+                <div className="flex items-center justify-between pt-1 border-t border-slate-100">
+                  <span className="text-[9px] text-slate-500 font-mono font-extrabold uppercase tracking-widest">
+                    {language === 'am' ? 'አጠቃላይ የብቁነት ሁኔታ፡' : 'Access Authorization:'}
+                  </span>
+                  {profile.vipLevel >= 4 && profile.idVerificationStatus === 'verified' ? (
+                    <span className="px-3 py-1.5 rounded-xl text-[9.5px] font-black uppercase tracking-wider bg-emerald-500 text-white shadow-xs border border-emerald-600 flex items-center space-x-1">
+                      <span>✓</span>
+                      <span>{language === 'am' ? 'AUTHORIZED & ACTIVE' : 'AUTHORIZED & ACTIVE'}</span>
+                    </span>
+                  ) : (
+                    <span className="px-3 py-1.5 rounded-xl text-[9.5px] font-black uppercase tracking-wider bg-[#FEF6DB] border border-amber-200 text-[#925C0E] flex items-center space-x-1 shadow-2xs">
+                      <span className="font-serif italic font-bold">✗</span>
+                      <span>{language === 'am' ? 'ከፊል የታገደ' : 'AUTHORIZATION PENDING'}</span>
+                    </span>
+                  )}
+                </div>
+              </div>
 
               {profile.vipLevel < 4 || profile.idVerificationStatus !== 'verified' ? (
-                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-left space-y-1">
-                  <span className="inline-flex items-center space-x-1.5 bg-amber-100 text-amber-800 font-mono font-black px-2 py-0.5 rounded text-[7.5px] uppercase tracking-wider border border-amber-200">
-                    🔒 Request Locked
+                /* High-fidelity LOAN FEATURE LOCKED Alert Card as requested */
+                <div className="p-6 bg-[#FFFDF0] rounded-[2rem] border border-yellow-200 text-center space-y-3.5 font-sans">
+                  <span className="text-[9px] bg-[#FDF3CD] text-[#856404] font-black uppercase py-1.5 px-6 rounded-full border border-yellow-250 inline-block tracking-widest">
+                    {language === 'am' ? 'የብድር አገልግሎት ተቆልፏል' : 'Loan Feature Locked'}
                   </span>
-                  <p className="text-[9px] text-amber-800 font-bold leading-relaxed">
-                    Loan services are available only for VIP 3+ members who are fully ID Verified. Current VIP Level: <strong>{profile.vipLevel === 1 ? "Starter" : `VIP ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0}`}</strong>, status: <strong>{profile.idVerificationStatus || 'Unsubmitted'}</strong>.
+                  <p className="text-[11.5px] text-[#856404] leading-relaxed font-extrabold max-w-sm mx-auto">
+                    {language === 'am' ? `የቀጥታ ብድር መጠየቂያ በር ተዘግቷል። የብድር አገልግሎቶች የሚገኙት ቪአይፒ ደረጃ 3 ወይም ከዚያ በላይ ለደረሱ አባላት ብቻ ነው። የአሁኑ ደረጃዎ፡ ቪአይፒ ${profile.vipLevel === 1 ? 0 : profile.vipLevel - 1} ነው።` :
+                     `Sovereign loan request portal is closed. Loan services are available only for members who have reached VIP Level 3 or higher. Current level: VIP ${profile.vipLevel === 1 ? 0 : profile.vipLevel - 1}.`}
+                  </p>
+                  <p className="text-[10px] text-slate-500 leading-normal max-w-xs mx-auto">
+                    {language === 'am' ? 'እባክዎ ሙሉ ብቁነትን ለማግኘት የዕቅድ ደረጃዎን ወደ ቪአይፒ 3 ከፍ ለማድረግ የኢንቨስትመንት ገጽን ይጎብኙ።' :
+                     'Please visit the Investments Screen to upgrade your plan to VIP Level 3 or higher to acquire full eligibility.'}
                   </p>
                 </div>
               ) : (
