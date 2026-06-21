@@ -1688,6 +1688,43 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     return respondJSON(200, { success: true, message: "Password updated successfully!" });
   }
 
+  // 16c. POST /api/user/reset-account (User self factory reset)
+  if (pathname === '/api/user/reset-account' && method === 'POST') {
+    const { userId } = body;
+    if (!userId) {
+      return respondJSON(400, { error: "Missing required field: userId" });
+    }
+    const user = db.users.find(u => u.id === userId);
+    if (!user) return respondJSON(404, { error: "User not found" });
+
+    if (user.isAdmin) {
+      return respondJSON(403, { error: "Administrator accounts cannot be deleted. Please use the administrative Factory Reset in the Admin Panel." });
+    }
+
+    // Filter out user data
+    db.users = db.users.filter(u => u.id !== userId);
+    db.profiles = db.profiles.filter(p => p.userId !== userId);
+    db.investments = db.investments.filter(inv => inv.userId !== userId);
+    db.deposits = db.deposits.filter(dep => dep.userId !== userId);
+    db.withdrawals = db.withdrawals.filter(w => w.userId !== userId);
+    db.transactions = db.transactions.filter(t => t.userId !== userId);
+    db.notifications = db.notifications.filter(n => n.userId !== userId);
+    db.referrals = db.referrals.filter(ref => ref.referrerId !== userId && ref.referredId !== userId);
+    db.loans = db.loans.filter(l => l.userId !== userId);
+    if (db.chatHistory && db.chatHistory[userId]) {
+      delete db.chatHistory[userId];
+    }
+    if (db.cards) {
+      db.cards = db.cards.filter((c: any) => c.userId !== userId);
+    }
+    if (db.cardTransactions) {
+      db.cardTransactions = db.cardTransactions.filter((ct: any) => ct.userId !== userId);
+    }
+
+    saveLocalDB(db);
+    return respondJSON(200, { success: true, message: "Your account and all associated portfolio data have been permanently erased." });
+  }
+
   // 17. GET /api/referrals/:userId
   if (pathname.startsWith('/api/referrals/') && method === 'GET') {
     const userId = pathname.split('/').pop();

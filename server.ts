@@ -169,6 +169,8 @@ interface LumoraDB {
   loans: Loan[];
   eligibilityChecks?: EligibilityCheck[];
   adminLogs?: any[];
+  cards?: any[];
+  cardTransactions?: any[];
 }
 
 // Global default settings
@@ -2322,6 +2324,43 @@ async function startServer() {
     user.password = cleanPass;
     saveDB(db);
     res.json({ success: true, message: "Password updated successfully!" });
+  });
+
+  // User self factory reset / profile and account wipe
+  app.post("/api/user/reset-account", (req, res) => {
+    const { userId } = req.body;
+    if (!userId) {
+      return res.status(400).json({ error: "Missing required field: userId" });
+    }
+    const user = db.users.find(u => u.id === userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    if (user.isAdmin) {
+      return res.status(403).json({ error: "Administrator accounts cannot be deleted. Please use the administrative Factory Reset in the Admin Panel." });
+    }
+
+    // Filter out user data from database arrays
+    db.users = db.users.filter(u => u.id !== userId);
+    db.profiles = db.profiles.filter(p => p.userId !== userId);
+    db.investments = db.investments.filter(inv => inv.userId !== userId);
+    db.deposits = db.deposits.filter(dep => dep.userId !== userId);
+    db.withdrawals = db.withdrawals.filter(w => w.userId !== userId);
+    db.transactions = db.transactions.filter(t => t.userId !== userId);
+    db.notifications = db.notifications.filter(n => n.userId !== userId);
+    db.referrals = db.referrals.filter(ref => ref.referrerId !== userId && ref.referredId !== userId);
+    db.loans = db.loans.filter(l => l.userId !== userId);
+    if (db.chatHistory && db.chatHistory[userId]) {
+      delete db.chatHistory[userId];
+    }
+    if (db.cards) {
+      db.cards = db.cards.filter((c: any) => c.userId !== userId);
+    }
+    if (db.cardTransactions) {
+      db.cardTransactions = db.cardTransactions.filter((ct: any) => ct.userId !== userId);
+    }
+
+    saveDB(db);
+    res.json({ success: true, message: "Your account and all associated portfolio data have been permanently erased." });
   });
 
   // Upload user profile picture as Base64 asset

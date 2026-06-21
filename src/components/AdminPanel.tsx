@@ -96,6 +96,11 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   const [isQuotaExceededOnClient, setIsQuotaExceededOnClient] = useState(typeof window !== "undefined" && localStorage.getItem("lumora_firestore_client_disabled") === "true");
   const [recalculatingQuota, setRecalculatingQuota] = useState(false);
 
+  // System Reset states
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resetConfirmWord, setResetConfirmWord] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
+
   const handleResetFirestoreQuota = async () => {
     setRecalculatingQuota(true);
     try {
@@ -544,6 +549,42 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
       console.error(err);
     } finally {
       setActionLoading(null);
+    }
+  };
+
+  const handleFactoryReset = async () => {
+    setIsResetting(true);
+    setActionLoading('factory-reset');
+    try {
+      const response = await fetch('/api/admin/reset-system', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await response.json();
+      
+      // Also reset client firestore sync states
+      await fetch('/api/admin/reset-firestore-quota', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (response.ok) {
+        showToast("System factory reset triggered successfully! Retaining admin accounts...", "success");
+        if (typeof window !== "undefined") {
+          localStorage.clear();
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+        }
+      } else {
+        showToast(data.error || "Reset failed.", "error");
+      }
+    } catch (e) {
+      showToast("Network error trying to reset system.", "error");
+    } finally {
+      setIsResetting(false);
+      setActionLoading(null);
+      setShowResetConfirm(false);
     }
   };
 
@@ -1632,7 +1673,8 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
 
           {/* TAB 7: INSTITUTIONAL SETTINGS */}
           {activeSubTab === 'settings' && (
-            <div className="max-w-xl bg-white p-6 rounded-3xl border border-slate-200/50 shadow-3xs space-y-4">
+            <div className="space-y-6">
+              <div className="max-w-xl bg-white p-6 rounded-3xl border border-slate-200/50 shadow-3xs space-y-4">
               <h3 className="font-display font-black text-xs text-[#0A3D91] uppercase tracking-widest border-b border-slate-100 pb-2.5">Global System Coefficients</h3>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1800,7 +1842,51 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                 </button>
               </div>
             </div>
-          )}
+
+            {/* DANGER ZONE: SYSTEM FACTORY RESET CONSOLE */}
+            <div className="max-w-xl bg-white p-6 rounded-3xl border border-rose-200 shadow-3xs space-y-4">
+              <h3 className="font-display font-black text-xs text-rose-600 uppercase tracking-widest border-b border-rose-100 pb-2.5 flex items-center space-x-1.5">
+                <ShieldAlert className="w-4 h-4 text-rose-600" />
+                <span>Administrative Factory Reset</span>
+              </h3>
+              
+              <p className="text-xs text-slate-600 font-medium leading-relaxed">
+                Executing a factory reset is an irreversible administrative action. This will completely purge all client records from the database—including users, login credentials, investment plans, transaction history, notification logs, and referral logs—instantly and permanently.
+              </p>
+
+              <div className="bg-rose-50/70 border border-rose-100 rounded-2xl p-4 text-[11px] font-semibold text-rose-700 leading-normal">
+                <span className="font-black">RECOVERY NOTICE:</span> Only core administrator accounts will be retained to allow continuation of official system settings. All general customers must register their accounts anew to access the platform.
+              </div>
+
+              <div className="space-y-2 pt-2">
+                <label className="block text-[10px] uppercase font-black tracking-wider text-slate-500">
+                  To authorize deletion, type <strong className="text-rose-600 font-extrabold font-mono text-[11px]">ERASE</strong> below:
+                </label>
+                <input
+                  type="text"
+                  placeholder="Type ERASE to authorize"
+                  value={resetConfirmWord}
+                  onChange={(e) => setResetConfirmWord(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-4 text-xs font-mono font-bold tracking-wider uppercase focus:outline-none focus:ring-1 focus:ring-rose-500"
+                />
+              </div>
+
+              <button
+                type="button"
+                disabled={resetConfirmWord !== 'ERASE' || isResetting}
+                onClick={handleFactoryReset}
+                className={`w-full py-4 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center space-x-2 ${
+                  resetConfirmWord === 'ERASE' && !isResetting
+                    ? 'bg-rose-600 hover:bg-rose-700 text-white shadow-sm shadow-rose-600/25 cursor-pointer active:scale-98'
+                    : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                }`}
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>{isResetting ? 'Wiping system database...' : 'Execute Complete System Reset'}</span>
+              </button>
+            </div>
+          </div>
+        )}
 
           {/* TAB 8: LUMORA CARD MANAGEMENT DESK */}
           {activeSubTab === 'cards' && (

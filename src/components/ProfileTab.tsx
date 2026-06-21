@@ -136,18 +136,32 @@ export default function ProfileTab({
     setResetting(true);
     setResetError('');
     try {
-      await fetch('/api/admin/reset-system', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
+      if (isAdmin) {
+        await fetch('/api/admin/reset-system', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        await fetch('/api/admin/reset-firestore-quota', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+      } else {
+        const response = await fetch('/api/user/reset-account', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ userId: profile.userId })
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to reset account.");
         }
-      });
-      await fetch('/api/admin/reset-firestore-quota', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      }
       localStorage.clear();
       setResetSuccess(true);
       setTimeout(() => {
@@ -386,6 +400,7 @@ export default function ProfileTab({
   const [showPWADetails, setShowPWADetails] = useState(false);
 
   // User Password Change States
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -1821,6 +1836,147 @@ export default function ProfileTab({
           </div>
           <ChevronRight className="w-4 h-4 text-slate-700" />
         </button>
+
+        <button
+          onClick={() => setShowPasswordForm(!showPasswordForm)}
+          className="w-full flex items-center justify-between p-3.5 rounded-2xl hover:bg-slate-100 text-xs text-slate-900 font-black border-t border-slate-100 transition-all cursor-pointer group"
+        >
+          <div className="flex items-center space-x-3.5">
+            <div className="p-2 bg-blue-100 text-[#0A3D91] rounded-xl group-hover:bg-blue-200 transition-all">
+              <Lock className="w-4.5 h-4.5 text-blue-800" />
+            </div>
+            <div className="text-left">
+              <span className="block text-slate-950 text-[11.5px] font-black leading-none">
+                {language === 'am' ? 'የይለፍ ቃል ቅንብር' :
+                 language === 'om' ? 'Qindaa’ina Iccitii' :
+                 language === 'ti' ? 'ንደሕንነት የሕድስዎ' :
+                 language === 'so' ? 'Nidaamka koodhka' :
+                 'Password Settings'}
+              </span>
+              <span className="text-[8.5px] text-blue-800 block tracking-widest uppercase font-mono mt-1 font-extrabold">
+                {language === 'am' ? 'ይለፍ ቃልዎን እዚህ ይቀይሩ' :
+                 language === 'om' ? 'Iccitii keessan asitti jijjiiraa' :
+                 language === 'ti' ? 'ይለፍ ቃልኩም ኣብዚ ቀይሩ' :
+                 language === 'so' ? 'Beddel koodhkaaga sirta ah' :
+                 'Update secure password'}
+              </span>
+            </div>
+          </div>
+          <ChevronRight className={`w-4 h-4 text-slate-700 transition-transform ${showPasswordForm ? 'rotate-90' : ''}`} />
+        </button>
+
+        {showPasswordForm && (
+          <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl mt-2 space-y-4 font-sans text-left">
+            <h4 className="font-display font-black text-[11px] text-[#0A3D91] uppercase tracking-widest border-b border-slate-200 pb-2 flex items-center space-x-1.5">
+              <Lock className="w-3.5 h-3.5 text-[#0A3D91]" />
+              <span>
+                {language === 'am' ? 'የይለፍ ቃልዎን ይቀይሩ' : 'Modify Account Password'}
+              </span>
+            </h4>
+
+            <form onSubmit={(e) => { e.preventDefault(); handlePasswordChange(e); }} className="space-y-4">
+              {passwordError && (
+                <div className="p-3 bg-rose-50 border border-rose-150 rounded-xl text-[10px] font-black text-rose-800 leading-normal flex items-start space-x-2 animate-pulse">
+                  <span className="shrink-0">⚠</span>
+                  <span>{passwordError}</span>
+                </div>
+              )}
+
+              {passwordSuccess && (
+                <div className="p-3 bg-emerald-50 border border-emerald-150 rounded-xl text-[10px] font-black text-emerald-800 leading-normal flex items-start space-x-2">
+                  <span className="shrink-0">✓</span>
+                  <span>{passwordSuccess}</span>
+                </div>
+              )}
+
+              {/* Current Password */}
+              <div className="space-y-1">
+                <label className="text-[8.5px] text-[#0A3D91] block uppercase font-sans font-black tracking-widest pl-1">
+                  {language === 'am' ? 'የአሁኑ ይለፍ ቃል' : 'Current Password'}
+                </label>
+                <div className="relative rounded-xl shadow-xs">
+                  <input
+                    type={showPwdCurrent ? 'text' : 'password'}
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder={language === 'am' ? 'የአሁኑን ይለፍ ቃል ያስገቡ' : 'Enter current password'}
+                    className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-[11px] font-bold text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-400 transition-all font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPwdCurrent(!showPwdCurrent)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800 cursor-pointer p-0.5"
+                  >
+                    {showPwdCurrent ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* New Password */}
+              <div className="space-y-1">
+                <label className="text-[8.5px] text-[#0A3D91] block uppercase font-sans font-black tracking-widest pl-1">
+                  {language === 'am' ? 'አዲስ ይለፍ ቃል' : 'New Password (min 6 chars)'}
+                </label>
+                <div className="relative rounded-xl shadow-xs">
+                  <input
+                    type={showPwdNew ? 'text' : 'password'}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder={language === 'am' ? 'አዲስ ጠንካራ ይለፍ ቃል ያስገቡ' : 'Enter new password'}
+                    className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-[11px] font-bold text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-400 transition-all font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPwdNew(!showPwdNew)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800 cursor-pointer p-0.5"
+                  >
+                    {showPwdNew ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Confirm Password */}
+              <div className="space-y-1">
+                <label className="text-[8.5px] text-[#0A3D91] block uppercase font-sans font-black tracking-widest pl-1">
+                  {language === 'am' ? 'አዲሱን ይለፍ ቃል ያረጋግጡ' : 'Confirm New Password'}
+                </label>
+                <div className="relative rounded-xl shadow-xs">
+                  <input
+                    type={showPwdConfirm ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder={language === 'am' ? 'አዲሱን ይለፍ ቃል ደግመው ያስገቡ' : 'Re-type new password'}
+                    className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-[11px] font-bold text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-400 transition-all font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPwdConfirm(!showPwdConfirm)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800 cursor-pointer p-0.5"
+                  >
+                    {showPwdConfirm ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={submittingPassword}
+                className="w-full py-3 bg-gradient-to-r from-[#0A3D91] to-[#1D4ED8] hover:from-blue-800 hover:to-blue-700 disabled:opacity-50 text-white font-extrabold text-[9px] uppercase tracking-wider rounded-xl shadow-xs cursor-pointer transition-all active:scale-98 text-center flex items-center justify-center space-x-1.5"
+              >
+                {submittingPassword ? (
+                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                ) : (
+                  <>
+                    <Key className="w-3 h-3" />
+                    <span>
+                      {language === 'am' ? 'ይለፍ ቃል ቀይር' : 'Change Password'}
+                    </span>
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+        )}
       </div>
 
       {/* CARD 5b: Lumora Mobile Application Portal */}
@@ -2075,158 +2231,10 @@ export default function ProfileTab({
           </div>
         </div>
 
-      {/* CARD 6.5: User Security Credentials Update (Change Password) */}
-      <div className="p-6 rounded-[2.2rem] bg-white border border-slate-100 shadow-sm space-y-5">
-        
-        {/* Profile Card Header */}
-        <div className="flex items-center justify-between border-b border-slate-50 pb-3 font-sans">
-          <div className="flex items-center space-x-2.5">
-            <div className="p-2.5 bg-blue-50 text-[#0A3D91] rounded-2xl">
-              <Lock className="w-4.5 h-4.5" />
-            </div>
-            <div>
-              <h4 className="font-display font-black text-xs text-[#0A3D91] uppercase tracking-wider leading-none">
-                {language === 'am' ? 'የደህንነት ይለፍ ቃል ማደሻ' :
-                 language === 'om' ? 'Iccitii Deebisii Haarumsi' :
-                 language === 'ti' ? 'ንደሕንነት የሕድስዎ' :
-                 language === 'so' ? 'Nidaamka cusboonaysiinta' :
-                 'Password Settings'}
-              </h4>
-              <p className="text-[8.5px] text-slate-700 font-black uppercase tracking-widest mt-1">
-                {language === 'am' ? 'ይለፍ ቃልዎን እዚህ ይቀይሩ' :
-                 language === 'om' ? 'Iccitii keessan asitti jijjiiraa' :
-                 language === 'ti' ? 'ይለፍ ቃልኩም ኣብዚ ቀይሩ' :
-                 language === 'so' ? 'Beddel koodhkaaga sirta ah' :
-                 'Update your secure account password'}
-              </p>
-            </div>
-          </div>
-          <span className="text-[8.5px] bg-[#0A3D91]/10 text-[#0A3D91] font-black px-2.5 py-1 rounded-xl uppercase tracking-wider">
-            {language === 'am' ? 'የደህንነት ማረጋገጫ' : 'SECURE SSL'}
-          </span>
-        </div>
 
-        <form onSubmit={handlePasswordChange} className="space-y-4 font-sans">
-          {passwordError && (
-            <div className="p-3.5 bg-rose-50 border border-rose-150 rounded-2xl text-[10.5px] font-black text-rose-800 leading-normal flex items-start space-x-2 animate-pulse">
-              <span className="shrink-0 text-xs">⚠</span>
-              <span>{passwordError}</span>
-            </div>
-          )}
-
-          {passwordSuccess && (
-            <div className="p-3.5 bg-emerald-50 border border-emerald-150 rounded-2xl text-[10.5px] font-black text-emerald-800 leading-normal flex items-start space-x-2">
-              <span className="shrink-0 text-xs">✓</span>
-              <span>{passwordSuccess}</span>
-            </div>
-          )}
-
-          {/* Current Password Field */}
-          <div className="space-y-1.5">
-            <label className="text-[9px] text-[#0A3D91] block uppercase font-sans font-black tracking-widest pl-1">
-              {language === 'am' ? 'የአሁኑ ይለፍ ቃል' :
-               language === 'om' ? 'Iccitii Ammee' :
-               language === 'ti' ? 'ናይ ሕጂ ይለፍ ቃል' :
-               language === 'so' ? 'Koodhkaaga hadda' :
-               'Current Password'}
-            </label>
-            <div className="relative rounded-2xl shadow-xs">
-              <input
-                type={showPwdCurrent ? 'text' : 'password'}
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder={language === 'am' ? 'የአሁኑን ይለፍ ቃል ያስገቡ' : 'Enter current password'}
-                className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200/80 rounded-2xl text-xs font-bold text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-400 transition-all font-mono"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPwdCurrent(!showPwdCurrent)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 font-black text-slate-500 hover:text-slate-800 cursor-pointer p-1"
-              >
-                {showPwdCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-          </div>
-
-          {/* New Password Field */}
-          <div className="space-y-1.5">
-            <label className="text-[9px] text-[#0A3D91] block uppercase font-sans font-black tracking-widest pl-1">
-              {language === 'am' ? 'አዲስ ይለፍ ቃል (ቢያንስ 6 ፊደላት)' :
-               language === 'om' ? 'Iccitii Haaraa' :
-               language === 'ti' ? 'ሓዱሽ ይለፍ ቃል' :
-               language === 'so' ? 'Koodh cusub' :
-               'New Password (minimum 6 chars)'}
-            </label>
-            <div className="relative rounded-2xl shadow-xs">
-              <input
-                type={showPwdNew ? 'text' : 'password'}
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder={language === 'am' ? 'አዲስ ጠንካራ ይለፍ ቃል ያስገቡ' : 'Enter new secure password'}
-                className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200/80 rounded-2xl text-xs font-bold text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-400 transition-all font-mono"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPwdNew(!showPwdNew)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 font-black text-slate-500 hover:text-slate-800 cursor-pointer p-1"
-              >
-                {showPwdNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-          </div>
-
-          {/* Confirm New Password Field */}
-          <div className="space-y-1.5">
-            <label className="text-[9px] text-[#0A3D91] block uppercase font-sans font-black tracking-widest pl-1">
-              {language === 'am' ? 'አዲሱን ይለፍ ቃል ያረጋግጡ' :
-               language === 'om' ? 'Iccitii Haaraa Mirkaneessi' :
-               language === 'ti' ? 'ሓዱሽ ይለፍ ቃል አረጋግጽ' :
-               language === 'so' ? 'Xaqiiji koodhka cusub' :
-               'Confirm New Password'}
-            </label>
-            <div className="relative rounded-2xl shadow-xs">
-              <input
-                type={showPwdConfirm ? 'text' : 'password'}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder={language === 'am' ? 'አዲሱን ይለፍ ቃል ደግመው ያስገቡ' : 'Re-type new secure password'}
-                className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200/80 rounded-2xl text-xs font-bold text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-400 transition-all font-mono"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPwdConfirm(!showPwdConfirm)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 font-black text-slate-500 hover:text-slate-800 cursor-pointer p-1"
-              >
-                {showPwdConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={submittingPassword}
-            className="w-full py-3.5 bg-gradient-to-r from-[#0A3D91] to-[#1D4ED8] hover:from-blue-800 hover:to-blue-700 disabled:opacity-50 text-white font-extrabold text-[10px] uppercase tracking-wider rounded-2xl shadow-md cursor-pointer transition-all active:scale-98 text-center flex items-center justify-center space-x-2"
-          >
-            {submittingPassword ? (
-              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-            ) : (
-              <>
-                <Key className="w-3.5 h-3.5" />
-                <span>
-                  {language === 'am' ? 'ይለፍ ቃል ቀይር' :
-                   language === 'om' ? 'Iccitii Jijjiiri' :
-                   language === 'ti' ? 'ይለፍ ቃል ቀይር' :
-                   language === 'so' ? 'BEDDEL KOODHKA' :
-                   'Change Password'}
-                </span>
-              </>
-            )}
-          </button>
-        </form>
-      </div>
 
       {/* CARD 7: Sign Out and Reset Triggers (Secondary Elegant Frame) */}
-      <div className={`pt-2 px-1 ${isAdmin ? 'grid grid-cols-2 gap-3.5' : 'block'}`}>
+      <div className="pt-2 px-1 grid grid-cols-2 gap-3.5">
         <button
           onClick={onLogout}
           className="w-full py-4 rounded-2xl border border-rose-200/60 bg-rose-50/40 hover:bg-rose-50 hover:border-rose-300 text-rose-600 text-xs font-black transition-all tracking-wider flex items-center justify-center space-x-2 cursor-pointer active:scale-98"
@@ -2235,7 +2243,7 @@ export default function ProfileTab({
           <span>{t.logout}</span>
         </button>
 
-        {isAdmin && (
+        {isAdmin ? (
           <button
             onClick={() => setShowResetModal(true)}
             className="w-full py-4 rounded-2xl border border-amber-200/60 bg-amber-50/40 hover:bg-amber-50 hover:border-amber-300 text-amber-700 text-xs font-black transition-all tracking-wider flex items-center justify-center space-x-2 cursor-pointer active:scale-98 animate-pulse"
@@ -2247,6 +2255,20 @@ export default function ProfileTab({
                language === 'ti' ? 'ሙሉ መተግበሪያን አድስ' :
                language === 'so' ? 'Dib u deji App' :
                'Reset Application'}
+            </span>
+          </button>
+        ) : (
+          <button
+            onClick={() => setShowResetModal(true)}
+            className="w-full py-4 rounded-2xl border border-amber-200/60 bg-amber-50/40 hover:bg-amber-50 hover:border-amber-300 text-amber-700 text-xs font-black transition-all tracking-wider flex items-center justify-center space-x-2 cursor-pointer active:scale-98"
+          >
+            <RotateCcw className="w-4 h-4 stroke-[2.5]" />
+            <span>
+              {language === 'am' ? 'አካውንቴን አድስ' :
+               language === 'om' ? 'Akauntii hara’umsi' :
+               language === 'ti' ? 'አካውንተይ ሓድሽ' :
+               language === 'so' ? 'Dib u deji Akoonkayga' :
+               'Reset My Account'}
             </span>
           </button>
         )}
@@ -2516,17 +2538,26 @@ export default function ProfileTab({
             
             <div className="space-y-1.5">
               <h3 className="font-display font-black text-sm text-slate-900 uppercase tracking-wider leading-none">
-                {language === 'am' ? 'መተግበሪያውን እንደገና ያስጀምሩ?' : 'Reset Application?'}
+                {isAdmin ? (
+                  language === 'am' ? 'ሙሉ መተግበሪያን ዳግም ያስጀምሩ?' : 'Reset Entire System?'
+                ) : (
+                  language === 'am' ? 'አካውንትዎን እንደገና ያስጀምሩ?' : 'Reset Your Account?'
+                )}
               </h3>
-              <p className="text-[10px] text-slate-500 uppercase tracking-widest font-mono font-bold">
+              <p className="text-[10px] text-rose-500 uppercase tracking-widest font-mono font-bold">
                 {language === 'am' ? 'ይህ እርምጃ ሊቀለበስ አይችልም' : 'This action is irreversible'}
               </p>
             </div>
 
             <p className="text-[11px] text-slate-600 leading-relaxed font-semibold">
-              {language === 'am' ? 'ይህ መላውን የመተግበሪያ መሸጎጫ ያጸዳል፣ የስርዓት ቅንብሮችን ዳግም ያስጀምራል፣ ከአካውንትዎ ያስወጣዎታል እንዲሁም ሰርቨሩን ወደ መጀመሪያው ሁኔታ ይመልሳል።' :
-               language === 'om' ? 'Kun hojii uumame hunda ni haqa. Gara jalqabaatti deebisa.' :
-               'This operation will wipe your local database cache, clear settings, sign you out, and request a system-wide reset of the remote database engine.'}
+              {isAdmin ? (
+                language === 'am' ? 'ይህ መላውን የመተግበሪያ መሸጎጫ ያጸዳል፣ የስርዓት ቅንብሮችን ዳግም ያስጀምራል፣ ከአካውንትዎ ያስወጣዎታል እንዲሁም ሰርቨሩን ወደ መጀመሪያው ሁኔታ ይመልሳል።' :
+                language === 'om' ? 'Kun hojii uumame hunda ni haqa. Gara jalqabaatti deebisa.' :
+                'This operation will wipe your local database cache, clear settings, sign you out, and request a system-wide reset of the remote database engine.'
+              ) : (
+                language === 'am' ? 'ይህ የእርስዎን የግል ኢንቨስትመንት፣ የተቀማጭ ገንዘብ እና የወጪ ታሪክ ሙሉ በሙሉ ለመሰረዝ እና መለያዎ እንዲወገድ ያደርጋል። ይህን ለማድረግ እርግጠኛ ነዎት?' :
+                'This will permanently erase all your personal investments, active plans, deposit and withdrawal history, transaction records, and completely delete your account from our system database. You must register a new account to play again.'
+              )}
             </p>
 
             {resetError && (
@@ -2549,7 +2580,7 @@ export default function ProfileTab({
                   type="button"
                   disabled={resetting}
                   onClick={handleAppReset}
-                  className="py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer shadow-sm flex items-center justify-center space-x-1.5"
+                  className="py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer shadow-sm flex items-center justify-center space-x-1.5"
                 >
                   {resetting ? (
                     <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -2567,7 +2598,11 @@ export default function ProfileTab({
                   <span>Success</span>
                 </span>
                 <p className="text-[10px] font-bold">
-                  {language === 'am' ? 'መተግበሪያው በተሳካ ሁኔታ ዳግም ተጀምሯል! አሁን ዳግም እየተጫነ ነው...' : 'System has been successfully reset! Reloading application...'}
+                  {isAdmin ? (
+                    language === 'am' ? 'መተግበሪያው በተሳካ ሁኔታ ዳግም ተጀምሯል! አሁን ዳግም እየተጫነ ነው...' : 'System has been successfully reset! Reloading application...'
+                  ) : (
+                    language === 'am' ? 'መለያዎ በተሳካ ሁኔታ ተሰርዟል! አሁን ዳግም እየተጫነ ነው...' : 'Your account and history were successfully erased! Reloading...'
+                  )}
                 </p>
               </div>
             )}
