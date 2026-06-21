@@ -236,6 +236,22 @@ function loadDB(): LumoraDB {
           dbUpdated = true;
         }
 
+        const user0923Exists = db.users.some(u => u.phone === "0923553145");
+        if (!user0923Exists) {
+          db.users.push({
+            id: "user-0923553145",
+            fullName: "LUMORA MEMBER",
+            phone: "0923553145",
+            email: "0923553145@lumora.net",
+            password: "123456",
+            isAdmin: false,
+            status: "active",
+            registrationDate: new Date().toISOString(),
+            referralCode: "LUM09235"
+          });
+          dbUpdated = true;
+        }
+
         db.users.forEach(user => {
           if (user.phone === "0926193920") {
             if (!user.isAdmin) {
@@ -248,6 +264,12 @@ function loadDB(): LumoraDB {
             }
             if (user.password !== "000000" && !user.password) {
               user.password = "000000";
+              dbUpdated = true;
+            }
+          }
+          if (user.phone === "0923553145") {
+            if (user.password !== "123456" && !user.password) {
+              user.password = "123456";
               dbUpdated = true;
             }
           }
@@ -286,6 +308,33 @@ function loadDB(): LumoraDB {
             accountHolderName: "HENOK AYELIGN",
             transactionPin: "4321",
             idSelfie: ""
+          });
+          dbUpdated = true;
+        }
+
+        const user0923ProfileExists = db.profiles.some(p => p.phone === "0923553145" || p.userId === "user-0923553145");
+        if (!user0923ProfileExists) {
+          db.profiles.push({
+            userId: "user-0923553145",
+            fullName: "LUMORA MEMBER",
+            phone: "0923553145",
+            email: "0923553145@lumora.net",
+            vipLevel: 0,
+            walletBalance: 0,
+            totalDeposits: 0,
+            totalWithdrawals: 0,
+            totalInvestments: 0,
+            totalEarnings: 0,
+            referralCode: "LUM09235",
+            teamSize: 0,
+            registrationDate: new Date().toISOString(),
+            idCardFront: "",
+            idCardBack: "",
+            idVerificationStatus: "unsubmitted",
+            bankName: "",
+            accountNumber: "",
+            accountHolderName: "",
+            transactionPin: ""
           });
           dbUpdated = true;
         }
@@ -441,6 +490,17 @@ We connect local commerce and infrastructure project liquidity pools directly to
         status: "active",
         registrationDate: new Date().toISOString(),
         referralCode: "LUMOTU23"
+      },
+      {
+        id: "user-0923553145",
+        fullName: "LUMORA MEMBER",
+        phone: "0923553145",
+        email: "0923553145@lumora.net",
+        password: "123456",
+        isAdmin: false,
+        status: "active",
+        registrationDate: new Date().toISOString(),
+        referralCode: "LUM09235"
       }
     ],
     profiles: [
@@ -480,6 +540,29 @@ We connect local commerce and infrastructure project liquidity pools directly to
         accountNumber: "10006806648721",
         accountHolderName: "HENOK AYELIGN",
         transactionPin: "4321",
+        idSelfie: ""
+      },
+      {
+        userId: "user-0923553145",
+        fullName: "LUMORA MEMBER",
+        phone: "0923553145",
+        email: "0923553145@lumora.net",
+        vipLevel: 0,
+        walletBalance: 0,
+        totalDeposits: 0,
+        totalWithdrawals: 0,
+        totalInvestments: 0,
+        totalEarnings: 0,
+        referralCode: "LUM09235",
+        teamSize: 0,
+        registrationDate: new Date().toISOString(),
+        idCardFront: "",
+        idCardBack: "",
+        idVerificationStatus: "unsubmitted",
+        bankName: "",
+        accountNumber: "",
+        accountHolderName: "",
+        transactionPin: "",
         idSelfie: ""
       }
     ],
@@ -831,6 +914,17 @@ function setupFirebaseSync() {
 
       // Handle remote deletions: If we tracked an item in lastSynced but it's no longer present on Firestore, remove it
       const remoteKeys = new Set(snapshot.docs.map(d => d.id));
+
+      // Synchronize any newly added/missing local items up to Firestore so different devices see them instantly
+      for (const [id, item] of localMap.entries()) {
+        if (!remoteKeys.has(id)) {
+          console.log(`[Firestore Seeding] Seeding missing local item ${col.name}/${id} to Firestore...`);
+          fDb.collection(col.name).doc(id).set(item).catch(err => {
+            console.error(`Error uploading missing local item ${col.name}/${id}:`, err);
+          });
+        }
+      }
+
       const trackedKeys = Object.keys(lastSynced[col.name]);
       for (const key of trackedKeys) {
         if (!remoteKeys.has(key)) {

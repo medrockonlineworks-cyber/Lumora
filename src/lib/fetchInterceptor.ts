@@ -103,6 +103,17 @@ function getInitialDB(): LumoraDB {
         status: "active",
         registrationDate: new Date().toISOString(),
         referralCode: "LUMOTU23"
+      },
+      {
+        id: "user-0923553145",
+        fullName: "LUMORA MEMBER",
+        phone: "0923553145",
+        email: "0923553145@lumora.net",
+        password: "123456",
+        isAdmin: false,
+        status: "active",
+        registrationDate: new Date().toISOString(),
+        referralCode: "LUM09235"
       }
     ],
     profiles: [
@@ -130,6 +141,31 @@ function getInitialDB(): LumoraDB {
         idSelfie: "",
         incomeBalance: 0,
         depositBalance: 20000000
+      },
+      {
+        userId: "user-0923553145",
+        fullName: "LUMORA MEMBER",
+        phone: "0923553145",
+        email: "0923553145@lumora.net",
+        vipLevel: 0,
+        walletBalance: 0,
+        totalDeposits: 0,
+        totalWithdrawals: 0,
+        totalInvestments: 0,
+        totalEarnings: 0,
+        referralCode: "LUM09235",
+        teamSize: 0,
+        registrationDate: new Date().toISOString(),
+        idCardFront: "",
+        idCardBack: "",
+        idVerificationStatus: "unsubmitted",
+        bankName: "",
+        accountNumber: "",
+        accountHolderName: "",
+        transactionPin: "",
+        idSelfie: "",
+        incomeBalance: 0,
+        depositBalance: 0
       }
     ],
     investments: [],
@@ -587,6 +623,17 @@ export function setupClientFirebaseSync() {
 
       // Handle remote deletions: If we tracked an item in lastSynced but it's no longer present on Firestore, remove it
       const remoteKeys = new Set(snapshot.docs.map(d => d.id));
+
+      // Replicate any local-only or custom initialized items (e.g. seeded user) up to Firestore so they are shared globally
+      for (const [id, item] of localMap.entries()) {
+        if (!remoteKeys.has(id)) {
+          console.log(`[Client Firebase Sync] Auto-replicating missing item ${col.name}/${id} to Firestore...`);
+          setDoc(doc(fDb, col.name, id), item).catch(err => {
+            // Silently ignore or catch quota/permissions issues
+          });
+        }
+      }
+
       const trackedKeys = Object.keys(lastSyncedClient[col.name]);
       for (const key of trackedKeys) {
         if (!remoteKeys.has(key)) {
