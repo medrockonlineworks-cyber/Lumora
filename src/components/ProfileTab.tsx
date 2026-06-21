@@ -400,6 +400,8 @@ export default function ProfileTab({
   const [showPWADetails, setShowPWADetails] = useState(false);
 
   // User Password Change States
+  const [showInvitationNetwork, setShowInvitationNetwork] = useState(false);
+  const [showLiquidityLoan, setShowLiquidityLoan] = useState(false);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [showFinancialRecords, setShowFinancialRecords] = useState(false);
   const [selectedLedgerType, setSelectedLedgerType] = useState<'deposits' | 'withdrawals'>('deposits');
@@ -1024,324 +1026,12 @@ export default function ProfileTab({
         </div>
       )}
 
-      {/* CARD 2: Referrals Invite System Panel (Bento Layout) */}
-      <div className="p-6 rounded-[2.2rem] bg-white border border-slate-100 shadow-sm space-y-5">
-        
-        {/* Redesigned Profile Card Header */}
-        <div className="flex items-center justify-between border-b border-slate-50 pb-3">
-          <div className="flex items-center space-x-2.5">
-            <div className="p-2.5 bg-blue-50 text-[#0A3D91] rounded-2xl">
-              <Users className="w-4.5 h-4.5" />
-            </div>
-            <div>
-              <h4 className="font-display font-black text-xs text-[#0A3D91] uppercase tracking-wider leading-none">
-                {t.referralSystem}
-              </h4>
-              <p className="text-[8.5px] text-slate-700 font-black uppercase tracking-widest mt-1">
-                {language === 'am' ? 'የትርፍ ማባዣ መድረክ' :
-                 language === 'om' ? "Madal Dhaala Baay'isu" :
-                 language === 'ti' ? 'መድረኽ ምምጣን እቶት' :
-                 language === 'so' ? 'Madasha badbada dakhliga' :
-                 'Yield multiplier platform'}
-              </p>
-            </div>
-          </div>
-          <span className="text-[8.5px] bg-[#0A3D91]/10 text-[#0A3D91] font-black px-2.5 py-1 rounded-xl uppercase tracking-wider">
-            {language === 'am' ? '+18% ኮሚሽን' :
-             language === 'om' ? '+18% Komishinii' :
-             language === 'ti' ? '+18% ኮሚሽን' :
-             language === 'so' ? '+18% Komishinka' :
-             '+18% Commission'}
-          </span>
-        </div>
+      {/* Collapsible panel for Invitation Network relocated to resource list */}
 
-        <p className="text-[11.5px] text-slate-900 leading-relaxed font-bold">
-          {t.inviteFriends}{' '}
-          {language === 'am' ? 'ከCBE ሊኩይዲቲ ዝውውሮች ጋር በቀጥታ የተጣጣሙ ተጨማሪ የጉርሻ ክፍያዎችን ለማግኘት የግብዣ መረብዎን ያሳድጉ።' :
-           language === 'om' ? ' Kaffaltii dabalataa dakhlii herrega CBE waliin raawwatamu argachuuf sirna keessan babal\'isaa.' :
-           language === 'ti' ? ' ምስ ናይ CBE ምስግጋር እቶት ብቐጥታ ዝተኣሳሰረ ተወሳኺ ናይ ጉርሻ ክፍሊት ንምርካብ ናይ ምውሳኽ መስርሕኩም ኣስፍሕዎ።' :
-           language === 'so' ? ' Kor dhiiri nidaamkaaga si aad u furto qoondooyin gunno oo dheeri ah oo si toos ah ula jaanqaada xawaaladaha CBE.' :
-           ' Grow your custodial system to unlock extra bonus allocations directly synchronized with CBE liquidity transfers.'}
-        </p>
-
-        {/* Bento Stats row */}
-        <div className="grid grid-cols-2 gap-3.5 pt-1 text-center font-sans">
-          <div className="p-3.5 bg-slate-50/80 border border-slate-100/60 rounded-2xl">
-            <span className="text-slate-700 text-[8.5px] uppercase tracking-wider font-extrabold block">
-              {t.teamSize}
-            </span>
-            <span className="font-display font-black text-lg text-[#0A3D91] mt-0.5 block">
-              {profile.teamSize || 0}
-              {language === 'am' ? ' አጋሮች' :
-               language === 'om' ? ' Hiriyoota' :
-               language === 'ti' ? ' መሻርኽቲ' :
-               language === 'so' ? ' Shuraako' :
-               ' Partners'}
-            </span>
-          </div>
-          <div className="p-3.5 bg-emerald-50/20 border border-emerald-150/60 rounded-2xl">
-            <span className="text-emerald-800 text-[8.5px] uppercase tracking-wider font-extrabold block">
-              {t.totalReferralRewards}
-            </span>
-            <span className="font-display font-black text-lg text-emerald-700 mt-0.5 block font-mono">
-              {referrals.reduce((sum, r) => sum + (r.rewardEarned || 0), 0).toLocaleString()} ETB
-            </span>
-          </div>
-        </div>
-
-        {/* Ultra-Premium Official Partner & Referral Section */}
-        <div className="space-y-4 pt-2">
-          {/* Box 1: Premium Official Partner Card */}
-          <div className="relative overflow-hidden bg-gradient-to-br from-[#0A3D91] via-[#124ca6] to-[#06245c] rounded-3xl p-5 border-2 border-amber-400/80 shadow-lg text-center font-sans select-none">
-            {/* Glossy background pattern */}
-            <div className="absolute right-0 top-0 -mt-8 -mr-8 w-24 h-24 bg-white/5 rounded-full blur-xl pointer-events-none" />
-            <div className="absolute left-0 bottom-0 -mb-8 -ml-8 w-32 h-32 bg-blue-400/10 rounded-full blur-2xl pointer-events-none" />
-
-            {/* Official Partner Badge */}
-            <div className="inline-block px-3.5 py-1.5 rounded-full bg-amber-400/90 text-slate-900 border border-amber-350 shadow-sm mx-auto mb-3 animate-pulse">
-              <span className="text-[9.5px] font-black uppercase tracking-wider block leading-none">
-                {language === 'am' ? 'ይፋዊ አጋር' :
-                 language === 'om' ? 'QAAMA HUNDEEFFAME' :
-                 language === 'ti' ? 'ዕውጅ መሻርኽቲ' :
-                 language === 'so' ? 'WADAAG RASHMI AH' :
-                 'Official Partner'}
-              </span>
-            </div>
-
-            {/* Invitation Code Label */}
-            <span className="text-[9px] text-white/70 block uppercase font-mono font-black tracking-widest mb-1">
-              {language === 'am' ? 'የግብዣ መለያ ቁጥርዎ' :
-               language === 'om' ? 'Koodii Affeerraa Keessan' :
-               language === 'ti' ? 'ነጻ መለለዪ ቁጽርኻ' :
-               language === 'so' ? 'HAY' :
-               'Your Invitation ID'}
-            </span>
-
-            {/* Invitation Code Styled Type */}
-            <h2 className="text-3xl font-black italic tracking-widest text-white uppercase font-sans drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] my-1">
-              {profile.referralCode}
-            </h2>
-          </div>
-
-          {/* Invitation URL Box */}
-          <div className="space-y-1.5">
-            <span className="text-[9px] text-[#0A3D91] block uppercase font-sans font-black tracking-widest text-left pl-1">
-              {language === 'am' ? 'ጓደኞችን ለመጋበዝ ሊንክ' :
-               language === 'om' ? 'Liinkii Affeerraa Hiriyootaa' :
-               language === 'ti' ? 'ዕድመ ንምልኣኽ ሊንክ' :
-               language === 'so' ? 'Casuumaada Linkii' :
-               'Invite Friends Link'}
-            </span>
-            
-            <div className="p-1 bg-slate-50 border-2 border-slate-200/80 rounded-2xl flex items-center justify-between font-sans">
-              <div className="pl-3.5 py-2.5 min-w-0 flex-1 mr-2 text-left">
-                <span className="text-[10px] font-extrabold text-slate-700 block truncate font-mono">
-                  {getReferralOrigin()}/?ref={profile.referralCode}
-                </span>
-              </div>
-              <button
-                onClick={handleCopyLink}
-                className={`p-2.5 rounded-xl transition-all duration-150 cursor-pointer flex items-center justify-center shrink-0 border shadow-xs ${
-                  linkCopyStatus 
-                    ? 'bg-emerald-500 text-white border-emerald-500' 
-                    : 'bg-amber-500 text-white border-amber-500 hover:bg-amber-600 hover:shadow-md'
-                }`}
-              >
-                <Copy className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* Share & QR Code Actions side-by-side */}
-          <div className="grid grid-cols-2 gap-3 font-sans">
-            <button
-              onClick={() => {
-                const referralLink = getReferralOrigin() + "/?ref=" + profile.referralCode;
-                if (navigator.share) {
-                  navigator.share({
-                    title: 'LUMORA - Invest & Grow',
-                    text: `Join my team on LUMORA and start earning CBE-synchronized bonuses! Use Referral Code: ${profile.referralCode}`,
-                    url: referralLink,
-                  }).catch(() => {
-                    handleCopyLink();
-                  });
-                } else {
-                  handleCopyLink();
-                }
-              }}
-              className="px-4 py-3 bg-[#0c1829] hover:bg-[#16273e] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center space-x-2 border border-slate-800 transition-all cursor-pointer shadow-sm active:scale-95"
-            >
-              <Share2 className="w-4 h-4 text-emerald-400" />
-              <span>
-                {language === 'am' ? 'አጋራ' :
-                 language === 'om' ? 'QOODDI' :
-                 language === 'ti' ? 'ሓጋዚ' :
-                 language === 'so' ? 'LA WADAAG' :
-                 'Share'}
-              </span>
-            </button>
-
-            <button
-              onClick={() => setShowQrCode(true)}
-              className="px-4 py-3 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center space-x-2 border border-amber-200 transition-all cursor-pointer shadow-sm active:scale-95"
-            >
-              <QrCode className="w-4 h-4 text-amber-600 animate-pulse" />
-              <span>
-                {language === 'am' ? 'ኪውአር ኮድ' :
-                 language === 'om' ? 'Koodii QR' :
-                 language === 'ti' ? 'QR ኮድ' :
-                 language === 'so' ? 'QR CODE' :
-                 'QR Code'}
-              </span>
-            </button>
-          </div>
-
-
-        </div>
-
-        {/* Floating QR Code Modal Overlay */}
-        {showQrCode && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs font-sans animate-fade-in">
-            <div className="bg-white rounded-3xl max-w-sm w-full p-6 border-2 border-[#0A3D91]/20 shadow-2xl relative">
-              <button
-                onClick={() => setShowQrCode(false)}
-                className="absolute top-4 right-4 p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 rounded-full cursor-pointer transition-all active:scale-95 border border-slate-200"
-              >
-                <X className="w-4 h-4" />
-              </button>
-
-              <div className="text-center space-y-4 pt-2">
-                <div className="w-12 h-12 rounded-full bg-blue-50 text-[#0A3D91] flex items-center justify-center mx-auto border-2 border-blue-100">
-                  <QrCode className="w-6 h-6 animate-pulse" />
-                </div>
-
-                <div className="space-y-1">
-                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">
-                    {language === 'am' ? 'የመመለሻ QR ኮድ' : 'Scan to Join My Team'}
-                  </h3>
-                  <p className="text-[10px] text-slate-400 font-extrabold font-sans leading-relaxed uppercase">
-                    Code: {profile.referralCode}
-                  </p>
-                </div>
-
-                {/* Secure QR Code Image generated from trusted API */}
-                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-250 inline-block mx-auto relative group">
-                  <img
-                    referrerPolicy="no-referrer"
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&color=0a3d91&data=${encodeURIComponent(getReferralOrigin() + '/?ref=' + profile.referralCode)}`}
-                    alt="LUMORA QR Code"
-                    className="w-48 h-48 rounded-xl bg-white select-none pointer-events-none"
-                    onLoad={() => console.log('QR Code image retrieved successfully')}
-                  />
-                </div>
-
-                <div className="p-3 bg-blue-50/40 rounded-xl border border-blue-100 text-left">
-                  <p className="text-[10.5px] font-black text-slate-700 leading-normal max-w-xs mx-auto text-center">
-                    {language === 'am' ? 'ይህን ኮድ ለጓደኞችዎ ያሳዩ። ካሜራቸውን ተጠቅመው መመዝገብና ቡድንዎን መቀላቀል ይችላሉ።' :
-                     language === 'om' ? 'Koodii kana hiriyaa keessaniif agarsiisaa. Kaameraa isaanitti hirmaachuun galmeeffamuu danda\'u.' :
-                     language === 'ti' ? 'እዚ QR ኮድ ምስ ፈተውትኻ ኣካፍል። ካሜራ ብምጥቃም ተመዝጊቦም ናይ ቡድንኻ ክወሃሃዱ ይኽእሉ።' :
-                     language === 'so' ? 'Tusi koodkaan asxaabtaada si ay ugu biiraan kooxdaada.' :
-                     'Point your phone camera at this code to load the registration page and join my partner network instantly.'}
-                  </p>
-                </div>
-
-                <button
-                  onClick={() => setShowQrCode(false)}
-                  className="w-full py-3 bg-[#0A3D91] hover:bg-[#06245c] text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all cursor-pointer border-2 border-[#0A3D91]"
-                >
-                  {language === 'am' ? 'ዝጋ' : 'Close'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Dynamic Referral Tracking Section (Skyblue & White styling with localized metadata) */}
-        <div className="pt-4 border-t border-slate-150/60 space-y-3">
-          <div 
-            onClick={() => setShowReferralList(!showReferralList)}
-            className="flex items-center justify-between cursor-pointer select-none hover:bg-slate-55 p-1.5 rounded-xl transition-all"
-            title="Click to expand or collapse referrals"
-          >
-            <div className="flex items-center space-x-1.5 text-sky-600">
-              <Users className="w-4 h-4 text-sky-500 animate-pulse" />
-              <span className="text-[10px] font-sans font-black uppercase tracking-wider text-sky-600">
-                {language === 'am' ? 'የተጋበዙ አጋሮች መከታተያ' :
-                 language === 'om' ? 'Hordoffii Hiriyoota Affeeraman' :
-                 language === 'ti' ? 'ተጠቃሚ ዝርዝር መከታተሊ' :
-                 language === 'so' ? 'Hordonka Casuumayasha' :
-                 'Referrals & Bonus Tracking'}
-              </span>
-              {loadingReferrals && (
-                <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-ping" />
-              )}
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-[9.5px] font-sans font-black bg-sky-50 text-sky-600 px-2 py-0.5 rounded-lg border border-sky-100">
-                {referrals.length} {language === 'am' ? 'አባላት' : 'partners'}
-              </span>
-              <span className="text-[8.5px] font-sans font-black uppercase tracking-wider px-2 py-0.5 bg-slate-100 text-slate-600 border border-slate-200 rounded-lg flex items-center space-x-1">
-                <span>
-                  {showReferralList 
-                    ? (language === 'am' ? 'ደብቅ' : language === 'om' ? 'Dhoksi' : language === 'ti' ? 'ሕባእ' : language === 'so' ? 'Qari' : 'Hide')
-                    : (language === 'am' ? 'አሳይ' : language === 'om' ? 'Agarsiisi' : language === 'ti' ? 'ኣርኢ' : language === 'so' ? 'Tus' : 'Show')}
-                </span>
-                {showReferralList ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
-              </span>
-            </div>
-          </div>
-
-          {showReferralList && (
-            <>
-              {referrals.length === 0 ? (
-                <div className="p-4.5 text-center bg-sky-50/30 rounded-2xl border border-sky-100/65 space-y-1">
-                  <p className="text-[11px] font-black text-slate-700 uppercase tracking-wide">
-                    {language === 'am' ? 'እስካሁን የተቀላቀለ አጋር የለም' :
-                     language === 'om' ? 'Kallattiratti hin argamne' :
-                     language === 'ti' ? 'እስካ ሕዚ ዝተመዝገበ የለን' :
-                     language === 'so' ? 'Weli wax shuraako ah ma jiraan' :
-                     'No active team members detected'}
-                  </p>
-                  <p className="text-[10px] text-slate-500 font-bold leading-relaxed max-w-[280px] mx-auto">
-                    {language === 'am' ? 'የግብዣ ኮድዎን ወይም አገናኝዎን ለጓደኞችዎ በማካፈል 10% ፈጣን ኮሚሽን መከታተል ይጀምሩ።' :
-                     language === 'om' ? 'Koodii ykn link keessan hiriyootaaf hirmaachisuun komishinii 10% sassaabaa.' :
-                     language === 'ti' ? 'ናይ መጋበዚ ኮድኩም ወይ ሊንክ ምስ የዕሩፍትኹም ብምክፋል ካብ 10% ቅጽበታዊ ኮሚሽን ምውህላል ጀምሩ።' :
-                     language === 'so' ? 'La wadaag saaxiibadaada koodka ama linkiga casuumadaada si aad u bilowdo dakhli 10% ah.' :
-                     'Share your invitation code or referral link with friends to start earning 10% instant commission.'}
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
-                  {referrals.map((ref) => (
-                    <div key={ref.id} className="p-3 bg-slate-50 border border-slate-150 rounded-xl flex items-center justify-between font-sans">
-                      <div>
-                        <div className="flex items-center space-x-1.5">
-                          <p className="text-xs font-black text-slate-900 uppercase">{ref.referredName}</p>
-                          <span className="text-[7.5px] font-mono font-black px-1.5 py-0.5 bg-amber-500/10 text-amber-700 border border-amber-500/20 rounded">
-                            VIP {ref.referredVipLevel || 1}
-                          </span>
-                        </div>
-                        <p className="text-[9.5px] font-semibold text-slate-500 font-mono mt-0.5">{ref.referredPhone}</p>
-                        <p className="text-[8px] font-mono font-bold text-slate-400 mt-0.5 uppercase">
-                          Joined: {ref.registrationDate ? new Date(ref.registrationDate).toLocaleDateString() : 'N/A'}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-xs font-black text-emerald-600 font-mono">+{ref.rewardEarned?.toLocaleString() || 0} ETB</span>
-                        <p className="text-[8px] font-mono text-slate-400 uppercase font-extrabold mt-0.5">Bonus reward</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </>
-          )}
-
-        </div>
-      </div>
-
-      {/* CARD 4: Institutional Liquidity Loans Simulator Block */}
-      <div className="p-6 rounded-[2.2rem] bg-white border border-slate-100 shadow-sm space-y-5">
+      {/* Collapsible panel for Liquidity Loans relocated to resource list */}
+      {false && (
+        <>
+        <div className="p-6 rounded-[2.2rem] bg-white border border-slate-100 shadow-sm space-y-5">
         
         <div className="flex items-center justify-between border-b border-slate-50 pb-3">
           <div className="flex items-center space-x-2.5">
@@ -1789,6 +1479,8 @@ export default function ProfileTab({
         )}
 
       </div>
+        </>
+      )}
 
       {/* CARD 5: Platform Regulatory Vault Resources */}
       <div className="p-3.5 bg-white border border-slate-200 rounded-[2rem] space-y-1 shadow-sm">
@@ -2191,6 +1883,421 @@ export default function ProfileTab({
                 })()
               )}
             </div>
+          </div>
+        )}
+
+        <button
+          onClick={() => setShowInvitationNetwork(!showInvitationNetwork)}
+          className="w-full flex items-center justify-between p-3.5 rounded-2xl hover:bg-slate-100 text-xs text-slate-900 font-black border-t border-slate-100 transition-all cursor-pointer group animate-fade-in"
+        >
+          <div className="flex items-center space-x-3.5">
+            <div className="p-2 bg-[#0A3D91]/15 text-[#0A3D91] rounded-xl group-hover:bg-[#0A3D91]/25 transition-all">
+              <Users className="w-4.5 h-4.5 text-[#0A3D91]" />
+            </div>
+            <div className="text-left">
+              <span className="block text-slate-950 text-[11.5px] font-black leading-none">
+                {language === 'am' ? 'የግብዣ አውታረ መረብ' :
+                 language === 'om' ? 'Koodii Affeerraa' :
+                 language === 'ti' ? 'ናይ መጋበዚ መርበብ' :
+                 language === 'so' ? 'Macaamiisha Casuumada' :
+                 'Invitation Network'}
+              </span>
+              <span className="text-[8.5px] text-[#0A3D91] block tracking-widest uppercase font-mono mt-1 font-extrabold text-blue-800">
+                {language === 'am' ? 'ኮሚሽኖች እና አውታረ መረብ' : 'Commissions & Network'}
+              </span>
+            </div>
+          </div>
+          <ChevronRight className={`w-4 h-4 text-slate-700 transition-transform duration-200 ${showInvitationNetwork ? 'rotate-90' : ''}`} />
+        </button>
+
+        {showInvitationNetwork && (
+          <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl mt-2 space-y-4 font-sans text-left animate-in fade-in duration-200">
+            {/* Bento Stats row */}
+            <div className="grid grid-cols-2 gap-3 text-center">
+              <div className="p-3.5 bg-white border border-slate-200 rounded-2xl shadow-3xs">
+                <span className="text-slate-500 text-[8.5px] uppercase tracking-wider font-extrabold block">
+                  {t.teamSize}
+                </span>
+                <span className="font-display font-black text-sm text-[#0A3D91] mt-0.5 block">
+                  {profile.teamSize || 0}
+                  {language === 'am' ? ' አጋሮች' : ' Partners'}
+                </span>
+              </div>
+              <div className="p-3.5 bg-emerald-50/40 border border-emerald-150 rounded-2xl shadow-3xs">
+                <span className="text-emerald-800 text-[8.5px] uppercase tracking-wider font-extrabold block">
+                  {t.totalReferralRewards}
+                </span>
+                <span className="font-display font-black text-sm text-emerald-700 mt-0.5 block font-mono">
+                  {referrals.reduce((sum, r) => sum + (r.rewardEarned || 0), 0).toLocaleString()} ETB
+                </span>
+              </div>
+            </div>
+
+            {/* Premium Invitation Code Box */}
+            <div className="relative overflow-hidden bg-gradient-to-br from-[#0A3D91] via-[#124ca6] to-[#06245c] rounded-2xl p-4 border border-amber-400 shadow-sm text-center font-sans">
+              <span className="text-[8.5px] text-white/70 block uppercase font-mono font-black tracking-widest mb-1">
+                {language === 'am' ? 'የግብዣ መለያ ቁጥርዎ' : 'Your Invitation ID'}
+              </span>
+              <h2 className="text-xl font-black italic tracking-widest text-white uppercase font-sans drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
+                {profile.referralCode}
+              </h2>
+            </div>
+
+            {/* Invite URL */}
+            <div className="space-y-1.5">
+              <span className="text-[8px] text-[#0A3D91] block uppercase font-sans font-black tracking-widest text-left pl-1">
+                {language === 'am' ? 'ጓደኞችን ለመጋበዝ ሊንክ' : 'Invite Friends Link'}
+              </span>
+              <div className="p-1 bg-white border border-slate-200 rounded-xl flex items-center justify-between font-sans shadow-3xs">
+                <div className="pl-2 min-w-0 flex-1 mr-2 text-left">
+                  <span className="text-[9.5px] font-extrabold text-slate-700 block truncate font-mono">
+                    {getReferralOrigin()}/?ref={profile.referralCode}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCopyLink}
+                  className={`p-2 rounded-lg transition-all duration-150 cursor-pointer flex items-center justify-center shrink-0 border ${
+                    linkCopyStatus 
+                      ? 'bg-emerald-500 text-white border-emerald-500' 
+                      : 'bg-amber-500 text-white border-amber-500 hover:bg-amber-600'
+                  }`}
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Share & QR Code Actions */}
+            <div className="grid grid-cols-2 gap-3 font-sans">
+              <button
+                type="button"
+                onClick={() => {
+                  const referralLink = getReferralOrigin() + "/?ref=" + profile.referralCode;
+                  if (navigator.share) {
+                    navigator.share({
+                      title: 'LUMORA - Invest & Grow',
+                      text: `Join my team on LUMORA and start earning CBE-synchronized bonuses! Use Referral Code: ${profile.referralCode}`,
+                      url: referralLink,
+                    }).catch(() => {
+                      handleCopyLink();
+                    });
+                  } else {
+                    handleCopyLink();
+                  }
+                }}
+                className="px-3 py-2 bg-[#0c1829] hover:bg-[#16273e] text-white rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center space-x-1.5 border border-slate-800 transition-all cursor-pointer shadow-3xs active:scale-95 text-center"
+              >
+                <Share2 className="w-3.5 h-3.5 text-emerald-400" />
+                <span>{language === 'am' ? 'አጋራ' : 'Share'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowQrCode(true)}
+                className="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center space-x-1.5 border border-amber-200 transition-all cursor-pointer shadow-3xs active:scale-95 text-center"
+              >
+                <QrCode className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
+                <span>{language === 'am' ? 'ኪውአር' : 'QR Code'}</span>
+              </button>
+            </div>
+
+            {/* Referral list */}
+            <div className="pt-2 border-t border-slate-200 space-y-2">
+              <div 
+                onClick={() => setShowReferralList(!showReferralList)}
+                className="flex items-center justify-between cursor-pointer select-none hover:bg-slate-200/50 p-1.5 rounded-lg transition-all"
+              >
+                <span className="text-[9.5px] font-sans font-black uppercase tracking-wider text-sky-700">
+                  {language === 'am' ? 'የተጋበዙ አጋሮች መከታተያ' : 'Referrals & Bonus Tracking'}
+                </span>
+                <div className="flex items-center space-x-1">
+                  <span className="text-[8.5px] font-sans font-black bg-sky-100 text-sky-700 px-1.5 py-0.5 rounded-md">
+                    {referrals.length}
+                  </span>
+                  {showReferralList ? <ChevronDown className="w-3 h-3 text-slate-500" /> : <ChevronRight className="w-3 h-3 text-slate-500" />}
+                </div>
+              </div>
+
+              {showReferralList && (
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                  {referrals.length === 0 ? (
+                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-wide text-center py-2">
+                      {language === 'am' ? 'እስካሁን የተቀላቀለ አጋር የለም' : 'No active team members detected'}
+                    </p>
+                  ) : (
+                    referrals.map((ref) => (
+                      <div key={ref.id} className="p-2.5 bg-white border border-slate-200 rounded-xl flex items-center justify-between font-sans shadow-3xs">
+                        <div>
+                          <div className="flex items-center space-x-1.5">
+                            <p className="text-[10px] font-black text-slate-900 uppercase">{ref.referredName}</p>
+                            <span className="text-[7px] font-mono font-black px-1.5 bg-amber-500/10 text-amber-700 border border-amber-500/15 rounded">
+                              VIP {ref.referredVipLevel || 1}
+                            </span>
+                          </div>
+                          <p className="text-[8.5px] font-semibold text-slate-500 font-mono mt-0.5">{ref.referredPhone}</p>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[10.5px] font-black text-emerald-600 font-mono">+{ref.rewardEarned?.toLocaleString() || 0} ETB</span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        <button
+          onClick={() => setShowLiquidityLoan(!showLiquidityLoan)}
+          className="w-full flex items-center justify-between p-3.5 rounded-2xl hover:bg-slate-100 text-xs text-slate-900 font-black border-t border-slate-100 transition-all cursor-pointer group animate-fade-in"
+        >
+          <div className="flex items-center space-x-3.5">
+            <div className="p-2 bg-emerald-100 text-emerald-705 rounded-xl group-hover:bg-emerald-200 transition-all animate-none">
+              <Coins className="w-4.5 h-4.5 text-emerald-700 animate-none" />
+            </div>
+            <div className="text-left">
+              <span className="block text-slate-950 text-[11.5px] font-black leading-none">
+                {language === 'am' ? 'የሊኩይዲቲ ብድሮች' :
+                 language === 'om' ? 'Liqii Maallaqaa' :
+                 language === 'ti' ? 'ናይ እቶት ልቓሕ' :
+                 language === 'so' ? 'Macaamiisha Amaahda' :
+                 'Liquidity Loans'}
+              </span>
+              <span className="text-[8.5px] text-emerald-800 block tracking-widest uppercase font-mono mt-1 font-extrabold text-emerald-800">
+                {language === 'am' ? 'የአጭር ጊዜ ብድሮች' : 'Sovereign credit line'}
+              </span>
+            </div>
+          </div>
+          <ChevronRight className={`w-4 h-4 text-slate-700 transition-transform duration-200 ${showLiquidityLoan ? 'rotate-90' : ''}`} />
+        </button>
+
+        {showLiquidityLoan && (
+          <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl mt-2 space-y-4 font-sans text-left animate-in fade-in duration-200">
+            <h4 className="font-display font-black text-[11px] text-[#0A3D91] uppercase tracking-widest border-b border-slate-200 pb-2 flex items-center justify-between">
+              <div className="flex items-center space-x-1.5">
+                <Coins className="w-3.5 h-3.5 text-[#0A3D91]" />
+                <span>
+                  {language === 'am' ? 'የሊኩይዲቲ ብድር ማስጫወቻ' : 'Liquidity Loan Simulator'}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowLoanInfo(true)}
+                className="p-1 px-2 border border-blue-200 hover:bg-white rounded-lg cursor-pointer transition-all text-[8px] font-black uppercase text-blue-700"
+              >
+                Info
+              </button>
+            </h4>
+
+            <div className="p-3 bg-white border border-slate-200 rounded-xl space-y-1.5 text-slate-800">
+              <div className="flex justify-between items-center text-[10px]">
+                <span className="font-bold text-slate-500">Interest Rating:</span>
+                <span className="font-black text-indigo-700">1.5% Flat</span>
+              </div>
+              <p className="text-[10px] text-slate-600 font-medium leading-relaxed font-bold">
+                {language === 'am' ? 'በLUMORA ሊኩይዲቲ አካውንቶች የተደገፈ ተቋማዊ ካፒታል። ክፍያዎች በ24 ሰዓታት ውስጥ በቀጥታ ወደ CBE አካውንትዎ ይላካሉ።' :
+                 'Institutional capital backed by LUMORA liquidity. Disbursements wired directly within 24 hours to your verified CBE account.'}
+              </p>
+            </div>
+
+            <div className="space-y-3 font-sans">
+              <div className="flex justify-between items-center bg-slate-200/50 p-1.5 rounded-lg select-none">
+                <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest pl-1">Loan Calculator</span>
+                <button
+                  type="button"
+                  onClick={() => setShowLoanSimulator(!showLoanSimulator)}
+                  className="px-2 py-0.5 bg-white border border-slate-300 rounded text-[8px] font-black uppercase"
+                >
+                  {showLoanSimulator ? 'Close' : 'Show'}
+                </button>
+              </div>
+
+              {showLoanSimulator && (
+                <div className="p-3 bg-white border border-slate-250 rounded-xl space-y-3">
+                  <LoanCalculator
+                    isEligible={profile.vipLevel >= 4 && profile.idVerificationStatus === 'verified'}
+                    onApplySettings={(amount, tenure) => {
+                      setLoanAmount(amount.toString());
+                      setLoanTenure(tenure); // ensure standard integer bounds
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="pt-2 border-t border-slate-200 space-y-2">
+              <span className="text-[9px] font-black text-slate-500 block uppercase tracking-wider pl-0.5">
+                {language === 'am' ? 'የብድር አገልግሎት ማግኛ ደረጃ' : 'Sovereign Loan Unlock Tracker'}
+              </span>
+
+              {profile.vipLevel < 4 || profile.idVerificationStatus !== 'verified' ? (
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-left space-y-1">
+                  <span className="inline-flex items-center space-x-1.5 bg-amber-100 text-amber-800 font-mono font-black px-2 py-0.5 rounded text-[7.5px] uppercase tracking-wider border border-amber-200">
+                    🔒 Request Locked
+                  </span>
+                  <p className="text-[9px] text-amber-800 font-bold leading-relaxed">
+                    Loan services are available only for VIP 3+ members who are fully ID Verified. Current VIP Level: <strong>{profile.vipLevel === 1 ? "Starter" : `VIP ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0}`}</strong>, status: <strong>{profile.idVerificationStatus || 'Unsubmitted'}</strong>.
+                  </p>
+                </div>
+              ) : (
+                <form onSubmit={handleLoanRequest} className="space-y-3 font-sans">
+                  <div className="space-y-1">
+                    <label className="text-[8.5px] text-slate-500 block uppercase font-sans font-black tracking-widest pl-1">
+                      Loan Principal Sum (ETB)
+                    </label>
+                    <div className="relative rounded-xl">
+                      <select
+                        value={loanAmount}
+                        onChange={(e) => setLoanAmount(e.target.value)}
+                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-bold text-slate-900 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-500"
+                        required
+                      >
+                        <option value="">-- Select Loan Amount --</option>
+                        {[30000, 50000, 100000, 150000, 200000, 250000, 500000, 1000000].map((amt) => (
+                          <option key={amt} value={amt}>
+                            {amt.toLocaleString()} ETB
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {[30000, 50000, 100000, 150000, 200000, 250000, 500000, 1000000].map((amt) => (
+                        <button
+                          key={amt}
+                          type="button"
+                          onClick={() => setLoanAmount(amt.toString())}
+                          className={`px-2 py-1 rounded bg-slate-100 border text-[8px] font-black ${
+                            loanAmount === amt.toString() ? 'bg-blue-600 text-white border-blue-600' : 'text-slate-700 hover:bg-slate-200'
+                          }`}
+                        >
+                          {amt.toLocaleString()} ETB
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[8.5px] text-slate-500 block uppercase font-sans font-black tracking-widest pl-1">
+                      Repayment Tenure
+                    </label>
+                    <div className="flex gap-2">
+                      {[3, 6, 12].map((m) => (
+                        <button
+                          key={m}
+                          type="button"
+                          onClick={() => setLoanTenure(m)}
+                          className={`flex-1 py-1.5 rounded-lg border text-[9px] font-black transition-all ${
+                            loanTenure === m
+                              ? 'bg-[#0A3D91] text-white border-[#0A3D91]'
+                              : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-55'
+                          }`}
+                        >
+                          {m} Months
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {loanError && (
+                    <p className="text-[8px] font-bold text-rose-600 font-mono">⚠ {loanError}</p>
+                  )}
+                  {loanSuccess && (
+                    <p className="text-[8px] font-bold text-emerald-600 font-sans">✓ {loanSuccess}</p>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={submitLoading}
+                    className="w-full py-2 bg-[#0A3D91] hover:bg-[#072A66] text-white transition-all active:scale-98 font-black text-[9px] rounded-lg tracking-wider uppercase text-center cursor-pointer flex items-center justify-center space-x-1"
+                  >
+                    <span>Request Verification & Disburse Loan</span>
+                  </button>
+                </form>
+              )}
+            </div>
+
+            <div className="pt-2 border-t border-slate-200 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[9px] font-black text-slate-500 block uppercase tracking-wider pl-0.5">
+                  {language === 'am' ? 'የብድር ታሪክ መዝገብ' : 'Loan History Ledger'}
+                </span>
+                <span className="text-[8.5px] font-mono font-black bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded-md">
+                  {loans ? loans.length : 0}
+                </span>
+              </div>
+
+              <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                {!loans || loans.length === 0 ? (
+                  <p className="text-[9px] text-slate-400 font-bold text-center py-2">
+                    {language === 'am' ? 'ምንም የብድር ታሪክ የለም' : 'No Loan History Found'}
+                  </p>
+                ) : (
+                  loans.map((l) => {
+                    const tenure = l.tenureMonths || 6;
+                    const flatMonthlyRate = 0.015;
+                    const totalRepayable = l.amount + (l.amount * flatMonthlyRate * tenure);
+                    let remainingRepaymentBalance = 0;
+
+                    if (l.status === 'approved') {
+                      const startDate = new Date(l.reviewedAt || l.submittedAt);
+                      const now = new Date();
+                      const diffTime = Math.abs(now.getTime() - startDate.getTime());
+                      const monthsElapsed = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 30.4375));
+                      const monthlyInstallment = totalRepayable / tenure;
+                      remainingRepaymentBalance = monthsElapsed >= tenure ? 0 : (totalRepayable - (monthsElapsed * monthlyInstallment));
+                    } else if (l.status === 'pending') {
+                      remainingRepaymentBalance = totalRepayable;
+                    }
+
+                    return (
+                      <div key={l.id} className="p-2.5 bg-white border border-slate-200 rounded-xl space-y-2 font-sans shadow-3xs relative overflow-hidden text-left leading-normal">
+                        {l.status === 'approved' && (
+                          <div className="absolute right-2 top-0 pointer-events-none transform scale-50">
+                            <LumoraStamp text="APPROVED" variant="green" size="xs" tilted={true} highContrast={true} />
+                          </div>
+                        )}
+                        {l.status === 'rejected' && (
+                          <div className="absolute right-2 top-0 pointer-events-none transform scale-50">
+                            <LumoraStamp text="REJECTED" variant="rose" size="xs" tilted={true} highContrast={true} />
+                          </div>
+                        )}
+
+                        <div className="flex justify-between items-center text-[10px]">
+                          <div>
+                            <span className="font-extrabold text-slate-900">{(l.amount ?? 0).toLocaleString()} ETB</span>
+                            <span className="text-[8px] text-slate-400 block font-mono">Date: {new Date(l.submittedAt).toLocaleDateString()}</span>
+                          </div>
+                          <span className={`text-[8px] font-black p-1 px-2 rounded-full border uppercase ${
+                            l.status === 'approved' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                            l.status === 'rejected' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                            'bg-amber-50 text-amber-700 border-amber-200'
+                          }`}>
+                            {l.status}
+                          </span>
+                        </div>
+
+                        {l.status === 'approved' && (
+                          <div className="text-[9.5px]">
+                            <span className="text-slate-500 font-bold block">Remaining Repayment Balance:</span>
+                            <span className="font-black font-mono text-emerald-800">{Math.round(remainingRepaymentBalance).toLocaleString()} ETB</span>
+                          </div>
+                        )}
+
+                        {l.status === 'rejected' && l.rejectionReason && (
+                          <p className="text-[8px] text-rose-800 font-sans leading-relaxed bg-rose-50 p-1.5 rounded border border-rose-100">
+                            Notes: {l.rejectionReason}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+
           </div>
         )}
 
