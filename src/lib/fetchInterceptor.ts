@@ -979,6 +979,61 @@ function autoApproveLocalPendingDeposits(db: LumoraDB) {
   }
 }
 
+  function autoApproveLocalPendingWithdrawals(db: LumoraDB) {
+    let dbUpdated = false;
+    const now = new Date();
+    const thirtyMinutesMs = 30 * 60 * 1000;
+
+    db.withdrawals.forEach(wit => {
+      if (wit.status === "pending") {
+        if (!wit.submittedAt) {
+          wit.submittedAt = now.toISOString();
+          dbUpdated = true;
+        }
+
+        const submittedDate = new Date(wit.submittedAt);
+        const diffMs = now.getTime() - submittedDate.getTime();
+
+        if (diffMs >= thirtyMinutesMs) {
+          wit.status = "approved";
+          wit.reviewedAt = now.toISOString();
+
+          const p = db.profiles.find(profile => profile.userId === wit.userId);
+          if (p) {
+            p.totalWithdrawals = (p.totalWithdrawals || 0) + wit.amount;
+
+            // Create transaction entry
+            db.transactions.push({
+              id: "tx-" + Math.random().toString(36).substr(2, 9),
+              userId: wit.userId,
+              type: "withdrawal",
+              amount: -wit.amount,
+              description: `Withdrawal of ${wit.amount} ETB automatically approved and processed via 30-minute Treasury fallback protocol.`,
+              date: now.toISOString()
+            });
+
+            // Add notification
+            db.notifications.push({
+              id: "not-" + Math.random().toString(36).substr(2, 9),
+              userId: wit.userId,
+              title: "Withdrawal Automatically Approved! ✓",
+              message: `Your withdrawal request of ${wit.amount} ETB has been automatically approved and processed via our 30-minute prompt-clear regulatory protocol. Funds have been dispatched to your ${wit.bankName || 'CBE'} account: ${wit.accountNumber || ''}.`,
+              read: false,
+              date: now.toISOString()
+            });
+
+            console.log(`[Auto-Withdrawal] Automatically approved local database withdrawal ${wit.id} for user ${p.userId} due to 30-minute admin idle timeout.`);
+          }
+          dbUpdated = true;
+        }
+      }
+    });
+
+    if (dbUpdated) {
+      saveLocalDB(db);
+    }
+  }
+
 // Function to handle the intercepted local storage operations
 async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response> {
   let pathname = url.split('?')[0];
@@ -1005,6 +1060,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
   autoAllocateLocalDailyEarnings(db);
   autoVerifyLocalPendingKYC(db);
   autoApproveLocalPendingDeposits(db);
+  autoApproveLocalPendingWithdrawals(db);
 
   const respondJSON = (status: number, data: any) => {
     return new Response(JSON.stringify(data), {

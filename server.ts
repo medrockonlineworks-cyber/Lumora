@@ -1448,6 +1448,62 @@ async function startServer() {
     }
   }
 
+  // Automatically approve pending withdrawals when admin does not approve them within 30 minutes
+  function autoApprovePendingWithdrawals() {
+    let dbUpdated = false;
+    const now = new Date();
+    const thirtyMinutesMs = 30 * 60 * 1000;
+
+    db.withdrawals.forEach(wit => {
+      if (wit.status === "pending") {
+        if (!wit.submittedAt) {
+          wit.submittedAt = now.toISOString();
+          dbUpdated = true;
+        }
+
+        const submittedDate = new Date(wit.submittedAt);
+        const diffMs = now.getTime() - submittedDate.getTime();
+
+        if (diffMs >= thirtyMinutesMs) {
+          wit.status = "approved";
+          wit.reviewedAt = now.toISOString();
+
+          const p = db.profiles.find(profile => profile.userId === wit.userId);
+          if (p) {
+            p.totalWithdrawals = (p.totalWithdrawals || 0) + wit.amount;
+
+            // Create transaction entry
+            db.transactions.push({
+              id: "tx-" + Math.random().toString(36).substr(2, 9),
+              userId: wit.userId,
+              type: "withdrawal",
+              amount: -wit.amount,
+              description: `Withdrawal of ${wit.amount} ETB automatically approved and processed via 30-minute Treasury fallback protocol.`,
+              date: now.toISOString()
+            });
+
+            // Add notification
+            db.notifications.push({
+              id: "not-" + Math.random().toString(36).substr(2, 9),
+              userId: wit.userId,
+              title: "Withdrawal Automatically Approved! ✓",
+              message: `Your withdrawal request of ${wit.amount} ETB has been automatically approved and processed via our 30-minute prompt-clear regulatory protocol. Funds have been dispatched to your ${wit.bankName || 'CBE'} account: ${wit.accountNumber || ''}.`,
+              read: false,
+              date: now.toISOString()
+            });
+
+            console.log(`[Auto-Withdrawal] Automatically approved withdrawal ${wit.id} for user ${p.userId} due to 30-minute admin idle timeout.`);
+          }
+          dbUpdated = true;
+        }
+      }
+    });
+
+    if (dbUpdated) {
+      saveDB(db);
+    }
+  }
+
   // Force system balance integrity control
   function sanitizeUserBalances() {
     let updated = false;
@@ -1506,6 +1562,7 @@ async function startServer() {
     autoAllocateDailyEarnings();
     autoVerifyPendingKYC();
     autoApprovePendingDeposits();
+    autoApprovePendingWithdrawals();
   } catch (error) {
     console.error("Initial daily earnings and KYC check failed:", error);
   }
@@ -1517,6 +1574,7 @@ async function startServer() {
       autoAllocateDailyEarnings();
       autoVerifyPendingKYC();
       autoApprovePendingDeposits();
+      autoApprovePendingWithdrawals();
 
       const currentEATDay = getEATDateString(new Date());
       if (currentEATDay !== lastCheckedEATDay) {
@@ -1571,6 +1629,7 @@ async function startServer() {
       autoAllocateDailyEarnings();
       autoVerifyPendingKYC();
       autoApprovePendingDeposits();
+      autoApprovePendingWithdrawals();
     } catch (e) {
       console.error("[Automatic Yield Tracker and KYC Middleware Check Failed]:", e);
     }
