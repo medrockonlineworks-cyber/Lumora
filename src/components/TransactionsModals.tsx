@@ -324,6 +324,26 @@ function WithdrawalCelebrationOverlay({ amount, walletType, bankName, accountNum
         </div>
       </motion.div>
 
+      {/* Telegram Verification Box */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.55, duration: 0.4 }}
+        className="mt-3 p-3 bg-blue-950/30 border border-blue-500/20 rounded-2xl w-full text-left space-y-1 font-sans"
+      >
+        <div className="flex items-center gap-1.5">
+          <svg className="w-3.5 h-3.5 text-sky-400 shrink-0 animate-pulse" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-1 .53-1.42.52-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.35-.49.97-.74 3.79-1.65 6.32-2.73 7.59-3.25 3.61-1.48 4.36-1.74 4.85-1.75.11 0 .35.03.5.16.13.12.17.29.18.41-.01.07 0 .15-.01.2z" />
+          </svg>
+          <span className="text-[9px] text-sky-400 font-black uppercase tracking-wider">
+            Telegram Submission Needed
+          </span>
+        </div>
+        <p className="text-[9px] text-slate-350 font-semibold leading-relaxed">
+          Please <strong className="text-white">take a screenshot</strong> of this payout invoice feedback card and send it via Telegram to our official online VIP support center here: <strong className="text-sky-300">@Lumora_Official_Support</strong> to expedite bank dispatch queue.
+        </p>
+      </motion.div>
+
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
