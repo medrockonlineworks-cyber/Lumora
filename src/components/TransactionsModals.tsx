@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import html2canvas from 'html2canvas';
 import { 
   X, CreditCard, Copy, Info, Camera, ShieldAlert, CheckCircle, 
   ChevronRight, Building, Key, Coins, Check 
@@ -195,6 +196,11 @@ function WithdrawalCelebrationOverlay({ amount, walletType, bankName, accountNum
   const feeAmount = numericAmount * feeRate;
   const payoutAmount = numericAmount - feeAmount;
 
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [isCapturing, setIsCapturing] = useState(false);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const captureRef = useRef<HTMLDivElement>(null);
+
   // Confetti particles coordinates
   const particles = Array.from({ length: 30 }).map((_, i) => ({
     id: i,
@@ -206,165 +212,269 @@ function WithdrawalCelebrationOverlay({ amount, walletType, bankName, accountNum
     delay: Math.random() * 0.2
   }));
 
+  const handleTakeScreenshot = async () => {
+    if (!captureRef.current) return;
+    setIsCapturing(true);
+    setSuccessMsg(null);
+    try {
+      // Force short delay for DOM style settling
+      await new Promise(resolve => setTimeout(resolve, 150));
+      
+      const canvas = await html2canvas(captureRef.current, {
+        backgroundColor: '#070d19',
+        scale: 2, // High DPI capture
+        logging: false,
+        useCORS: true
+      });
+      
+      const dataUrl = canvas.toDataURL('image/png');
+      setCapturedImage(dataUrl);
+      
+      // Auto-trigger native image download
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = `Lumora_Withdrawal_${numericAmount}_ETB.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      setSuccessMsg("Screenshot captured successfully. Please send it to customer service through Telegram.");
+    } catch (e) {
+      console.error("[Screenshot Capture Failed]:", e);
+    } finally {
+      setIsCapturing(false);
+    }
+  };
+
+  const handleSendToTelegram = () => {
+    setSuccessMsg("Please attach the screenshot and send it to customer service.");
+    window.open("https://t.me/Lumora_Official_Support", '_blank');
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="absolute inset-0 z-55 bg-[#070d19]/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center select-none"
+      className="absolute inset-0 z-55 bg-[#070d19]/98 backdrop-blur-md flex flex-col items-center justify-start overflow-y-auto p-5 text-center select-none"
     >
       {/* Background radial soft light gradient */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl -z-10 animate-pulse" />
       
-      <div className="relative w-28 h-28 flex items-center justify-center mb-1">
-        {particles.map((p) => (
-          <motion.div
-            key={p.id}
-            initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
-            animate={{ 
-              opacity: [0, 1, 1, 0], 
-              scale: [0, 1.3, 1, 0],
-              x: p.x, 
-              y: p.y,
-              rotate: p.rotation + 360
-            }}
-            transition={{ 
-              duration: 2.0, 
-              delay: p.delay,
-              ease: "easeOut"
-            }}
-            className={`absolute rounded-full ${p.color} shadow-xs`}
-            style={{ width: p.size, height: p.size }}
-          />
-        ))}
-
-        <motion.div
-          initial={{ scale: 0.3, rotate: -45 }}
-          animate={{ scale: 1, rotate: 0 }}
-          transition={{ type: "spring", stiffness: 280, damping: 18, delay: 0.1 }}
-          className="w-16 h-16 bg-gradient-to-tr from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-xl border-4 border-white/20 relative"
+      {/* Scrollable Receipt Area */}
+      <div className="w-full flex-1 max-w-sm flex flex-col items-center justify-start mt-2">
+        {/* Printable/Screenshot portion */}
+        <div 
+          ref={captureRef} 
+          className="w-full px-4 pt-6 pb-5 bg-gradient-to-b from-slate-900/40 to-slate-950/40 border border-slate-900 rounded-3xl flex flex-col items-center text-center relative"
         >
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            fill="none" 
-            viewBox="0 0 24 24" 
-            stroke="currentColor" 
-            className="w-8 h-8 text-white"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-          </svg>
-        </motion.div>
-      </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3, duration: 0.5 }}
-        className="space-y-1 w-full"
-      >
-        <span className="text-[8px] bg-blue-500/15 text-blue-400 border border-blue-500/30 px-2.5 py-0.5 rounded-full font-black uppercase tracking-widest font-mono">
-          Cashout Initiated ✓
-        </span>
-        
-        <h2 className="font-display font-black text-xs text-white leading-tight uppercase tracking-wider">
-          WITHDRAWAL REQUEST SUBMITTED
-        </h2>
-        
-        <p className="text-[10px] text-slate-350 leading-relaxed font-semibold">
-          Your secure bank cashout order has been received by our treasury audit desk.
-        </p>
-      </motion.div>
-
-      {/* Transaction Summary Panel */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.5, duration: 0.4 }}
-        className="mt-4 p-4 bg-slate-950/40 border border-slate-800 rounded-2xl w-full text-left space-y-2 font-sans"
-      >
-        <div className="flex justify-between items-center border-b border-slate-800 pb-1.5">
-          <span className="text-[9px] text-slate-450 font-bold uppercase tracking-wider">Source Wallet:</span>
-          <span className="text-[10px] font-black text-blue-400 uppercase tracking-wide bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20">
-            {isIncome ? 'Income Pool' : 'Deposit Pool'}
-          </span>
-        </div>
-
-        <div className="flex justify-between items-center text-[10px] text-slate-300">
-          <span className="font-bold">Requested Amount:</span>
-          <span className="font-mono font-black text-white">{numericAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</span>
-        </div>
-
-        <div className="flex justify-between items-center text-[10px] text-slate-300">
-          <span className="font-bold">Tax & Processing Fee:</span>
-          <span className="font-mono font-black text-rose-400">-{feeAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB <span className="text-[8.5px] font-sans text-slate-500 font-medium font-bold">({feeName})</span></span>
-        </div>
-
-        <div className="flex justify-between items-center text-[10px] text-slate-300">
-          <span className="font-bold">Destination Bank:</span>
-          <span className="font-black text-white uppercase tracking-wider">{bankName || 'CBE'}</span>
-        </div>
-
-        <div className="flex justify-between items-center text-[10px] text-slate-300">
-          <span className="font-bold">Account Number:</span>
-          <span className="font-mono font-black text-white">{accountNumber || 'N/A'}</span>
-        </div>
-
-        {accountHolderName && (
-          <div className="flex justify-between items-center text-[10px] text-slate-300">
-            <span className="font-bold">Account Holder:</span>
-            <span className="font-semibold text-white uppercase">{accountHolderName}</span>
+          {/* Official License/TIN header */}
+          <div className="mb-4 text-center opacity-80 space-y-0.5">
+            <p className="text-[7.5px] text-slate-500 tracking-wider uppercase font-black font-sans">
+              Federal Democratic Republic of Ethiopia
+            </p>
+            <p className="text-[7.5px] text-slate-400 tracking-widest font-mono">
+              TIN: 0024896464 • LIC: AACATB/14/667
+            </p>
           </div>
+
+          <div className="relative w-20 h-20 flex items-center justify-center mb-1">
+            {particles.map((p) => (
+              <motion.div
+                key={p.id}
+                initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
+                animate={{ 
+                  opacity: [0, 1, 1, 0], 
+                  scale: [0, 1.3, 1, 0],
+                  x: p.x, 
+                  y: p.y,
+                  rotate: p.rotation + 360
+                }}
+                transition={{ 
+                  duration: 2.0, 
+                  delay: p.delay,
+                  ease: "easeOut"
+                }}
+                className={`absolute rounded-full ${p.color} shadow-xs`}
+                style={{ width: p.size, height: p.size }}
+              />
+            ))}
+
+            <motion.div
+              initial={{ scale: 0.3, rotate: -45 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: "spring", stiffness: 280, damping: 18, delay: 0.1 }}
+              className="w-12 h-12 bg-gradient-to-tr from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-xl border-4 border-white/20 relative"
+            >
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor" 
+                className="w-6 h-6 text-white"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+              </svg>
+            </motion.div>
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+            className="space-y-1 w-full"
+          >
+            <span className="text-[8px] bg-blue-500/15 text-blue-400 border border-blue-500/30 px-2.5 py-0.5 rounded-full font-black uppercase tracking-widest font-mono">
+              Cashout Initiated ✓
+            </span>
+            
+            <h2 className="font-display font-black text-xs text-white leading-tight uppercase tracking-wider">
+              WITHDRAWAL REQUEST SUBMITTED
+            </h2>
+            
+            <p className="text-[10px] text-slate-350 leading-relaxed font-semibold">
+              Your secure bank cashout order has been received by our treasury audit desk.
+            </p>
+          </motion.div>
+
+          {/* Transaction Summary Panel */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.5, duration: 0.4 }}
+            className="mt-4 p-4 bg-slate-950/60 border border-slate-900 rounded-2xl w-full text-left space-y-2 font-sans"
+          >
+            <div className="flex justify-between items-center border-b border-slate-800 pb-1.5">
+              <span className="text-[9px] text-slate-450 font-bold uppercase tracking-wider">Source Wallet:</span>
+              <span className="text-[10px] font-black text-blue-400 uppercase tracking-wide bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20">
+                {isIncome ? 'Income Pool' : 'Deposit Pool'}
+              </span>
+            </div>
+
+            <div className="flex justify-between items-center text-[10px] text-slate-300">
+              <span className="font-bold">Requested Amount:</span>
+              <span className="font-mono font-black text-white">{numericAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</span>
+            </div>
+
+            <div className="flex justify-between items-center text-[10px] text-slate-300">
+              <span className="font-bold">Tax & Processing Fee:</span>
+              <span className="font-mono font-black text-rose-400">-{feeAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB <span className="text-[8.5px] font-sans text-slate-500 font-medium font-bold">({feeName})</span></span>
+            </div>
+
+            <div className="flex justify-between items-center text-[10px] text-slate-300">
+              <span className="font-bold">Destination Bank:</span>
+              <span className="font-black text-white uppercase tracking-wider">{bankName || 'CBE'}</span>
+            </div>
+
+            <div className="flex justify-between items-center text-[10px] text-slate-300">
+              <span className="font-bold">Account Number:</span>
+              <span className="font-mono font-black text-white">{accountNumber || 'N/A'}</span>
+            </div>
+
+            {accountHolderName && (
+              <div className="flex justify-between items-center text-[10px] text-slate-300">
+                <span className="font-bold">Account Holder:</span>
+                <span className="font-semibold text-white uppercase">{accountHolderName}</span>
+              </div>
+            )}
+
+            <div className="flex justify-between items-center text-[10.5px] pt-1.5 border-t border-dashed border-slate-805">
+              <span className="text-emerald-400 font-black uppercase tracking-wider">Final Approved Payout:</span>
+              <span className="font-mono font-black text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md">
+                {payoutAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
+              </span>
+            </div>
+          </motion.div>
+
+          <div className="mt-3 text-center border-t border-slate-900/40 pt-2.5 w-full">
+            <p className="text-[8px] text-slate-500 font-sans italic leading-tight">
+              Commercial Bank of Ethiopia (CBE) Settlement network clearance.
+            </p>
+          </div>
+        </div>
+
+        {/* Messaging Box / Success feedback */}
+        {successMsg && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mt-3 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl w-full text-left"
+          >
+            <p className="text-[9.5px] text-emerald-400 font-black leading-relaxed text-center font-sans">
+              {successMsg}
+            </p>
+          </motion.div>
         )}
 
-        <div className="flex justify-between items-center text-[10.5px] pt-1.5 border-t border-dashed border-slate-805">
-          <span className="text-emerald-400 font-black uppercase tracking-wider">Final Approved Payout:</span>
-          <span className="font-mono font-black text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md">
-            {payoutAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
-          </span>
+        {/* Telegram Submission Guidance */}
+        {!successMsg && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mt-3 p-3 bg-blue-950/30 border border-blue-500/20 rounded-2xl w-full text-left space-y-1 font-sans"
+          >
+            <div className="flex items-center gap-1.5">
+              <svg className="w-3.5 h-3.5 text-sky-400 shrink-0 fill-current animate-pulse" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-1 .53-1.42.52-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.35-.49.97-.74 3.79-1.65 6.32-2.73 7.59-3.25 3.61-1.48 4.36-1.74 4.85-1.75.11 0 .35.03.5.16.13.12.17.29.18.41-.01.07 0 .15-.01.2z" />
+              </svg>
+              <span className="text-[9px] text-sky-400 font-black uppercase tracking-wider">
+                Telegram Submission Needed
+              </span>
+            </div>
+            <p className="text-[9px] text-slate-350 font-semibold leading-relaxed">
+              Please take a screenshot of this payout invoice and send it to our Telegram VIP support <strong className="text-sky-300 font-black">@Lumora_Official_Support</strong>.
+            </p>
+          </motion.div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="w-full mt-4 space-y-2">
+          <button
+            onClick={handleTakeScreenshot}
+            disabled={isCapturing}
+            className="w-full py-2.5 bg-slate-800/80 hover:bg-slate-700 text-white font-black text-[9.5px] rounded-xl uppercase tracking-wider border border-slate-700/50 flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 duration-150 transition-all font-sans"
+          >
+            {isCapturing ? (
+              <>
+                <svg className="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                <span>Capturing Receipt...</span>
+              </>
+            ) : (
+              <>
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                  <circle cx="12" cy="13" r="3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span>Take Screenshot</span>
+              </>
+            )}
+          </button>
+
+          {capturedImage && (
+            <motion.button
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              onClick={handleSendToTelegram}
+              className="w-full py-2.5 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-black text-[9.5px] rounded-xl uppercase tracking-wider shadow-lg flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 duration-150 transition-all font-sans"
+            >
+              <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-1 .53-1.42.52-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.35-.49.97-.74 3.79-1.65 6.32-2.73 7.59-3.25 3.61-1.48 4.36-1.74 4.85-1.75.11 0 .35.03.5.16.13.12.17.29.18.41-.01.07 0 .15-.01.2z" />
+              </svg>
+              <span>Send to Telegram Support</span>
+            </motion.button>
+          )}
+
+          <button
+            onClick={onClose}
+            className="w-full py-2.5 bg-slate-950/60 hover:bg-slate-900 text-slate-400 hover:text-white font-bold text-[9px] rounded-xl uppercase tracking-wider border border-slate-850/50 cursor-pointer active:scale-95 duration-150 transition-all font-sans"
+          >
+            Okay, Close Window
+          </button>
         </div>
-      </motion.div>
-
-      {/* Telegram Verification Box */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.55, duration: 0.4 }}
-        className="mt-3 p-3 bg-blue-950/30 border border-blue-500/20 rounded-2xl w-full text-left space-y-1 font-sans"
-      >
-        <div className="flex items-center gap-1.5">
-          <svg className="w-3.5 h-3.5 text-sky-400 shrink-0 animate-pulse" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-1 .53-1.42.52-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.35-.49.97-.74 3.79-1.65 6.32-2.73 7.59-3.25 3.61-1.48 4.36-1.74 4.85-1.75.11 0 .35.03.5.16.13.12.17.29.18.41-.01.07 0 .15-.01.2z" />
-          </svg>
-          <span className="text-[9px] text-sky-400 font-black uppercase tracking-wider">
-            Telegram Submission Needed
-          </span>
-        </div>
-        <p className="text-[9px] text-slate-350 font-semibold leading-relaxed">
-          Please <strong className="text-white">take a screenshot</strong> of this payout invoice feedback card and send it via Telegram to our official online VIP support center here: <strong className="text-sky-300">@Lumora_Official_Support</strong> to expedite bank dispatch queue.
-        </p>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
-        className="mt-3 text-center"
-      >
-        <p className="text-[9px] text-slate-450 font-medium font-sans italic leading-tight">
-          Requests are cleared hourly and credited in 0 to 42 hours under secure consensus.
-        </p>
-      </motion.div>
-
-      {/* Action Button */}
-      <motion.button
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.7 }}
-        onClick={onClose}
-        className="mt-4 w-full py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-505 text-white font-black text-[9px] rounded-xl uppercase tracking-wider shadow-lg cursor-pointer active:scale-95 duration-150 transition-all font-sans"
-      >
-        Okay, Return to App
-      </motion.button>
+      </div>
     </motion.div>
   );
 }
