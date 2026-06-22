@@ -1386,6 +1386,68 @@ async function startServer() {
     }
   }
 
+  // Automatically approve pending deposits when admin does not approve them within 30 minutes
+  function autoApprovePendingDeposits() {
+    let dbUpdated = false;
+    const now = new Date();
+    const thirtyMinutesMs = 30 * 60 * 1000;
+
+    db.deposits.forEach(dep => {
+      if (dep.status === "pending") {
+        if (!dep.submittedAt) {
+          dep.submittedAt = now.toISOString();
+          dbUpdated = true;
+        }
+
+        const submittedDate = new Date(dep.submittedAt);
+        const diffMs = now.getTime() - submittedDate.getTime();
+
+        if (diffMs >= thirtyMinutesMs) {
+          dep.status = "approved";
+          dep.reviewedAt = now.toISOString();
+
+          const p = db.profiles.find(profile => profile.userId === dep.userId);
+          if (p) {
+            p.walletBalance = (p.walletBalance || 0) + dep.amount;
+            p.totalDeposits = (p.totalDeposits || 0) + dep.amount;
+            if (p.depositBalance === undefined) {
+              p.depositBalance = p.walletBalance - (p.incomeBalance || 0);
+            } else {
+              p.depositBalance += dep.amount;
+            }
+
+            // Create transaction entry
+            db.transactions.push({
+              id: "tx-" + Math.random().toString(36).substr(2, 9),
+              userId: dep.userId,
+              type: "deposit",
+              amount: dep.amount,
+              description: "Deposit automatically approved and credited via 30-minute Treasury fallback protocol.",
+              date: now.toISOString()
+            });
+
+            // Add notification
+            db.notifications.push({
+              id: "not-" + Math.random().toString(36).substr(2, 9),
+              userId: dep.userId,
+              title: "Deposit Automatically Approved! ✓",
+              message: `Your deposit of ${dep.amount} ETB has been automatically approved and credited to your wallet via our 30-minute prompt-clear regulatory protocol. Funds are now ready for VIP Investment plans!`,
+              read: false,
+              date: now.toISOString()
+            });
+
+            console.log(`[Auto-Deposit] Automatically approved deposit ${dep.id} for user ${p.userId} due to 30-minute admin idle timeout.`);
+          }
+          dbUpdated = true;
+        }
+      }
+    });
+
+    if (dbUpdated) {
+      saveDB(db);
+    }
+  }
+
   // Force system balance integrity control
   function sanitizeUserBalances() {
     let updated = false;
@@ -1443,6 +1505,7 @@ async function startServer() {
     sanitizeUserBalances();
     autoAllocateDailyEarnings();
     autoVerifyPendingKYC();
+    autoApprovePendingDeposits();
   } catch (error) {
     console.error("Initial daily earnings and KYC check failed:", error);
   }
@@ -1453,6 +1516,7 @@ async function startServer() {
       sanitizeUserBalances();
       autoAllocateDailyEarnings();
       autoVerifyPendingKYC();
+      autoApprovePendingDeposits();
 
       const currentEATDay = getEATDateString(new Date());
       if (currentEATDay !== lastCheckedEATDay) {
@@ -1506,6 +1570,7 @@ async function startServer() {
       sanitizeUserBalances();
       autoAllocateDailyEarnings();
       autoVerifyPendingKYC();
+      autoApprovePendingDeposits();
     } catch (e) {
       console.error("[Automatic Yield Tracker and KYC Middleware Check Failed]:", e);
     }
