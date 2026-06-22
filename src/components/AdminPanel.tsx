@@ -44,6 +44,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   const [loanFilter, setLoanFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
   const [idFilter, setIdFilter] = useState<'all' | 'pending' | 'verified' | 'rejected' | 'unsubmitted' | 'skipped'>('all');
   const [userStatusFilter, setUserStatusFilter] = useState<'all' | 'active' | 'suspended'>('all');
+  const [logCategoryFilter, setLogCategoryFilter] = useState<'all' | 'users' | 'wallets' | 'investments' | 'loans' | 'system'>('all');
   
   // Custom Toast notification states
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
@@ -2276,6 +2277,160 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                         </div>
                       )}
 
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
+          {/* TAB 9: SYSTEM AUDIT LOGS DESK */}
+          {activeSubTab === 'audit-logs' && (
+            <div className="bg-white rounded-3xl border border-slate-200/80 p-6 space-y-6 shadow-xs font-sans">
+              
+              {/* Header and Summary */}
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-100 pb-5">
+                <div>
+                  <h3 className="font-display font-black text-sm text-[#0A3D91] uppercase tracking-wider flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-[#0A3D91]" />
+                    <span>Regulatory Audit Logs & Traceability</span>
+                  </h3>
+                  <p className="text-slate-500 text-[11px] mt-1 font-medium">
+                    Immutable transparency ledger tracking administrator actions, balance modifications, and general security compliance occurrences.
+                  </p>
+                </div>
+                
+                {/* Search Panel */}
+                <div className="relative max-w-xs w-full shrink-0">
+                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Search logs details & actions..."
+                    className="w-full bg-slate-50/50 border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#0A3D91] shadow-3xs"
+                  />
+                </div>
+              </div>
+
+              {/* Stats Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-sans">
+                {[
+                  { label: "Total Logs Recorded", count: adminLogs.length, color: "text-[#0A3D91]" },
+                  { label: "Wallet Adjustments", count: adminLogs.filter(l => l.category === "wallets").length, color: "text-emerald-600" },
+                  { label: "Investment Events", count: adminLogs.filter(l => l.category === "investments").length, color: "text-purple-600" },
+                  { label: "Security Audits", count: adminLogs.filter(l => l.category === "users" || l.category === "security" || l.category === "id-verify").length, color: "text-rose-600" }
+                ].map((stat, i) => (
+                  <div key={i} className="p-3.5 bg-slate-50/50 rounded-2xl border border-slate-200/60">
+                    <span className="text-[9px] font-black uppercase text-slate-400 block tracking-wider">{stat.label}</span>
+                    <span className={`text-lg font-black block mt-1 ${stat.color}`}>{stat.count}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Log Category Filter Tabs */}
+              <div className="flex flex-wrap items-center gap-1.5 border-b border-slate-100 pb-3">
+                {(['all', 'users', 'wallets', 'investments', 'loans', 'system'] as const).map((cat) => {
+                  const isActive = logCategoryFilter === cat;
+                  const categoryCount = adminLogs.filter(log => {
+                    if (cat === 'all') return true;
+                    return log.category?.toLowerCase() === cat.toLowerCase();
+                  }).length;
+
+                  return (
+                    <button
+                      key={cat}
+                      onClick={() => setLogCategoryFilter(cat)}
+                      className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+                        isActive 
+                          ? 'bg-[#0A3D91] text-white shadow-3xs scale-102' 
+                          : 'bg-slate-100/70 text-slate-500 hover:bg-slate-150 border border-slate-200/40'
+                      }`}
+                    >
+                      {cat} <span className={`ml-1 px-1.5 py-[0.1px] rounded-full text-[8px] font-mono ${isActive ? 'bg-white text-[#0A3D91]' : 'bg-slate-200 text-slate-600'}`}>{categoryCount}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Log Items Area */}
+              {(() => {
+                const filteredLogs = adminLogs.filter(log => {
+                  // Category filter
+                  if (logCategoryFilter !== 'all' && log.category?.toLowerCase() !== logCategoryFilter.toLowerCase()) {
+                    return false;
+                  }
+                  // Search filter
+                  if (searchTerm.trim()) {
+                    const term = searchTerm.toLowerCase();
+                    const actionMatch = log.action?.toLowerCase().includes(term);
+                    const detailsMatch = log.details?.toLowerCase().includes(term);
+                    const categoryMatch = log.category?.toLowerCase().includes(term);
+                    const idMatch = log.id?.toLowerCase().includes(term);
+                    return actionMatch || detailsMatch || categoryMatch || idMatch;
+                  }
+                  return true;
+                });
+
+                if (filteredLogs.length === 0) {
+                  return (
+                    <div className="text-center py-12 border border-dashed border-slate-200 rounded-3xl bg-slate-50/20">
+                      <ShieldCheck className="w-8 h-8 text-slate-350 mx-auto" />
+                      <p className="text-slate-400 text-xs font-black uppercase tracking-widest mt-2">{searchTerm ? 'No matching logs found' : 'No audit records registered yet'}</p>
+                      <p className="text-slate-400 text-[10px] mt-1 font-medium font-mono">System activity is completely calm.</p>
+                    </div>
+                  );
+                }
+
+                const getCategoryStyles = (category: string) => {
+                  switch(category?.toLowerCase()) {
+                    case 'users': return { bg: 'bg-blue-50/70 text-blue-700 border-blue-200/50', label: 'User Operations' };
+                    case 'wallets': return { bg: 'bg-emerald-50/70 text-emerald-700 border-emerald-200/50', label: 'Wallet Adjust' };
+                    case 'investments': return { bg: 'bg-purple-50/70 text-purple-700 border-purple-200/50', label: 'Liquidity Invest' };
+                    case 'loans': return { bg: 'bg-amber-50/70 text-amber-700 border-amber-200/50', label: 'Debt/Sovereign' };
+                    case 'system': return { bg: 'bg-rose-50/70 text-[#C1272D] border-rose-200/50', label: 'System Action' };
+                    default: return { bg: 'bg-slate-50 text-slate-700 border-slate-200/50', label: 'General audit' };
+                  }
+                };
+
+                return (
+                  <div className="border border-slate-200/80 rounded-2xl overflow-hidden shadow-3xs">
+                    <div className="max-h-[500px] overflow-y-auto divide-y divide-slate-100 scrollbar-none">
+                      {filteredLogs.map((log) => {
+                        const styles = getCategoryStyles(log.category);
+                        return (
+                          <div key={log.id} className="p-4 hover:bg-slate-50/40 transition-colors flex flex-col md:flex-row md:items-start justify-between gap-3 font-sans">
+                            <div className="space-y-1.5 text-left">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className={`text-[8.5px] uppercase font-black px-2 py-0.5 rounded-full border ${styles.bg}`}>
+                                  {styles.label}
+                                </span>
+                                <span className="text-[9px] font-extrabold uppercase text-[#0A3D91] font-mono bg-blue-50/30 px-1.5 py-0.2 rounded">
+                                  {log.action?.replace(/_/g, ' ')}
+                                </span>
+                                <span className="text-[8px] font-mono text-slate-400 font-bold">ID: {log.id}</span>
+                              </div>
+                              <p className="text-[11.5px] text-slate-700 font-semibold leading-relaxed">
+                                {log.details}
+                              </p>
+                              {log.userId && (
+                                <span className="text-[9.5px] font-bold text-slate-400 block bg-slate-100/40 px-1.5 py-0.5 rounded w-max">
+                                  Subject ID: {log.userId}
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="text-right shrink-0 self-end md:self-start">
+                              <span className="text-[10px] text-slate-500 font-semibold font-mono block">
+                                {new Date(log.date).toLocaleDateString()}
+                              </span>
+                              <span className="text-[8.5px] text-slate-400 font-medium font-mono block mt-0.5">
+                                {new Date(log.date).toLocaleTimeString()}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 );
