@@ -905,7 +905,22 @@ function setupFirebaseSync() {
           const localJson = localItem ? JSON.stringify(localItem) : null;
 
           if (localJson !== remoteJson) {
-            localMap.set(id, data);
+            let mergedData = { ...data };
+            if (col.name === "profiles" && localItem) {
+              // Retain image data to prevent async race conditions overriding newly uploaded photos
+              if (localItem.idCardFront && !mergedData.idCardFront) mergedData.idCardFront = localItem.idCardFront;
+              if (localItem.idCardBack && !mergedData.idCardBack) mergedData.idCardBack = localItem.idCardBack;
+              if (localItem.idSelfie && !mergedData.idSelfie) mergedData.idSelfie = localItem.idSelfie;
+              if (localItem.fanNumber && !mergedData.fanNumber) mergedData.fanNumber = localItem.fanNumber;
+              if (localItem.transactionPin && !mergedData.transactionPin) mergedData.transactionPin = localItem.transactionPin;
+              
+              const localStatus = localItem.idVerificationStatus;
+              const remoteStatus = mergedData.idVerificationStatus;
+              if (localStatus === 'pending' && (!remoteStatus || remoteStatus === 'unsubmitted')) {
+                mergedData.idVerificationStatus = 'pending';
+              }
+            }
+            localMap.set(id, mergedData);
             lastSynced[col.name][id] = remoteJson;
             updated = true;
           }
@@ -1250,6 +1265,127 @@ async function startServer() {
     }
   }
 
+  // Award level activation bonus automatically when joining/activating a specific VIP level
+  function awardLevelActivationBonus(profile: any, level: number) {
+    if (!profile) return false;
+    
+    // Define level bonus configurations
+    const bonuses: Record<number, { name: string; amount: number }> = {
+      1: { name: "Starter Level", amount: 150 },
+      2: { name: "VIP Level 1", amount: 200 },
+      3: { name: "VIP Level 2", amount: 300 },
+      4: { name: "VIP Level 3", amount: 400 },
+      5: { name: "VIP Level 4", amount: 500 }
+    };
+
+    const bonusConfig = bonuses[level];
+    if (!bonusConfig) return false;
+
+    if (!profile.claimedLevelBonuses) {
+      profile.claimedLevelBonuses = [];
+    }
+
+    // Check if they already claimed this bonus
+    const alreadyClaimed = profile.claimedLevelBonuses.includes(level) || 
+      db.transactions.some(tx => 
+        tx.userId === profile.userId && 
+        tx.type === "bonus" && 
+        tx.description.includes(`(Level ${level})`)
+      );
+
+    if (!alreadyClaimed) {
+      profile.claimedLevelBonuses.push(level);
+      profile.walletBalance = (profile.walletBalance || 0) + bonusConfig.amount;
+      
+      if (profile.incomeBalance === undefined) profile.incomeBalance = 0;
+      profile.incomeBalance = (profile.incomeBalance || 0) + bonusConfig.amount;
+      
+      profile.totalEarnings = (profile.totalEarnings || 0) + bonusConfig.amount;
+
+      db.transactions.push({
+        id: "tx-lvl-" + Math.random().toString(36).substr(2, 9),
+        userId: profile.userId,
+        type: "bonus",
+        amount: bonusConfig.amount,
+        description: `Activation bonus for joining ${bonusConfig.name} (Level ${level})`,
+        date: new Date().toISOString()
+      });
+
+      db.notifications.push({
+        id: "not-lvl-" + Math.random().toString(36).substr(2, 9),
+        userId: profile.userId,
+        title: `Level Activation Bonus: +${bonusConfig.amount} ETB!`,
+        message: `Congratulations! Since you activated your ${bonusConfig.name} plan, we have credited an official activation/joining reward of ${bonusConfig.amount} ETB to your wallet!`,
+        read: false,
+        date: new Date().toISOString()
+      });
+
+      console.log(`[Level Bonus] Awarded ${bonusConfig.amount} ETB bonus to user ${profile.userId} for activating level ${level}.`);
+      return true;
+    }
+    return false;
+  }
+
+  // Automatically verify KYC when admin does not verify it within 15 minutes
+  function autoVerifyPendingKYC() {
+    let dbUpdated = false;
+    const now = new Date();
+    const fifteenMinutesMs = 15 * 60 * 1000;
+
+    db.profiles.forEach(p => {
+      if (p.idVerificationStatus === "pending") {
+        if (!p.idSubmittedAt) {
+          p.idSubmittedAt = p.registrationDate || now.toISOString();
+          dbUpdated = true;
+        }
+
+        const submittedDate = new Date(p.idSubmittedAt);
+        const diffMs = now.getTime() - submittedDate.getTime();
+
+        if (diffMs >= fifteenMinutesMs) {
+          p.idVerificationStatus = "verified";
+          p.idRejectionReason = undefined;
+
+          let bonusGranted = false;
+          if (!p.verificationBonusClaimed) {
+            p.verificationBonusClaimed = true;
+            p.walletBalance = (p.walletBalance || 0) + 175;
+            bonusGranted = true;
+
+            // Record bonus transaction
+            db.transactions.push({
+              id: "tx-" + Math.random().toString(36).substr(2, 9),
+              userId: p.userId,
+              type: "bonus",
+              amount: 175,
+              description: "Automatic ID Verification Reward (Admin Audit Timeout)",
+              date: now.toISOString()
+            });
+          }
+
+          // Notify user about automatic verification
+          db.notifications.push({
+            id: "not-" + Math.random().toString(36).substr(2, 9),
+            userId: p.userId,
+            title: bonusGranted ? "National ID Verified! +175 ETB ✓" : "National ID Verified! ✓",
+            message: bonusGranted
+              ? "Congratulations! Your National ID has been automatically verified under our 15-minute prompt-clear security clearance. An official signup verification bonus of 175 ETB has been credited to your wallet balance!"
+              : "Congratulations! Your National ID card has been automatically verified. You are now a fully verified member and eligible to apply for institutional capital loans.",
+            read: false,
+            date: now.toISOString()
+          });
+
+          dbUpdated = true;
+          console.log(`[Auto-KYC] Automatically verified KYC for user ${p.userId} due to 15-minute admin idle timeout.`);
+        }
+      }
+    });
+
+    if (dbUpdated) {
+      saveDB(db);
+    }
+  }
+
   // Force system balance integrity control
   function sanitizeUserBalances() {
     let updated = false;
@@ -1306,8 +1442,9 @@ async function startServer() {
   try {
     sanitizeUserBalances();
     autoAllocateDailyEarnings();
+    autoVerifyPendingKYC();
   } catch (error) {
-    console.error("Initial daily earnings check failed:", error);
+    console.error("Initial daily earnings and KYC check failed:", error);
   }
 
   // Trigger auto-credits periodically every 60 seconds and run midnight transition cron
@@ -1315,6 +1452,7 @@ async function startServer() {
     try {
       sanitizeUserBalances();
       autoAllocateDailyEarnings();
+      autoVerifyPendingKYC();
 
       const currentEATDay = getEATDateString(new Date());
       if (currentEATDay !== lastCheckedEATDay) {
@@ -1336,7 +1474,7 @@ async function startServer() {
         saveDB(db);
       }
     } catch (e) {
-      console.error("[Automatic Yield Tracker Check Failed]:", e);
+      console.error("[Automatic Yield Tracker and KYC Check Failed]:", e);
     }
   }, 60000);
 
@@ -1367,8 +1505,9 @@ async function startServer() {
     try {
       sanitizeUserBalances();
       autoAllocateDailyEarnings();
+      autoVerifyPendingKYC();
     } catch (e) {
-      console.error("[Automatic Yield Tracker Middleware Check Failed]:", e);
+      console.error("[Automatic Yield Tracker and KYC Middleware Check Failed]:", e);
     }
     next();
   });
@@ -1561,6 +1700,12 @@ async function startServer() {
     }
 
     const trimmedFan = fanNumber.trim();
+    const cleanFanNum = trimmedFan.replace(/[-\s]/g, '');
+    const isSixteenDigits = /^\d{16}$/.test(cleanFanNum);
+    if (!isSixteenDigits) {
+      return res.status(400).json({ error: "The National ID / FAN registration number must be exactly 16 digits (e.g. 8989898911899987). It cannot be less than or more than 16 digits." });
+    }
+
     if (trimmedFan) {
       const duplicateFan = db.profiles.find(profile => profile.userId !== userId && profile.fanNumber && profile.fanNumber.trim() === trimmedFan);
       if (duplicateFan) {
@@ -1578,6 +1723,7 @@ async function startServer() {
     p.idSelfie = idSelfie;
     p.fanNumber = fanNumber.trim();
     p.idVerificationStatus = "pending";
+    p.idSubmittedAt = new Date().toISOString();
     p.idRejectionReason = undefined;
 
     // Notify the user of submission
@@ -1858,14 +2004,14 @@ async function startServer() {
   app.get("/api/withdrawals/user/:userId", (req, res) => {
     const { userId } = req.params;
     const list = db.withdrawals.filter(w => w.userId === userId);
-    res.json(list.sort((a,b) => b.submittedAt.localeCompare(a.submittedAt)));
+    res.json(list.sort((a,b) => (b.submittedAt || '').toString().localeCompare((a.submittedAt || '').toString())));
   });
 
   // Get user deposits list
   app.get("/api/deposits/user/:userId", (req, res) => {
     const { userId } = req.params;
     const list = db.deposits.filter(d => d.userId === userId);
-    res.json(list.sort((a,b) => b.submittedAt.localeCompare(a.submittedAt)));
+    res.json(list.sort((a,b) => (b.submittedAt || '').toString().localeCompare((a.submittedAt || '').toString())));
   });
 
   // Purchase digital plan
@@ -1930,6 +2076,9 @@ async function startServer() {
     if (plan.level > profile.vipLevel) {
       profile.vipLevel = plan.level;
     }
+
+    // Automatically award activation/joining bonus for the level if eligible
+    awardLevelActivationBonus(profile, plan.level);
 
     const startDate = new Date();
     const maturityDate = new Date();
@@ -2035,7 +2184,7 @@ async function startServer() {
   // Get notifications
   app.get("/api/notifications/:userId", (req, res) => {
     const { userId } = req.params;
-    const list = db.notifications.filter(n => n.userId === userId).sort((a,b) => b.date.localeCompare(a.date));
+    const list = db.notifications.filter(n => n.userId === userId).sort((a,b) => (b.date || '').toString().localeCompare((a.date || '').toString()));
     res.json(list);
   });
 
@@ -2063,9 +2212,9 @@ async function startServer() {
     const isAdmin = userObj ? userObj.isAdmin : false;
 
     const activeList = db.investments.filter(i => i.userId === userId && i.status === "active");
-    const transList = db.transactions.filter(t => t.userId === userId).sort((a,b) => b.date.localeCompare(a.date)).slice(0, 10);
-    const notificationsList = db.notifications.filter(n => n.userId === userId).sort((a,b) => b.date.localeCompare(a.date));
-    const investmentsList = db.investments.filter(i => i.userId === userId).sort((a,b) => b.startDate.localeCompare(a.startDate));
+    const transList = db.transactions.filter(t => t.userId === userId).sort((a,b) => (b.date || '').toString().localeCompare((a.date || '').toString())).slice(0, 10);
+    const notificationsList = db.notifications.filter(n => n.userId === userId).sort((a,b) => (b.date || '').toString().localeCompare((a.date || '').toString()));
+    const investmentsList = db.investments.filter(i => i.userId === userId).sort((a,b) => (b.startDate || '').toString().localeCompare((a.startDate || '').toString()));
 
     // Calculate today's earnings simulated
     const todaySim = activeList.reduce((acc, current) => acc + current.dailyReturn, 0);
@@ -2104,7 +2253,7 @@ async function startServer() {
       list = list.filter(t => new Date(t.date) >= thirtyDaysAgo);
     }
 
-    res.json(list.sort((a,b) => b.date.localeCompare(a.date)));
+    res.json(list.sort((a,b) => (b.date || '').toString().localeCompare((a.date || '').toString())));
   });
 
   // Get user profile details
@@ -2441,7 +2590,7 @@ async function startServer() {
   app.get("/api/investments/:userId", (req, res) => {
     const { userId } = req.params;
     const list = db.investments.filter(i => i.userId === userId);
-    res.json(list.sort((a,b) => b.startDate.localeCompare(a.startDate)));
+    res.json(list.sort((a,b) => (b.startDate || '').toString().localeCompare((a.startDate || '').toString())));
   });
 
   // Get Agreements
@@ -3002,6 +3151,10 @@ Instruct the user precisely on which page, component, or element to use to accom
     const targetVip = parseInt(vipLevel);
     p.vipLevel = targetVip;
 
+    if (targetVip > 0) {
+      awardLevelActivationBonus(p, targetVip);
+    }
+
     if (targetVip === 0) {
       // Deactivate all active investments for this user
       db.investments.forEach(inv => {
@@ -3222,7 +3375,8 @@ Instruct the user precisely on which page, component, or element to use to accom
 
   // View Deposits list (pending/approved/rejected)
   app.get("/api/admin/deposits", (req, res) => {
-    res.json(db.deposits.sort((a,b) => b.submittedAt.localeCompare(a.submittedAt)));
+    const list = [...db.deposits].sort((a,b) => (b.submittedAt || '').toString().localeCompare((a.submittedAt || '').toString()));
+    res.json(list);
   });
 
   // Approve/Reject deposit
@@ -3290,7 +3444,8 @@ Instruct the user precisely on which page, component, or element to use to accom
 
   // View Withdrawals list
   app.get("/api/admin/withdrawals", (req, res) => {
-    res.json(db.withdrawals.sort((a,b) => b.submittedAt.localeCompare(a.submittedAt)));
+    const list = [...db.withdrawals].sort((a,b) => (b.submittedAt || '').toString().localeCompare((a.submittedAt || '').toString()));
+    res.json(list);
   });
 
   // Approve/Reject Withdrawal

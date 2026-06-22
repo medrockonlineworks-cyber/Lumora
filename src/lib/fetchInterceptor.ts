@@ -615,7 +615,22 @@ export function setupClientFirebaseSync() {
           lastSyncedClient[col.name][id] = remoteJson;
 
           if (localJson !== remoteJson) {
-            localMap.set(id, data);
+            let mergedData = { ...data };
+            if (col.name === "profiles" && localItem) {
+              // Retain image data to prevent async race conditions overriding newly uploaded photos
+              if (localItem.idCardFront && !mergedData.idCardFront) mergedData.idCardFront = localItem.idCardFront;
+              if (localItem.idCardBack && !mergedData.idCardBack) mergedData.idCardBack = localItem.idCardBack;
+              if (localItem.idSelfie && !mergedData.idSelfie) mergedData.idSelfie = localItem.idSelfie;
+              if (localItem.fanNumber && !mergedData.fanNumber) mergedData.fanNumber = localItem.fanNumber;
+              if (localItem.transactionPin && !mergedData.transactionPin) mergedData.transactionPin = localItem.transactionPin;
+              
+              const localStatus = localItem.idVerificationStatus;
+              const remoteStatus = mergedData.idVerificationStatus;
+              if (localStatus === 'pending' && (!remoteStatus || remoteStatus === 'unsubmitted')) {
+                mergedData.idVerificationStatus = 'pending';
+              }
+            }
+            localMap.set(id, mergedData);
             updated = true;
           }
         }
@@ -786,6 +801,123 @@ function autoAllocateLocalDailyEarnings(db: LumoraDB) {
   }
 }
 
+function awardLocalLevelActivationBonus(db: LumoraDB, profile: any, level: number) {
+  if (!profile) return false;
+  
+  const bonuses: Record<number, { name: string; amount: number }> = {
+    1: { name: "Starter Level", amount: 150 },
+    2: { name: "VIP Level 1", amount: 200 },
+    3: { name: "VIP Level 2", amount: 300 },
+    4: { name: "VIP Level 3", amount: 400 },
+    5: { name: "VIP Level 4", amount: 500 }
+  };
+
+  const bonusConfig = bonuses[level];
+  if (!bonusConfig) return false;
+
+  if (!profile.claimedLevelBonuses) {
+    profile.claimedLevelBonuses = [];
+  }
+
+  const alreadyClaimed = profile.claimedLevelBonuses.includes(level) || 
+    db.transactions.some(tx => 
+      tx.userId === profile.userId && 
+      tx.type === "bonus" && 
+      tx.description.includes(`(Level ${level})`)
+    );
+
+  if (!alreadyClaimed) {
+    profile.claimedLevelBonuses.push(level);
+    profile.walletBalance = (profile.walletBalance || 0) + bonusConfig.amount;
+    
+    if (profile.incomeBalance === undefined) profile.incomeBalance = 0;
+    profile.incomeBalance = (profile.incomeBalance || 0) + bonusConfig.amount;
+    
+    profile.totalEarnings = (profile.totalEarnings || 0) + bonusConfig.amount;
+
+    db.transactions.push({
+      id: "tx-lvl-" + Math.random().toString(36).substr(2, 9),
+      userId: profile.userId,
+      type: "bonus",
+      amount: bonusConfig.amount,
+      description: `Activation bonus for joining ${bonusConfig.name} (Level ${level})`,
+      date: new Date().toISOString()
+    });
+
+    db.notifications.push({
+      id: "not-lvl-" + Math.random().toString(36).substr(2, 9),
+      userId: profile.userId,
+      title: `Level Activation Bonus: +${bonusConfig.amount} ETB!`,
+      message: `Congratulations! Since you activated your ${bonusConfig.name} plan, we have credited an official activation/joining reward of ${bonusConfig.amount} ETB to your wallet!`,
+      read: false,
+      date: new Date().toISOString()
+    });
+
+    console.log(`[Level Bonus] Awarded ${bonusConfig.amount} ETB bonus to user ${profile.userId} in local interceptor.`);
+    return true;
+  }
+  return false;
+}
+
+function autoVerifyLocalPendingKYC(db: LumoraDB) {
+  let dbUpdated = false;
+  const now = new Date();
+  const fifteenMinutesMs = 15 * 60 * 1000;
+
+  db.profiles.forEach(p => {
+    if (p.idVerificationStatus === "pending") {
+      if (!p.idSubmittedAt) {
+        p.idSubmittedAt = p.registrationDate || now.toISOString();
+        dbUpdated = true;
+      }
+
+      const submittedDate = new Date(p.idSubmittedAt);
+      const diffMs = now.getTime() - submittedDate.getTime();
+
+      if (diffMs >= fifteenMinutesMs) {
+        p.idVerificationStatus = "verified";
+        p.idRejectionReason = undefined;
+
+        let bonusGranted = false;
+        if (!p.verificationBonusClaimed) {
+          p.verificationBonusClaimed = true;
+          p.walletBalance = (p.walletBalance || 0) + 175;
+          bonusGranted = true;
+
+          // Record bonus transaction
+          db.transactions.push({
+            id: "tx-" + Math.random().toString(36).substr(2, 9),
+            userId: p.userId,
+            type: "bonus",
+            amount: 175,
+            description: "Automatic ID Verification Reward (Admin Audit Timeout)",
+            date: now.toISOString()
+          });
+        }
+
+        // Notify user about automatic verification
+        db.notifications.push({
+          id: "not-" + Math.random().toString(36).substr(2, 9),
+          userId: p.userId,
+          title: bonusGranted ? "National ID Verified! +175 ETB ✓" : "National ID Verified! ✓",
+          message: bonusGranted
+            ? "Congratulations! Your National ID has been automatically verified under our 15-minute prompt-clear security clearance. An official signup verification bonus of 175 ETB has been credited to your wallet balance!"
+            : "Congratulations! Your National ID card has been automatically verified. You are now a fully verified member and eligible to apply for institutional capital loans.",
+          read: false,
+          date: now.toISOString()
+        });
+
+        dbUpdated = true;
+        console.log(`[Auto-KYC] Automatically verified local database KYC for user ${p.userId} due to 15-minute admin idle timeout.`);
+      }
+    }
+  });
+
+  if (dbUpdated) {
+    saveLocalDB(db);
+  }
+}
+
 // Function to handle the intercepted local storage operations
 async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response> {
   let pathname = url.split('?')[0];
@@ -810,6 +942,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
   
   const db = loadLocalDB();
   autoAllocateLocalDailyEarnings(db);
+  autoVerifyLocalPendingKYC(db);
 
   const respondJSON = (status: number, data: any) => {
     return new Response(JSON.stringify(data), {
@@ -1014,6 +1147,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     profile.idSelfie = idSelfie;
     profile.fanNumber = trimmedFan;
     profile.idVerificationStatus = "pending";
+    profile.idSubmittedAt = new Date().toISOString();
 
     db.notifications.push({
       id: "not-" + Math.random().toString(36).substr(2, 9),
@@ -1288,6 +1422,8 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     if (plan.level > profile.vipLevel) {
       profile.vipLevel = plan.level;
     }
+
+    awardLocalLevelActivationBonus(db, profile, plan.level);
 
     const newInvestment: Investment = {
       id: "inv-" + Math.random().toString(36).substr(2, 9),
@@ -2054,6 +2190,10 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
 
     const targetVip = Number(vipLevel);
     profile.vipLevel = targetVip;
+
+    if (targetVip > 0) {
+      awardLocalLevelActivationBonus(db, profile, targetVip);
+    }
 
     if (targetVip === 0) {
       db.investments.forEach(inv => {

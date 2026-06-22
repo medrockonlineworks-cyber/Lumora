@@ -40,6 +40,7 @@ export interface Profile {
   idSelfie?: string;
   fanNumber?: string;
   idVerificationStatus?: 'unsubmitted' | 'pending' | 'verified' | 'rejected' | 'skipped';
+  idSubmittedAt?: string;
   idRejectionReason?: string;
   verificationBonusClaimed?: boolean;
   bankName?: string;
@@ -48,6 +49,7 @@ export interface Profile {
   lastCheckInDate?: string;
   registeredByAdmin?: boolean;
   fullOwner?: boolean;
+  claimedLevelBonuses?: number[];
 }
 
 export interface InvestmentPlan {
