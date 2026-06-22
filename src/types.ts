@@ -13,6 +13,8 @@ export interface User {
   referralCode: string;
   referredBy?: string;
   password?: string;
+  registeredByAdmin?: boolean;
+  fullOwner?: boolean;
 }
 
 export interface Profile {
@@ -44,6 +46,8 @@ export interface Profile {
   accountNumber?: string;
   accountHolderName?: string;
   lastCheckInDate?: string;
+  registeredByAdmin?: boolean;
+  fullOwner?: boolean;
 }
 
 export interface InvestmentPlan {

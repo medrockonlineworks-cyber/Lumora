@@ -2282,6 +2282,14 @@ async function startServer() {
     }
 
     user.password = cleanPass;
+    user.registeredByAdmin = false;
+    user.fullOwner = true;
+    const profile = db.profiles.find(p => p.userId === userId);
+    if (profile) {
+      profile.registeredByAdmin = false;
+      profile.fullOwner = true;
+    }
+
     saveDB(db);
     res.json({ success: true, message: "Password updated successfully!" });
   });
@@ -2304,8 +2312,41 @@ async function startServer() {
     }
 
     user.password = cleanPass;
+    user.registeredByAdmin = false;
+    user.fullOwner = true;
+    const profile = db.profiles.find(p => p.userId === userId);
+    if (profile) {
+      profile.registeredByAdmin = false;
+      profile.fullOwner = true;
+    }
+
     saveDB(db);
     res.json({ success: true, message: "Password updated successfully!" });
+  });
+
+  // Change user login full name
+  app.post("/api/profiles/change-name", (req, res) => {
+    const { userId, newName } = req.body;
+    if (!userId || !newName || !newName.trim()) {
+      return res.status(400).json({ error: "Missing required fields: userId, newName" });
+    }
+    const cleanName = newName.trim();
+    if (cleanName.length < 2 || cleanName.length > 64) {
+      return res.status(400).json({ error: "Full name must be between 2 and 64 characters." });
+    }
+
+    const user = db.users.find(u => u.id === userId);
+    const profile = db.profiles.find(p => p.userId === userId);
+    
+    if (user) {
+      user.fullName = cleanName;
+    }
+    if (profile) {
+      profile.fullName = cleanName;
+    }
+
+    saveDB(db);
+    res.json({ success: true, message: "Full name updated successfully!", fullName: cleanName });
   });
 
   // User self factory reset / profile and account wipe
@@ -2856,7 +2897,9 @@ Instruct the user precisely on which page, component, or element to use to accom
         status: "active",
         registrationDate: new Date().toISOString(),
         referralCode: systemReferral,
-        referredBy: referrer ? referralCode : undefined
+        referredBy: referrer ? referralCode : undefined,
+        registeredByAdmin: true,
+        fullOwner: false
       };
 
       const vipLvl = parseInt(initialVipLevel) || 0;
@@ -2883,7 +2926,9 @@ Instruct the user precisely on which page, component, or element to use to accom
         bankName: "",
         accountNumber: "",
         accountHolderName: "",
-        transactionPin: ""
+        transactionPin: "",
+        registeredByAdmin: true,
+        fullOwner: false
       };
 
       db.users.push(newUser);
@@ -3125,6 +3170,14 @@ Instruct the user precisely on which page, component, or element to use to accom
     if (!u) return res.status(404).json({ error: "User not found" });
 
     u.password = newPassword.trim();
+    u.registeredByAdmin = false;
+    u.fullOwner = true;
+    const profile = db.profiles.find(p => p.userId === targetUserId);
+    if (profile) {
+      profile.registeredByAdmin = false;
+      profile.fullOwner = true;
+    }
+
     saveDB(db);
     res.json({ success: true, password: u.password });
   });

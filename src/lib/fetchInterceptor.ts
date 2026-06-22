@@ -1530,8 +1530,41 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     }
 
     user.password = cleanPass;
+    user.registeredByAdmin = false;
+    user.fullOwner = true;
+    const profile = db.profiles.find(p => p.userId === userId);
+    if (profile) {
+      profile.registeredByAdmin = false;
+      profile.fullOwner = true;
+    }
+
     saveLocalDB(db);
     return respondJSON(200, { success: true, message: "Password updated successfully!" });
+  }
+
+  // POST /api/profiles/change-name
+  if (pathname === '/api/profiles/change-name' && method === 'POST') {
+    const { userId, newName } = body;
+    if (!userId || !newName || !newName.trim()) {
+      return respondJSON(400, { error: "Missing required fields: userId, newName" });
+    }
+    const cleanName = newName.trim();
+    if (cleanName.length < 2 || cleanName.length > 64) {
+      return respondJSON(400, { error: "Full name must be between 2 and 64 characters." });
+    }
+
+    const user = db.users.find(u => u.id === userId);
+    const profile = db.profiles.find(p => p.userId === userId);
+    
+    if (user) {
+      user.fullName = cleanName;
+    }
+    if (profile) {
+      profile.fullName = cleanName;
+    }
+
+    saveLocalDB(db);
+    return respondJSON(200, { success: true, message: "Full name updated successfully!", fullName: cleanName });
   }
 
   // 16c. POST /api/user/reset-account (User self factory reset)
@@ -1719,7 +1752,9 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
         status: "active",
         registrationDate: new Date().toISOString(),
         referralCode: systemReferral,
-        referredBy: referrer ? referralCode : undefined
+        referredBy: referrer ? referralCode : undefined,
+        registeredByAdmin: true,
+        fullOwner: false
       };
 
       const vipLvl = parseInt(initialVipLevel) || 0;
@@ -1746,7 +1781,9 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
         bankName: "",
         accountNumber: "",
         accountHolderName: "",
-        transactionPin: ""
+        transactionPin: "",
+        registeredByAdmin: true,
+        fullOwner: false
       };
 
       db.users.push(newUser);
@@ -2199,6 +2236,14 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     if (!user) return respondJSON(404, { error: "User not found" });
 
     user.password = newPassword.trim();
+    user.registeredByAdmin = false;
+    user.fullOwner = true;
+    const profile = db.profiles.find(p => p.userId === targetUserId);
+    if (profile) {
+      profile.registeredByAdmin = false;
+      profile.fullOwner = true;
+    }
+
     saveLocalDB(db);
     return respondJSON(200, { success: true, password: user.password });
   }
