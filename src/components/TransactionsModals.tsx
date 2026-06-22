@@ -178,6 +178,177 @@ function DepositCelebrationOverlay({ amount, txRef, onClose }: CelebrationOverla
   );
 }
 
+interface WithdrawalCelebrationOverlayProps {
+  amount: string;
+  walletType: 'deposit' | 'income';
+  bankName: string;
+  accountNumber: string;
+  accountHolderName: string;
+  onClose: () => void;
+}
+
+function WithdrawalCelebrationOverlay({ amount, walletType, bankName, accountNumber, accountHolderName, onClose }: WithdrawalCelebrationOverlayProps) {
+  const numericAmount = parseFloat(amount) || 0;
+  const isIncome = walletType === 'income';
+  const feeRate = isIncome ? 0.10 : 0.05;
+  const feeName = isIncome ? '10% (5% Tax + 5% Fee)' : '5% (Handling Fee)';
+  const feeAmount = numericAmount * feeRate;
+  const payoutAmount = numericAmount - feeAmount;
+
+  // Confetti particles coordinates
+  const particles = Array.from({ length: 30 }).map((_, i) => ({
+    id: i,
+    x: (Math.random() - 0.5) * 280,
+    y: (Math.random() - 0.5) * 320 - 45,
+    size: Math.random() * 8 + 4,
+    color: ['bg-emerald-400', 'bg-blue-500', 'bg-cyan-400', 'bg-indigo-500', 'bg-[#0A3D91]'][i % 5],
+    rotation: Math.random() * 360,
+    delay: Math.random() * 0.2
+  }));
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="absolute inset-0 z-55 bg-[#070d19]/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center select-none"
+    >
+      {/* Background radial soft light gradient */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl -z-10 animate-pulse" />
+      
+      <div className="relative w-28 h-28 flex items-center justify-center mb-1">
+        {particles.map((p) => (
+          <motion.div
+            key={p.id}
+            initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
+            animate={{ 
+              opacity: [0, 1, 1, 0], 
+              scale: [0, 1.3, 1, 0],
+              x: p.x, 
+              y: p.y,
+              rotate: p.rotation + 360
+            }}
+            transition={{ 
+              duration: 2.0, 
+              delay: p.delay,
+              ease: "easeOut"
+            }}
+            className={`absolute rounded-full ${p.color} shadow-xs`}
+            style={{ width: p.size, height: p.size }}
+          />
+        ))}
+
+        <motion.div
+          initial={{ scale: 0.3, rotate: -45 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: "spring", stiffness: 280, damping: 18, delay: 0.1 }}
+          className="w-16 h-16 bg-gradient-to-tr from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-xl border-4 border-white/20 relative"
+        >
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            fill="none" 
+            viewBox="0 0 24 24" 
+            stroke="currentColor" 
+            className="w-8 h-8 text-white"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+          </svg>
+        </motion.div>
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.5 }}
+        className="space-y-1 w-full"
+      >
+        <span className="text-[8px] bg-blue-500/15 text-blue-400 border border-blue-500/30 px-2.5 py-0.5 rounded-full font-black uppercase tracking-widest font-mono">
+          Cashout Initiated ✓
+        </span>
+        
+        <h2 className="font-display font-black text-xs text-white leading-tight uppercase tracking-wider">
+          WITHDRAWAL REQUEST SUBMITTED
+        </h2>
+        
+        <p className="text-[10px] text-slate-350 leading-relaxed font-semibold">
+          Your secure bank cashout order has been received by our treasury audit desk.
+        </p>
+      </motion.div>
+
+      {/* Transaction Summary Panel */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.5, duration: 0.4 }}
+        className="mt-4 p-4 bg-slate-950/40 border border-slate-800 rounded-2xl w-full text-left space-y-2 font-sans"
+      >
+        <div className="flex justify-between items-center border-b border-slate-800 pb-1.5">
+          <span className="text-[9px] text-slate-450 font-bold uppercase tracking-wider">Source Wallet:</span>
+          <span className="text-[10px] font-black text-blue-400 uppercase tracking-wide bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20">
+            {isIncome ? 'Income Pool' : 'Deposit Pool'}
+          </span>
+        </div>
+
+        <div className="flex justify-between items-center text-[10px] text-slate-300">
+          <span className="font-bold">Requested Amount:</span>
+          <span className="font-mono font-black text-white">{numericAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</span>
+        </div>
+
+        <div className="flex justify-between items-center text-[10px] text-slate-300">
+          <span className="font-bold">Tax & Processing Fee:</span>
+          <span className="font-mono font-black text-rose-400">-{feeAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB <span className="text-[8.5px] font-sans text-slate-500 font-medium font-bold">({feeName})</span></span>
+        </div>
+
+        <div className="flex justify-between items-center text-[10px] text-slate-300">
+          <span className="font-bold">Destination Bank:</span>
+          <span className="font-black text-white uppercase tracking-wider">{bankName || 'CBE'}</span>
+        </div>
+
+        <div className="flex justify-between items-center text-[10px] text-slate-300">
+          <span className="font-bold">Account Number:</span>
+          <span className="font-mono font-black text-white">{accountNumber || 'N/A'}</span>
+        </div>
+
+        {accountHolderName && (
+          <div className="flex justify-between items-center text-[10px] text-slate-300">
+            <span className="font-bold">Account Holder:</span>
+            <span className="font-semibold text-white uppercase">{accountHolderName}</span>
+          </div>
+        )}
+
+        <div className="flex justify-between items-center text-[10.5px] pt-1.5 border-t border-dashed border-slate-805">
+          <span className="text-emerald-400 font-black uppercase tracking-wider">Final Approved Payout:</span>
+          <span className="font-mono font-black text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md">
+            {payoutAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
+          </span>
+        </div>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
+        className="mt-3 text-center"
+      >
+        <p className="text-[9px] text-slate-450 font-medium font-sans italic leading-tight">
+          Requests are cleared hourly and credited in 0 to 42 hours under secure consensus.
+        </p>
+      </motion.div>
+
+      {/* Action Button */}
+      <motion.button
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.7 }}
+        onClick={onClose}
+        className="mt-4 w-full py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-505 text-white font-black text-[9px] rounded-xl uppercase tracking-wider shadow-lg cursor-pointer active:scale-95 duration-150 transition-all font-sans"
+      >
+        Okay, Return to App
+      </motion.button>
+    </motion.div>
+  );
+}
+
 interface TransactionsModalsProps {
   type: 'deposit' | 'withdrawal';
   profile: Profile;
@@ -190,6 +361,7 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ text: string; isError: boolean } | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [showWithdrawCelebration, setShowWithdrawCelebration] = useState(false);
 
   // Deposit Form States
   const [cbeName, setCbeName] = useState('Leykun');
@@ -425,9 +597,8 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
       setLoading(false);
 
       if (res.ok) {
-        setMessage({ text: t.withdrawalSuccess, isError: false });
         onRefreshDashboard();
-        setTimeout(() => onClose(), 2500);
+        setShowWithdrawCelebration(true);
       } else {
         setMessage({ text: data.error || t.error, isError: true });
       }
@@ -447,6 +618,16 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
               amount={depositAmount} 
               txRef={transactionRef} 
               onClose={onClose} 
+            />
+          )}
+          {showWithdrawCelebration && (
+            <WithdrawalCelebrationOverlay
+              amount={withdrawalAmount}
+              walletType={balanceType}
+              bankName={bankName}
+              accountNumber={accountNumber}
+              accountHolderName={accountHolderName}
+              onClose={onClose}
             />
           )}
         </AnimatePresence>
