@@ -13,7 +13,7 @@ interface IdUploadGateProps {
 
 // Automatically downscales and compresses any selected image to a lightweight format
 // supporting extreme file sizes without failing or hitting browser payload/database limits.
-const compressImage = (file: File, maxDimension: number = 1200, quality: number = 0.85): Promise<string> => {
+const compressImage = (file: File, maxDimension: number = 640, quality: number = 0.65): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -130,7 +130,7 @@ export default function IdUploadGate({ userId, profile, onUploadSuccess, onLogou
       const ctx = canvas.getContext('2d');
       if (ctx) {
         ctx.drawImage(videoRef.current, 0, 0, 360, 360);
-        const dataUrl = canvas.toDataURL('image/jpeg');
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.65);
         setSelfieImage(dataUrl);
         stopCamera();
         triggerFacialScanAnimation();
@@ -179,7 +179,7 @@ export default function IdUploadGate({ userId, profile, onUploadSuccess, onLogou
     setUploading(true);
     setErrorText(null);
     try {
-      const compressedDataUrl = await compressImage(file, 1200, 0.85);
+      const compressedDataUrl = await compressImage(file, 640, 0.65);
       if (side === 'front') {
         setFrontImage(compressedDataUrl);
       } else {

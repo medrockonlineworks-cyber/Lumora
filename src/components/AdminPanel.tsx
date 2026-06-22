@@ -2683,6 +2683,43 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                       }`}>
                         {selectedUserForEdit.profile?.idVerificationStatus || 'unsubmitted'}
                       </span>
+
+                      {/* Submitted KYC ID Photos inside the Edit User details slide-over */}
+                      {(selectedUserForEdit.profile?.idCardFront || selectedUserForEdit.profile?.idCardBack || selectedUserForEdit.profile?.idSelfie) ? (
+                        <div className="mt-3 p-3 bg-slate-100 rounded-2xl border border-slate-200">
+                          <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest block mb-1.5">Submitted Identification Images</span>
+                          <div className="flex flex-wrap items-center gap-3">
+                            {[
+                              { key: 'idCardFront', label: 'ID Front' },
+                              { key: 'idCardBack', label: 'ID Back' },
+                              { key: 'idSelfie', label: 'Biometric Selfie' }
+                            ].map((item) => {
+                              const imgUrl = selectedUserForEdit.profile?.[item.key];
+                              if (!imgUrl) return null;
+                              return (
+                                <div key={item.key} className="flex flex-col items-center">
+                                  <span className="text-[7.5px] font-black text-slate-400 uppercase tracking-widest mb-1">{item.label}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => setViewerImage(imgUrl)}
+                                    className="w-12 h-12 rounded-xl border border-slate-250 bg-white overflow-hidden hover:scale-105 hover:border-[#0A3D91] transition-all shadow-4xs cursor-zoom-in shrink-0 relative group"
+                                    title={`Click to zoom ${item.label}`}
+                                  >
+                                    <img src={imgUrl} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                                    <div className="absolute inset-0 bg-[#0A3D91]/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                      <Eye className="w-3 h-3 text-white" />
+                                    </div>
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="mt-3 p-3 bg-slate-100/55 rounded-2xl border border-slate-200/40 text-center text-[9px] text-slate-400 italic">
+                          No ID images submitted yet
+                        </div>
+                      )}
                     </div>
 
                     {/* Administrative Password Override */}
