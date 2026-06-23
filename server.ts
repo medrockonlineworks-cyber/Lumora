@@ -2015,9 +2015,14 @@ async function startServer() {
 
     const trimmedRef = (bankReference || "").trim();
     if (trimmedRef) {
-      const duplicateRef = db.deposits.find(d => d.bankReference && d.bankReference.trim() === trimmedRef);
+      const normalizedNew = trimmedRef.toUpperCase().replace(/[^A-Z0-9]/g, "");
+      const duplicateRef = db.deposits.find(d => {
+        if (!d.bankReference) return false;
+        const normalizedExisting = d.bankReference.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+        return normalizedExisting === normalizedNew;
+      });
       if (duplicateRef) {
-        return res.status(400).json({ error: "This CBE transaction reference code has already been registered or used. Each unique reference number can only be submitted once." });
+        return res.status(400).json({ error: "This transaction code or FT is used before. please use correct ft code or you will be banned" });
       }
     }
 
