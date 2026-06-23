@@ -148,9 +148,9 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
     }
 
     // Phone validation
-    const phoneRegex = /^(09|07|\+251)[0-9]{8}$/;
+    const phoneRegex = /^(09|07|\+2519|\+2517|2519|2517|9|7)[0-9]{8}$/;
     if (!phoneRegex.test(regPhone.trim())) {
-      showToast("Invalid phone. Must start with 09, 07, or +251, with 9 or 10 digits.", "error");
+      showToast("Invalid phone number format. Must start with 09, 07, or +251.", "error");
       return;
     }
 

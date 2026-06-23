@@ -15,7 +15,8 @@ import {
   doc, 
   setDoc, 
   deleteDoc, 
-  onSnapshot 
+  onSnapshot,
+  terminate
 } from "firebase/firestore";
 import firebaseConfig from "../../firebase-applet-config.json";
 
@@ -365,6 +366,21 @@ function saveLastSyncedClient() {
   }
 }
 
+function normalizeEthiopianPhone(phone: string | number): string {
+  if (phone === null || phone === undefined) return "";
+  let clean = phone.toString().trim().replace(/[^\d+]/g, '');
+  
+  if (clean.startsWith("+251")) {
+    clean = "0" + clean.slice(4);
+  } else if (clean.startsWith("251") && clean.length === 12) {
+    clean = "0" + clean.slice(3);
+  } else if ((clean.startsWith("9") || clean.startsWith("7")) && clean.length === 9) {
+    clean = "0" + clean;
+  }
+  
+  return clean.replace(/\D/g, '');
+}
+
 let firestoreClientDb: any = null;
 let firestoreClientDisabled = typeof window !== "undefined" && localStorage.getItem("lumora_firestore_client_disabled") === "true";
 let activeClientUnsubscribers: (() => void)[] = [];
@@ -383,11 +399,20 @@ function unsubscribeAllClientListeners() {
 
 function checkQuotaExceeded(err: any): boolean {
   if (!err) return false;
-  const msg = String(err.message || err || "").toLowerCase();
+  const msg = String(err.message || err.code || err || "").toLowerCase();
   const code = String(err.code || "").toLowerCase();
-  if (msg.includes("quota") || msg.includes("resource-exhausted") || msg.includes("limit") || code.includes("resource-exhausted")) {
+  if (
+    msg.includes("quota") || 
+    msg.includes("resource-exhausted") || 
+    msg.includes("limit") || 
+    code.includes("resource-exhausted") ||
+    code.includes("quota") ||
+    code === "8" ||
+    code.includes("exhausted")
+  ) {
     if (!firestoreClientDisabled) {
       firestoreClientDisabled = true;
+      const dbToTerminate = firestoreClientDb;
       firestoreClientDb = null;
       if (typeof window !== "undefined") {
         try {
@@ -395,9 +420,21 @@ function checkQuotaExceeded(err: any): boolean {
         } catch (e) {}
       }
       console.warn("[Client Firestore] Quota limit exceeded detected. Gracefully transitioning to full offline/local storage resiliency mode.");
+      
+      // Unsubscribe all active real-time listeners first
+      unsubscribeAllClientListeners();
+
+      // Terminate the active firestore connection to kill internal SDK backoffs and retry cycles
+      if (dbToTerminate) {
+        try {
+          terminate(dbToTerminate)
+            .then(() => console.log("[Client Firestore] Successfully terminated firestore client database to halt backoff loops."))
+            .catch(tErr => console.warn("[Client Firestore] Error trying to terminate db instance:", tErr));
+        } catch (tEx) {
+          console.warn("[Client Firestore] Immediate exception during terminate call:", tEx);
+        }
+      }
     }
-    // Always call unsubscribeAllClientListeners to clean up all registered listeners
-    unsubscribeAllClientListeners();
     return true;
   }
   return false;
@@ -1110,9 +1147,14 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
         return respondJSON(400, { error: "All fields including email are required" });
       }
 
-      const userExists = activeDb.users.some(u => u.phone === phone);
+      const normalizedPhone = normalizeEthiopianPhone(phone);
+      if (!normalizedPhone || normalizedPhone.length < 9 || normalizedPhone.length > 10) {
+        return respondJSON(400, { error: "Invalid phone number. Must start with 09, 07, or +251" });
+      }
+
+      const userExists = activeDb.users.some(u => normalizeEthiopianPhone(u.phone) === normalizedPhone);
       if (userExists) {
-        console.warn("[Firebase registration conflict] Phone number already registered:", phone);
+        console.warn("[Firebase registration conflict] Phone number already registered:", normalizedPhone);
         return respondJSON(409, { error: "This phone number is already registered" });
       }
 
@@ -1124,10 +1166,10 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       const newUser: User = {
         id: userId,
         fullName,
-        phone,
+        phone: normalizedPhone,
         email,
         password,
-        isAdmin: phone === "0926193920" ? true : false,
+        isAdmin: normalizedPhone === "0926193920" ? true : false,
         status: "active",
         registrationDate: new Date().toISOString(),
         referralCode: systemReferral,
@@ -1137,7 +1179,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       const newProfile: Profile = {
         userId,
         fullName,
-        phone,
+        phone: normalizedPhone,
         email,
         vipLevel: 0,
         walletBalance: 0,
@@ -1159,7 +1201,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       };
 
       if (activeDb.deletedUsers) {
-        activeDb.deletedUsers = activeDb.deletedUsers.filter(p => p !== phone);
+        activeDb.deletedUsers = activeDb.deletedUsers.filter(p => normalizeEthiopianPhone(p) !== normalizedPhone);
       }
 
       activeDb.users.push(newUser);
@@ -1173,7 +1215,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
           referrerId: referrer.id,
           referredId: userId,
           referredName: fullName,
-          referredPhone: phone,
+          referredPhone: normalizedPhone,
           referredVipLevel: 0,
           registrationDate: new Date().toISOString(),
           rewardEarned: 0
@@ -1208,27 +1250,32 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       const activeDb = loadLocalDB();
       const { phone, password } = body;
       
-      const user = activeDb.users.find(u => u.phone === phone);
-      if (activeDb.deletedUsers && activeDb.deletedUsers.includes((phone || "").toString().trim())) {
-        console.warn("[Firebase login failure] Lookup blocked: phone number has been permanently deleted:", phone);
+      const normalizedPhone = normalizeEthiopianPhone(phone);
+      if (!normalizedPhone) {
+        return respondJSON(400, { error: "Invalid telephone number format." });
+      }
+
+      const user = activeDb.users.find(u => normalizeEthiopianPhone(u.phone) === normalizedPhone);
+      if (activeDb.deletedUsers && activeDb.deletedUsers.some(p => normalizeEthiopianPhone(p) === normalizedPhone)) {
+        console.warn("[Firebase login failure] Lookup blocked: phone number has been permanently deleted:", normalizedPhone);
         return respondJSON(401, { error: "This account has been permanently deleted. Please register a new account." });
       }
       if (!user) {
-        console.warn("[Firebase login failure] Lookup failed: no user document found in Firestore 'users' collection with number:", phone);
+        console.warn("[Firebase login failure] Lookup failed: no user document found in Firestore 'users' collection with number:", normalizedPhone);
         return respondJSON(401, { error: "Invalid telephone number or password credentials." });
       }
       
       if (user.password !== password) {
-        console.warn("[Firebase login failure] Invalid credential attempt: password does not match for phone:", phone);
+        console.warn("[Firebase login failure] Invalid credential attempt: password does not match for phone:", normalizedPhone);
         return respondJSON(401, { error: "Invalid telephone number or password credentials." });
       }
 
       if (user.status === "suspended") {
-        console.warn("[Firebase login blocked] Suspended login attempted for phone:", phone);
+        console.warn("[Firebase login blocked] Suspended login attempted for phone:", normalizedPhone);
         return respondJSON(430, { error: "This profile has been suspended indefinitely for institutional compliance auditing. Please connect with Lumora Technical Desk." });
       }
 
-      const profile = activeDb.profiles.find(p => p.userId === user.id || p.phone === phone);
+      const profile = activeDb.profiles.find(p => p.userId === user.id || normalizeEthiopianPhone(p.phone) === normalizedPhone);
       console.log(`[Firebase login success] Authenticated through Firebase for user: ${user.id} (${user.fullName}).`);
       return respondJSON(200, { user, profile });
     } catch (err: any) {
@@ -1966,11 +2013,12 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       }
 
       const cleanPhone = phone.toString().trim();
-      const phoneRegex = /^(09|07|\+251)[0-9]{8}$/;
+      const phoneRegex = /^(09|07|\+2519|\+2517|2519|2517|9|7)[0-9]{8}$/;
       if (!phoneRegex.test(cleanPhone)) {
-        return respondJSON(400, { error: "Invalid phone number. Must start with 09, 07, or +251, with exactly 9 or 10 digits." });
+        return respondJSON(400, { error: "Invalid phone number formatting. Must start with 09, 07, or +251, containing exactly 9 or 10 digits." });
       }
 
+      const normalizedPhone = normalizeEthiopianPhone(cleanPhone);
       const cleanEmail = email.toString().trim();
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(cleanEmail)) {
@@ -1982,7 +2030,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
         return respondJSON(400, { error: "Password must be between 6 and 32 characters in length." });
       }
 
-      const userExists = db.users.some(u => u.phone === cleanPhone);
+      const userExists = db.users.some(u => normalizeEthiopianPhone(u.phone) === normalizedPhone);
       if (userExists) {
         return respondJSON(409, { error: "This phone number is already registered." });
       }
@@ -1999,7 +2047,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       const newUser: User = {
         id: userId,
         fullName: cleanName,
-        phone: cleanPhone,
+        phone: normalizedPhone,
         email: cleanEmail,
         password: cleanPass,
         isAdmin: !!makeAdmin,
@@ -2017,7 +2065,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       const newProfile: Profile = {
         userId,
         fullName: cleanName,
-        phone: cleanPhone,
+        phone: normalizedPhone,
         email: cleanEmail,
         vipLevel: vipLvl,
         walletBalance: walletAmt,

@@ -11,6 +11,21 @@ import {
 const app = express();
 export { app };
 
+function normalizeEthiopianPhone(phone: any): string {
+  if (phone === null || phone === undefined) return "";
+  let clean = phone.toString().trim().replace(/[^\d+]/g, '');
+  
+  if (clean.startsWith("+251")) {
+    clean = "0" + clean.slice(4);
+  } else if (clean.startsWith("251") && clean.length === 12) {
+    clean = "0" + clean.slice(3);
+  } else if ((clean.startsWith("9") || clean.startsWith("7")) && clean.length === 9) {
+    clean = "0" + clean;
+  }
+  
+  return clean.replace(/\D/g, '');
+}
+
 // Initialize Firebase Admin SDK
 import { initializeApp, getApps, App, cert } from "firebase-admin/app";
 import { getFirestore, Firestore } from "firebase-admin/firestore";
@@ -1698,11 +1713,13 @@ async function startServer() {
       }
 
       const cleanPhone = phone.toString().trim();
-      const phoneRegex = /^(09|07|\+251)[0-9]{8}$/;
+      const phoneRegex = /^(09|07|\+2519|\+2517|2519|2517|9|7)[0-9]{8}$/;
       if (!phoneRegex.test(cleanPhone)) {
         console.warn("[Firebase Backend Registration] Invalid phone formatting format input:", cleanPhone);
         return res.status(400).json({ error: "Invalid phone number formatting. Must start with 09, 07, or +251, containing exactly 9 or 10 digits." });
       }
+
+      const normalizedPhone = normalizeEthiopianPhone(cleanPhone);
 
       const cleanEmail = email.toString().trim();
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -1716,9 +1733,9 @@ async function startServer() {
       }
 
       // Direct check if user exists
-      const userExists = db.users.some(u => u.phone === cleanPhone);
+      const userExists = db.users.some(u => normalizeEthiopianPhone(u.phone) === normalizedPhone);
       if (userExists) {
-        console.warn("[Firebase Backend Registration Conflict] User phone registered previously:", cleanPhone);
+        console.warn("[Firebase Backend Registration Conflict] User phone registered previously:", normalizedPhone);
         return res.status(409).json({ error: "This phone number is already registered" });
       }
 
@@ -1734,10 +1751,10 @@ async function startServer() {
       const newUser: User = {
         id: userId,
         fullName,
-        phone,
+        phone: normalizedPhone,
         email,
         password, // Save registration password
-        isAdmin: phone === "0926193920" ? true : false,
+        isAdmin: normalizedPhone === "0926193920" ? true : false,
         status: "active",
         registrationDate: new Date().toISOString(),
         referralCode: systemReferral,
@@ -1747,7 +1764,7 @@ async function startServer() {
       const newProfile: Profile = {
         userId,
         fullName,
-        phone,
+        phone: normalizedPhone,
         email,
         vipLevel: 0,
         walletBalance: 0, // initial
@@ -1769,7 +1786,7 @@ async function startServer() {
       };
 
       if (db.deletedUsers) {
-        db.deletedUsers = db.deletedUsers.filter(p => p !== phone);
+        db.deletedUsers = db.deletedUsers.filter(p => normalizeEthiopianPhone(p) !== normalizedPhone);
       }
 
       db.users.push(newUser);
@@ -1787,7 +1804,7 @@ async function startServer() {
           referrerId: referrer.id,
           referredId: userId,
           referredName: fullName,
-          referredPhone: phone,
+          referredPhone: normalizedPhone,
           referredVipLevel: 0,
           registrationDate: new Date().toISOString(),
           rewardEarned: 0
@@ -1925,20 +1942,25 @@ async function startServer() {
       }
 
       const cleanPhone = phone.toString().trim();
-      if (db.deletedUsers && db.deletedUsers.includes(cleanPhone)) {
-        console.warn("[Firebase Backend Login Failure] Lookup blocked: phone number has been permanently deleted:", cleanPhone);
+      const normalizedPhone = normalizeEthiopianPhone(cleanPhone);
+      if (!normalizedPhone) {
+        return res.status(400).json({ error: "Invalid phone number format" });
+      }
+
+      if (db.deletedUsers && db.deletedUsers.some(p => normalizeEthiopianPhone(p) === normalizedPhone)) {
+        console.warn("[Firebase Backend Login Failure] Lookup blocked: phone number has been permanently deleted:", normalizedPhone);
         return res.status(401).json({ error: "This account has been permanently deleted. Please register a new account." });
       }
-      const user = db.users.find(u => u.phone === cleanPhone);
-      const profile = user ? db.profiles.find(p => p.userId === user.id || p.phone === phone) : undefined;
+      const user = db.users.find(u => normalizeEthiopianPhone(u.phone) === normalizedPhone);
+      const profile = user ? db.profiles.find(p => p.userId === user.id || normalizeEthiopianPhone(p.phone) === normalizedPhone) : undefined;
 
       if (!user) {
-        console.warn("[Firebase Backend Login Failure] Lookup failed: no user document matches in Firestore under phone:", cleanPhone);
+        console.warn("[Firebase Backend Login Failure] Lookup failed: no user document matches in Firestore under phone:", normalizedPhone);
         return res.status(401).json({ error: "Invalid phone number or password" });
       }
 
       if (user.password !== password) {
-        console.warn("[Firebase Backend Login Failure] Incorrect credential entry for telephone:", cleanPhone);
+        console.warn("[Firebase Backend Login Failure] Incorrect credential entry for telephone:", normalizedPhone);
         return res.status(401).json({ error: "Invalid phone number or password" });
       }
 
@@ -1948,7 +1970,7 @@ async function startServer() {
       }
 
       if (user.status === "suspended") {
-        console.warn("[Firebase Backend Login Blocked] Phone number is marked as suspended:", cleanPhone);
+        console.warn("[Firebase Backend Login Blocked] Phone number is marked as suspended:", normalizedPhone);
         return res.status(403).json({ error: "This profile has been suspended. Please contact customer care code CBE." });
       }
 
@@ -1967,7 +1989,8 @@ async function startServer() {
       return res.status(400).json({ error: "Phone number and password are required" });
     }
 
-    const user = db.users.find(u => u.phone === phone);
+    const normalizedPhone = normalizeEthiopianPhone(phone);
+    const user = db.users.find(u => normalizeEthiopianPhone(u.phone) === normalizedPhone);
     if (!user) {
       return res.status(404).json({ error: "No profile found with this phone number" });
     }
@@ -3130,11 +3153,12 @@ Instruct the user precisely on which page, component, or element to use to accom
       }
 
       const cleanPhone = phone.toString().trim();
-      const phoneRegex = /^(09|07|\+251)[0-9]{8}$/;
+      const phoneRegex = /^(09|07|\+2519|\+2517|2519|2517|9|7)[0-9]{8}$/;
       if (!phoneRegex.test(cleanPhone)) {
-        return res.status(400).json({ error: "Invalid phone number. Must start with 09, 07, or +251, with exactly 9 or 10 digits." });
+        return res.status(400).json({ error: "Invalid phone number formatting. Must start with 09, 07, or +251, containing exactly 9 or 10 digits." });
       }
 
+      const normalizedPhone = normalizeEthiopianPhone(cleanPhone);
       const cleanEmail = email.toString().trim();
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(cleanEmail)) {
@@ -3146,7 +3170,7 @@ Instruct the user precisely on which page, component, or element to use to accom
         return res.status(400).json({ error: "Password must be between 6 and 32 characters in length." });
       }
 
-      const userExists = db.users.some(u => u.phone === cleanPhone);
+      const userExists = db.users.some(u => normalizeEthiopianPhone(u.phone) === normalizedPhone);
       if (userExists) {
         return res.status(409).json({ error: "This phone number is already registered." });
       }
@@ -3163,7 +3187,7 @@ Instruct the user precisely on which page, component, or element to use to accom
       const newUser: any = {
         id: userId,
         fullName: cleanName,
-        phone: cleanPhone,
+        phone: normalizedPhone,
         email: cleanEmail,
         password: cleanPass,
         isAdmin: !!makeAdmin,
@@ -3181,7 +3205,7 @@ Instruct the user precisely on which page, component, or element to use to accom
       const newProfile: any = {
         userId,
         fullName: cleanName,
-        phone: cleanPhone,
+        phone: normalizedPhone,
         email: cleanEmail,
         vipLevel: vipLvl,
         walletBalance: walletAmt,
