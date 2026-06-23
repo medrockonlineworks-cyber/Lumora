@@ -2089,6 +2089,22 @@ async function startServer() {
       return res.status(400).json({ error: "You cannot withdraw because you have not activated or invested in any levels. Please activate or invest in a level to proceed." });
     }
 
+    // Check if user has requested a withdrawal in the last 24 hours
+    const userWithdrawals = db.withdrawals || [];
+    const lastWithdrawal = userWithdrawals
+      .filter(w => w.userId === userId)
+      .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())[0];
+
+    if (lastWithdrawal) {
+      const lastTime = new Date(lastWithdrawal.submittedAt).getTime();
+      const nowTime = new Date().getTime();
+      const hoursSinceLast = (nowTime - lastTime) / (1000 * 60 * 60);
+      if (hoursSinceLast < 24) {
+        const hoursRemaining = Math.ceil(24 - hoursSinceLast);
+        return res.status(400).json({ error: `Withdrawals are limited to once a day. Please wait ${hoursRemaining} hours before requesting another withdrawal.` });
+      }
+    }
+
     // Default to 'income' if they have enough balance, else 'deposit'
     const chosenType: 'deposit' | 'income' = (balanceType === 'deposit' || balanceType === 'income') 
       ? balanceType 

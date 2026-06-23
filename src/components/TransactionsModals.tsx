@@ -196,6 +196,13 @@ function WithdrawalCelebrationOverlay({ amount, walletType, bankName, accountNum
   const feeAmount = numericAmount * feeRate;
   const payoutAmount = numericAmount - feeAmount;
 
+  const { dateStr, timeStr } = React.useMemo(() => {
+    return {
+      dateStr: new Date().toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }),
+      timeStr: new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    };
+  }, []);
+
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -300,6 +307,11 @@ function WithdrawalCelebrationOverlay({ amount, walletType, bankName, accountNum
       if (accHolder) {
         fields.push({ label: 'Registered Account Holder:', value: accHolder.toUpperCase() });
       }
+
+      const currentDateStr = dateStr;
+      const currentTimeStr = timeStr;
+      fields.push({ label: 'Transaction Date:', value: currentDateStr });
+      fields.push({ label: 'Order Timestamp:', value: currentTimeStr });
 
       let y = 290;
       fields.forEach(f => {
@@ -583,6 +595,16 @@ function WithdrawalCelebrationOverlay({ amount, walletType, bankName, accountNum
                 <span className="font-semibold text-white uppercase">{accountHolderName}</span>
               </div>
             )}
+
+            <div className="flex justify-between items-center text-[10px] text-slate-300">
+              <span className="font-bold">Transaction Date:</span>
+              <span className="font-mono font-black text-white">{dateStr}</span>
+            </div>
+
+            <div className="flex justify-between items-center text-[10px] text-slate-300">
+              <span className="font-bold">Order Timestamp:</span>
+              <span className="font-mono font-black text-white">{timeStr}</span>
+            </div>
 
             <div className="flex justify-between items-center text-[10.5px] pt-1.5 border-t border-dashed border-slate-805">
               <span className="text-emerald-400 font-black uppercase tracking-wider">Final Approved Payout:</span>

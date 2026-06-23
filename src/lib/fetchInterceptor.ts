@@ -1436,6 +1436,22 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       return respondJSON(400, { error: "You cannot withdraw because you have not activated or invested in any levels. Please activate or invest in a level to proceed." });
     }
 
+    // Check if user has requested a withdrawal in the last 24 hours
+    const userWithdrawals = db.withdrawals || [];
+    const lastWithdrawal = userWithdrawals
+      .filter(w => w.userId === userId)
+      .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())[0];
+
+    if (lastWithdrawal) {
+      const lastTime = new Date(lastWithdrawal.submittedAt).getTime();
+      const nowTime = new Date().getTime();
+      const hoursSinceLast = (nowTime - lastTime) / (1000 * 60 * 60);
+      if (hoursSinceLast < 24) {
+        const hoursRemaining = Math.ceil(24 - hoursSinceLast);
+        return respondJSON(400, { error: `Withdrawals are limited to once a day. Please wait ${hoursRemaining} hours before requesting another withdrawal.` });
+      }
+    }
+
     if (profile.transactionPin && profile.transactionPin !== finalPin) {
       return respondJSON(400, { error: "Invalid 4-digit transaction security PIN" });
     }
