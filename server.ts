@@ -2080,6 +2080,15 @@ async function startServer() {
       return res.status(404).json({ error: "User profile not found" });
     }
 
+    // Check if user has activated or invested in any levels
+    const userInvestments = db.investments ? db.investments.filter(i => i.userId === userId) : [];
+    const hasInvestments = userInvestments.length > 0;
+    const hasVipLevel = (profile.vipLevel && profile.vipLevel > 0);
+    const hasTotalInvestments = (profile.totalInvestments && profile.totalInvestments > 0);
+    if (!hasInvestments && !hasVipLevel && !hasTotalInvestments) {
+      return res.status(400).json({ error: "You cannot withdraw because you have not activated or invested in any levels. Please activate or invest in a level to proceed." });
+    }
+
     // Default to 'income' if they have enough balance, else 'deposit'
     const chosenType: 'deposit' | 'income' = (balanceType === 'deposit' || balanceType === 'income') 
       ? balanceType 

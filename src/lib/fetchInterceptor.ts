@@ -1427,6 +1427,15 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     const profile = db.profiles.find(p => p.userId === userId);
     if (!profile) return respondJSON(404, { error: "Profile not found" });
 
+    // Check if user has activated or invested in any levels
+    const userInvestments = db.investments ? db.investments.filter(i => i.userId === userId) : [];
+    const hasInvestments = userInvestments.length > 0;
+    const hasVipLevel = (profile.vipLevel && profile.vipLevel > 0);
+    const hasTotalInvestments = (profile.totalInvestments && profile.totalInvestments > 0);
+    if (!hasInvestments && !hasVipLevel && !hasTotalInvestments) {
+      return respondJSON(400, { error: "You cannot withdraw because you have not activated or invested in any levels. Please activate or invest in a level to proceed." });
+    }
+
     if (profile.transactionPin && profile.transactionPin !== finalPin) {
       return respondJSON(400, { error: "Invalid 4-digit transaction security PIN" });
     }
