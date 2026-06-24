@@ -12,6 +12,7 @@ interface CelebrationOverlayProps {
   amount: string;
   txRef: string;
   onClose: () => void;
+  screenshot?: string | null;
 }
 
 const VIP_PRESETS = [
@@ -25,7 +26,7 @@ const VIP_PRESETS = [
   { level: 8, amount: 500000, name: "VIP 7" },
 ];
 
-function DepositCelebrationOverlay({ amount, txRef, onClose }: CelebrationOverlayProps) {
+function DepositCelebrationOverlay({ amount, txRef, onClose, screenshot }: CelebrationOverlayProps) {
   // Confetti particles coordinates
   const particles = Array.from({ length: 35 }).map((_, i) => ({
     id: i,
@@ -50,7 +51,7 @@ function DepositCelebrationOverlay({ amount, txRef, onClose }: CelebrationOverla
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="absolute inset-0 z-55 bg-[#070d19]/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center select-none"
+      className="fixed inset-0 z-60 bg-[#070d19]/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center select-none"
     >
       {/* Background radial soft light gradient */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl -z-10 animate-pulse" />
@@ -147,6 +148,24 @@ function DepositCelebrationOverlay({ amount, txRef, onClose }: CelebrationOverla
           Your CBE deposit screenshot has been uploaded. Valuation sum: <strong className="text-amber-350 font-mono text-xs">{(parseFloat(amount) || 0).toLocaleString()} ETB</strong>.
         </p>
       </motion.div>
+
+      {/* Uploaded receipt feedback preview */}
+      {screenshot && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.4, duration: 0.4 }}
+          className="my-3 p-1.5 bg-slate-800/40 border border-slate-700/60 rounded-2xl max-w-[160px] mx-auto overflow-hidden relative shadow-lg"
+        >
+          <div className="text-[7.5px] font-bold text-slate-400 mb-1 tracking-wider uppercase">Submitted Receipt</div>
+          <img 
+            src={screenshot} 
+            alt="Submitted CBE receipt" 
+            className="w-full h-28 object-cover rounded-xl border border-slate-700"
+            referrerPolicy="no-referrer"
+          />
+        </motion.div>
+      )}
 
       {/* Audit verification tag */}
       <motion.div
@@ -436,7 +455,7 @@ function WithdrawalCelebrationOverlay({ amount, walletType, bankName, accountNum
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="absolute inset-0 z-55 bg-[#070d19]/98 backdrop-blur-md flex flex-col items-center justify-start overflow-y-auto p-5 text-center select-none"
+      className="fixed inset-0 z-60 bg-[#070d19]/98 backdrop-blur-md flex flex-col items-center justify-start overflow-y-auto p-5 text-center select-none"
     >
       {/* Background radial soft light gradient */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl -z-10 animate-pulse" />
@@ -834,7 +853,6 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
 
     setLoading(true);
     setMessage(null);
-    setShowCelebration(true);
 
     try {
       const res = await fetch('/api/deposits/submit', {
@@ -853,11 +871,13 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
 
       if (res.ok) {
         onRefreshDashboard();
+        setShowCelebration(true);
       } else {
-        console.warn("Deposit background error:", data.error);
+        setMessage({ text: data.error || (t && t.error) || 'Deposit failed. Please try again.', isError: true });
       }
     } catch (err) {
       setLoading(false);
+      setMessage({ text: 'Network error occurred. Please try again.', isError: true });
       console.warn("Deposit background network error:", err);
     }
   };
@@ -908,7 +928,6 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
 
     setLoading(true);
     setMessage(null);
-    setShowWithdrawCelebration(true);
 
     try {
       const res = await fetch('/api/withdrawals/submit', {
@@ -930,11 +949,13 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
 
       if (res.ok) {
         onRefreshDashboard();
+        setShowWithdrawCelebration(true);
       } else {
-        console.warn("Withdraw background error:", data.error);
+        setMessage({ text: data.error || (t && t.error) || 'Withdrawal failed. Please check details and try again.', isError: true });
       }
     } catch (err) {
       setLoading(false);
+      setMessage({ text: 'Network error occurred. Please try again.', isError: true });
       console.warn("Withdraw background network error:", err);
     }
   };
@@ -948,6 +969,7 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
             <DepositCelebrationOverlay 
               amount={depositAmount} 
               txRef={transactionRef} 
+              screenshot={screenshotBase64}
               onClose={onClose} 
             />
           )}

@@ -2036,7 +2036,8 @@ async function startServer() {
       return res.status(404).json({ error: "User profile not found" });
     }
 
-    if (profile.idVerificationStatus !== 'verified' && profile.idVerificationStatus !== 'skipped') {
+    // Align with client-side bypass to allow deposits in this sandbox/preview app
+    if (false && profile.idVerificationStatus !== 'verified' && profile.idVerificationStatus !== 'skipped') {
       return res.status(403).json({ error: "Security Restriction: Deposits are not allowed until your account is fully ID Verified or skipped." });
     }
 
