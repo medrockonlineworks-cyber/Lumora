@@ -324,7 +324,6 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
     return initial;
   });
 
-  const [isEditingAlloc, setIsEditingAlloc] = useState<boolean>(false);
   const [claimLoading, setClaimLoading] = useState<boolean>(false);
   const [claimStatus, setClaimStatus] = useState<{ text: string; isError: boolean } | null>(null);
   const [showCelebration, setShowCelebration] = useState<boolean>(false);
@@ -337,21 +336,19 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
     if (profile?.userId && plansPageProjectIds.length > 0) {
       setActiveProjects(plansPageProjectIds);
       
-      setAllocations(prev => {
-        const sum = plansPageProjectIds.reduce((acc, id) => acc + (prev[id] || 0), 0);
-        if (sum === 100) return prev;
-
-        const updated: Record<string, number> = { ...prev };
-        const share = Math.floor(100 / plansPageProjectIds.length);
-        plansPageProjectIds.forEach((id, idx) => {
-          if (idx === plansPageProjectIds.length - 1) {
-            updated[id] = 100 - (share * (plansPageProjectIds.length - 1));
-          } else {
-            updated[id] = share;
-          }
-        });
-        return updated;
+      const updated: Record<string, number> = {};
+      const share = Math.floor(100 / plansPageProjectIds.length);
+      plansPageProjectIds.forEach((id, idx) => {
+        if (idx === plansPageProjectIds.length - 1) {
+          updated[id] = 100 - (share * (plansPageProjectIds.length - 1));
+        } else {
+          updated[id] = share;
+        }
       });
+      setAllocations(updated);
+    } else {
+      setActiveProjects([]);
+      setAllocations({});
     }
   }, [profile?.userId, plansPageProjectIds]);
 
@@ -746,28 +743,9 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2 pt-1.5">
-              <button 
-                onClick={handleAutoDistribute}
-                className="text-[10px] font-mono font-black uppercase bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-              >
-                Distribute Evenly
-              </button>
-              {totalAllocationSum !== 100 && (
-                <button 
-                  onClick={handleRebalance}
-                  className="text-[10px] font-mono font-black uppercase bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl text-amber-700 hover:bg-amber-100 transition-all flex items-center space-x-1 cursor-pointer"
-                >
-                  <RefreshCw className="w-3 h-3 text-amber-600 animate-spin-slow shrink-0" />
-                  <span>Auto Rebalance (100%)</span>
-                </button>
-              )}
-              <button 
-                onClick={() => setIsEditingAlloc(!isEditingAlloc)}
-                className={`text-[10px] font-mono font-black uppercase px-3 py-1.5 rounded-xl transition-all cursor-pointer ${isEditingAlloc ? 'bg-[#0A3D91] text-white border border-[#0A3D91]' : 'bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100'}`}
-              >
-                {isEditingAlloc ? 'Lock Allocation' : 'Customize Sliders'}
-              </button>
+            <div className="pt-2 text-slate-500 font-medium leading-relaxed bg-slate-50 border border-slate-150 p-3.5 rounded-[16px] text-[10.5px]">
+              <span className="font-extrabold text-[#0A3D91] uppercase tracking-wide block mb-1">⚙️ AUTOMATIC PORTFOLIO SYSTEM ACTIVED</span>
+              Your daily level income is automatically split and distributed 100% evenly among all active investment plans under the Lumora Asset Allocation model. No manual rebalancing is required.
             </div>
           </div>
 
@@ -788,82 +766,24 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
                   cx="32"
                   cy="32"
                   r="26"
-                  stroke={totalAllocationSum === 100 ? "#0A3D91" : "#f59e0b"}
+                  stroke="#0A3D91"
                   strokeWidth="3.5"
                   fill="transparent"
                   strokeDasharray={2 * Math.PI * 26}
-                  initial={{ strokeDashoffset: 2 * Math.PI * 26 }}
-                  animate={{ strokeDashoffset: (2 * Math.PI * 26) * (1 - (totalAllocationSum === 100 ? 100 : totalAllocationSum) / 100) }}
+                  initial={{ strokeDashoffset: 0 }}
+                  animate={{ strokeDashoffset: 0 }}
                   transition={{ duration: 0.8, ease: "easeOut" }}
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-[11px] font-mono font-black text-slate-800">{totalAllocationSum}%</span>
+                <span className="text-[11px] font-mono font-black text-slate-800">100%</span>
               </div>
             </div>
             <p className="text-[8.5px] font-bold text-[#0A3D91] max-w-[120px] leading-tight mt-1">
-              {totalAllocationSum === 100 
-                ? "Income fully distributed across selected projects"
-                : "Adjust allocations to reach 100% distribution"}
+              Income fully distributed across selected projects
             </p>
           </div>
         </div>
-
-        {/* Interactive Checkbox / Selector list */}
-        {isEditingAlloc && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="pt-4 border-t border-slate-100 space-y-3"
-          >
-            {portfolioLockInfo.isLocked && (
-              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[10px] text-amber-900 font-extrabold flex items-center space-x-2 shadow-2xs">
-                <Lock className="w-3.5 h-3.5 text-amber-600 animate-pulse shrink-0" />
-                <span>Selected portfolio projects are locked until {portfolioLockInfo.lockUntilStr}. You can still customize allocations below.</span>
-              </div>
-            )}
-            <p className="text-[9.5px] text-slate-500 uppercase tracking-wider font-bold font-mono">Select Portfolio Projects & Set Allocation weights:</p>
-            <div className="grid grid-cols-1 gap-2.5">
-              {DEFAULT_PROJECTS.filter(p => plansPageProjectIds.includes(p.id)).map(p => {
-                const isSelected = activeProjects.includes(p.id);
-                return (
-                  <div key={p.id} className={`p-3.5 rounded-2xl border transition-all ${isSelected ? 'bg-slate-50/80 border-amber-300' : 'bg-slate-50/20 border-slate-100 opacity-60'}`}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3 cursor-pointer" onClick={() => toggleProject(p.id)}>
-                        <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${isSelected ? 'bg-[#0A3D91] border-[#0A3D91] text-white' : 'border-slate-300'} ${portfolioLockInfo.isLocked ? 'opacity-85' : ''}`}>
-                          {isSelected ? (
-                            portfolioLockInfo.isLocked ? <Lock className="w-2.5 h-2.5" /> : <Check className="w-3.5 h-3.5 stroke-[3]" />
-                          ) : (
-                            portfolioLockInfo.isLocked ? <Lock className="w-2.5 h-2.5 text-slate-300" /> : null
-                          )}
-                        </div>
-                        <span className="text-xs font-black text-slate-800">{p.icon} {p.name}</span>
-                      </div>
-                      
-                      {isSelected && (
-                        <span className="text-xs font-mono font-black text-[#0A3D91]">{allocations[p.id] || 0}%</span>
-                      )}
-                    </div>
-
-                    {isSelected && (
-                      <div className="mt-3 flex items-center space-x-3">
-                        <input
-                          type="range"
-                          min="0"
-                          max="100"
-                          value={allocations[p.id] || 0}
-                          onChange={(e) => handleAllocationSlider(p.id, Number(e.target.value))}
-                          className="w-full accent-[#0A3D91] bg-slate-200 h-1 rounded-lg"
-                        />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </motion.div>
-        )}
       </div>
 
       {/* ACTIVE INVESTMENT PROJECTS SECTION */}
