@@ -78,6 +78,70 @@ const getLevelName = (vipLevel: number) => {
   return `VIP Level ${vipLevel - 1}`;
 };
 
+interface MarketSentiment {
+  id: string;
+  ticker: string;
+  name: string;
+  sentiment: 'Bullish' | 'Bearish';
+  score: number;
+  change: string;
+  reason: string;
+  influence: string;
+}
+
+const MARKET_SENTIMENTS: MarketSentiment[] = [
+  { 
+    id: 'crypto',
+    ticker: 'BTC/USD', 
+    name: 'Cryptocurrency Market', 
+    sentiment: 'Bullish', 
+    score: 87, 
+    change: '+2.41%', 
+    reason: 'Strong institutional inflows, rising spot ETF demand, and constructive macroeconomic indicators are driving robust crypto asset price momentum.',
+    influence: 'Directly powers high yield returns on your Cryptocurrency allocations.'
+  },
+  { 
+    id: 'forex',
+    ticker: 'EUR/USD', 
+    name: 'Forex Trading', 
+    sentiment: 'Bearish', 
+    score: 35, 
+    change: '-0.34%', 
+    reason: 'Dovish statements from global central bank officials are putting minor downward pressure on major currency pairs, raising volatility.',
+    influence: 'Triggers minor hedging adjustments on your Forex Trading allocations.'
+  },
+  { 
+    id: 'stock',
+    ticker: 'SPX 500', 
+    name: 'Global Stock Indexes', 
+    sentiment: 'Bullish', 
+    score: 79, 
+    change: '+1.18%', 
+    reason: 'Corporate earnings reports are beating expectations across multiple sectors, reinforcing optimistic investor risk appetites.',
+    influence: 'Fuels stable compounding growth on your Global Stock Indexes.'
+  },
+  { 
+    id: 'ai_fund',
+    ticker: 'AIX Index', 
+    name: 'AI Technology Fund', 
+    sentiment: 'Bullish', 
+    score: 94, 
+    change: '+4.85%', 
+    reason: 'High-performance computing breakthroughs and sovereign tech investments are creating a surge of venture capital in artificial intelligence platforms.',
+    influence: 'Accelerates optimized strategic yields on your AI Technology Fund.'
+  },
+  { 
+    id: 'infra',
+    ticker: 'INFRA/US', 
+    name: 'Core Infrastructure', 
+    sentiment: 'Bearish', 
+    score: 42, 
+    change: '-0.12%', 
+    reason: 'Temporary regulatory and environmental approvals are slowing new capital infrastructure development cycles, causing consolidation.',
+    influence: 'Induces low-risk, defensive consolidation on your Core Infrastructure allocations.'
+  }
+];
+
 export default function EarningsTab({ investments, profile, onRefreshDashboard }: EarningsTabProps) {
   const { language, t } = useLanguage();
   
@@ -103,6 +167,8 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
   const [claimStatus, setClaimStatus] = useState<{ text: string; isError: boolean } | null>(null);
   const [showCelebration, setShowCelebration] = useState<boolean>(false);
   const [celebratedAmount, setCelebratedAmount] = useState<number>(0);
+  const [selectedSentimentFilter, setSelectedSentimentFilter] = useState<'all' | 'bullish' | 'bearish'>('all');
+  const [expandedSentimentId, setExpandedSentimentId] = useState<string | null>(null);
 
   // Active investments & incomes
   const activeInvestments = investments.filter(i => i.status === 'active');
@@ -680,25 +746,79 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
       </div>
 
       {/* REAL-TIME MARKET CONDITIONS */}
-      <div className="p-4.5 rounded-3xl bg-gradient-to-br from-[#071124] to-[#040a17] border border-cyan-500/10 shadow-sm text-left space-y-3.5">
+      <div className="p-4.5 rounded-3xl bg-gradient-to-br from-[#071124] to-[#040a17] border border-cyan-500/10 shadow-sm text-left space-y-4">
+        
+        {/* Header bar */}
         <div className="flex justify-between items-center">
-          <span className="text-[10px] font-black uppercase tracking-widest text-cyan-400 font-mono">
-            REAL-TIME MARKET CONDITIONS
-          </span>
+          <div className="flex items-center space-x-1.5">
+            <span className="w-1.5 h-3.5 bg-cyan-400 rounded-full inline-block animate-pulse"></span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-cyan-400 font-mono">
+              REAL-TIME MARKET CONDITIONS
+            </span>
+          </div>
           <span className="text-[8px] font-black uppercase tracking-wider font-mono text-cyan-300 bg-cyan-950/80 border border-cyan-500/20 px-2.5 py-1 rounded-full flex items-center space-x-1 shadow-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping shrink-0"></span>
             <span>Last Updated: Live</span>
           </span>
         </div>
 
+        {/* Live Infinite Scrolling Sentiment Ticker */}
+        <div className="relative w-full overflow-hidden bg-[#050b1a]/95 py-2.5 border-y border-cyan-500/15 rounded-xl select-none shadow-[inset_0_1px_5px_rgba(0,0,0,0.4)]">
+          <div className="absolute left-0 top-0 bottom-0 w-10 bg-gradient-to-r from-[#050b1a] to-transparent z-10 pointer-events-none"></div>
+          <div className="absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-[#050b1a] to-transparent z-10 pointer-events-none"></div>
+          
+          <motion.div 
+            className="flex space-x-12 whitespace-nowrap"
+            animate={{ x: [0, -1200] }}
+            transition={{
+              ease: "linear",
+              duration: 35,
+              repeat: Infinity,
+            }}
+            style={{ display: 'inline-flex' }}
+          >
+            {/* Multiplied copy to allow infinite scroll wrapping */}
+            {[...MARKET_SENTIMENTS, ...MARKET_SENTIMENTS, ...MARKET_SENTIMENTS].map((item, idx) => {
+              const isSelected = activeProjects.includes(item.id);
+              return (
+                <div key={`${item.id}-ticker-${idx}`} className="inline-flex items-center space-x-2.5 text-[10px] font-mono">
+                  <span className="text-sm shrink-0">
+                    {item.id === 'crypto' && '🪙'}
+                    {item.id === 'forex' && '💱'}
+                    {item.id === 'stock' && '📈'}
+                    {item.id === 'ai_fund' && '🤖'}
+                    {item.id === 'infra' && '🏗️'}
+                  </span>
+                  <span className="font-black text-slate-200 tracking-tight">{item.ticker}</span>
+                  <span className={`px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider flex items-center space-x-0.5 ${item.sentiment === 'Bullish' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
+                    <span>{item.sentiment === 'Bullish' ? '▲' : '▼'}</span>
+                    <span>{item.sentiment.toUpperCase()}</span>
+                    <span className="ml-0.5">{item.change}</span>
+                  </span>
+                  {isSelected ? (
+                    <span className="text-[8px] font-bold text-cyan-400 font-mono bg-cyan-950/40 px-1.5 py-0.5 rounded border border-cyan-500/15">
+                      ACTIVE PORTFOLIO ({allocations[item.id] || 0}%)
+                    </span>
+                  ) : (
+                    <span className="text-[8px] text-slate-500 font-semibold font-mono">
+                      OFF-PORTFOLIO
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </motion.div>
+        </div>
+
+        {/* Traditional Market Grid Widgets */}
         <div className="grid grid-cols-2 gap-3">
           <div className="p-3 rounded-2xl bg-[#091226]/50 border border-cyan-500/10 flex flex-col justify-between items-start select-none">
             <span className="text-[9px] uppercase font-bold text-slate-400 tracking-wider font-mono">
               Cryptocurrency Market
             </span>
             <span className="text-xs font-semibold text-emerald-400 mt-1 flex items-center space-x-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-              <span>Stable Growth</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Bullish • Stable Growth</span>
             </span>
           </div>
 
@@ -707,8 +827,8 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
               Forex Market
             </span>
             <span className="text-xs font-semibold text-emerald-400 mt-1 flex items-center space-x-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-              <span>Positive Trend</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Bullish • Positive Trend</span>
             </span>
           </div>
 
@@ -718,7 +838,7 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
             </span>
             <span className="text-xs font-semibold text-amber-400 mt-1 flex items-center space-x-1">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-              <span>Moderate Volatility</span>
+              <span>Bearish • Moderate Volatility</span>
             </span>
           </div>
 
@@ -732,6 +852,122 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
             </span>
           </div>
         </div>
+
+        {/* Sentiment Analysis Breakdown List */}
+        <div className="pt-3 border-t border-cyan-500/10 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[9.5px] uppercase font-black tracking-widest text-slate-300 font-mono">
+              Market Sentiment & Influence Indicators
+            </span>
+            {/* Filter buttons */}
+            <div className="flex space-x-1 bg-[#050b1a]/80 p-0.5 rounded-lg border border-cyan-500/10">
+              {(['all', 'bullish', 'bearish'] as const).map((filter) => (
+                <button
+                  key={filter}
+                  onClick={() => setSelectedSentimentFilter(filter)}
+                  className={`px-2 py-0.5 text-[8.5px] font-mono font-bold rounded uppercase transition-colors ${selectedSentimentFilter === filter ? 'bg-cyan-500 text-[#050B1A]' : 'text-slate-400 hover:text-white'}`}
+                >
+                  {filter}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            {MARKET_SENTIMENTS.filter(item => {
+              if (selectedSentimentFilter === 'all') return true;
+              return item.sentiment.toLowerCase() === selectedSentimentFilter;
+            }).map((item) => {
+              const isSelected = activeProjects.includes(item.id);
+              const alloc = allocations[item.id] || 0;
+              const contribution = calculatedContributions[item.id] || 0;
+              const isExpanded = expandedSentimentId === item.id;
+
+              return (
+                <div 
+                  key={item.id} 
+                  className={`rounded-2xl border transition-all duration-200 ${isExpanded ? 'bg-[#091226] border-cyan-500/25 shadow-lg' : 'bg-[#091226]/40 border-cyan-500/5 hover:border-cyan-500/15'}`}
+                >
+                  <div 
+                    onClick={() => setExpandedSentimentId(isExpanded ? null : item.id)}
+                    className="p-3.5 flex items-center justify-between cursor-pointer select-none"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <span className="text-lg">
+                        {item.id === 'crypto' && '🪙'}
+                        {item.id === 'forex' && '💱'}
+                        {item.id === 'stock' && '📈'}
+                        {item.id === 'ai_fund' && '🤖'}
+                        {item.id === 'infra' && '🏗️'}
+                      </span>
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-xs font-extrabold text-slate-100">{item.name}</span>
+                          <span className="text-[9px] font-mono font-bold text-cyan-400">{item.ticker}</span>
+                        </div>
+                        <p className="text-[9px] text-slate-400 font-mono mt-0.5 font-semibold">
+                          Sentiment score: <strong className={item.sentiment === 'Bullish' ? 'text-emerald-400' : 'text-rose-400'}>{item.score}%</strong>
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-3">
+                      <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${item.sentiment === 'Bullish' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/15 text-rose-400 border border-rose-500/20'}`}>
+                        {item.sentiment}
+                      </span>
+                      <ChevronRight className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-90 text-cyan-400' : ''}`} />
+                    </div>
+                  </div>
+
+                  <AnimatePresence>
+                    {isExpanded && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-3.5 pb-3.5 pt-0.5 border-t border-cyan-500/5 space-y-3.5 text-[10px]">
+                          {/* Reason */}
+                          <div className="space-y-1">
+                            <span className="text-[8.5px] font-black uppercase text-slate-400 tracking-wider font-mono block">Market Catalyst Analysis:</span>
+                            <p className="text-slate-300 font-medium font-sans leading-relaxed">
+                              {item.reason}
+                            </p>
+                          </div>
+
+                          {/* Live connection/Portfolio influence box */}
+                          <div className={`p-3 rounded-xl border flex items-start space-x-2.5 ${isSelected ? 'bg-cyan-500/5 border-cyan-500/20 text-cyan-200' : 'bg-slate-950/40 border-slate-900 text-slate-400'}`}>
+                            <Info className={`w-4 h-4 shrink-0 mt-0.5 ${isSelected ? 'text-cyan-400' : 'text-slate-500'}`} />
+                            <div className="space-y-1">
+                              <span className="text-[8.5px] font-black uppercase tracking-wider font-mono block">
+                                {isSelected ? 'ACTIVE PORTFOLIO IMPACT' : 'OFF-PORTFOLIO IMPACT'}
+                              </span>
+                              <p className="font-medium font-sans leading-relaxed">
+                                {isSelected ? (
+                                  <>
+                                    This {item.sentiment.toLowerCase()} market signal directly influences your <strong className="text-white">{alloc}% active allocation</strong>. 
+                                    Your portfolio is capturing <strong className="text-cyan-300">{contribution.toFixed(2)} ETB</strong> daily from this project based on system calculations. {item.influence}
+                                  </>
+                                ) : (
+                                  <>
+                                    This {item.sentiment.toLowerCase()} market signal is not currently affecting your earnings because you have <strong className="text-slate-300">0% allocated</strong>. 
+                                    To participate in these market opportunities, select this project and increase its weight in the "Daily Level Income Fulfillment" sliders above.
+                                  </>
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
       </div>
 
       {/* LUMORA INVESTMENT TEAM ACTIVITY */}
