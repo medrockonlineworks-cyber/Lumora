@@ -7,7 +7,7 @@ import {
   LumoraCard, CardTransaction, EligibilityCheck
 } from '../types';
 
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import { 
   getFirestore, 
   initializeFirestore,
@@ -447,14 +447,14 @@ function getFirestoreClientDb() {
     return null;
   }
   try {
-    const app = initializeApp({
+    const app = getApps().length === 0 ? initializeApp({
       apiKey: firebaseConfig.apiKey,
       authDomain: firebaseConfig.authDomain,
       projectId: firebaseConfig.projectId,
       storageBucket: firebaseConfig.storageBucket,
       messagingSenderId: firebaseConfig.messagingSenderId,
       appId: firebaseConfig.appId
-    });
+    }) : getApp();
     firestoreClientDb = initializeFirestore(app, {
       experimentalForceLongPolling: true,
       experimentalAutoDetectLongPolling: true
@@ -1105,6 +1105,10 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     } else {
       body = init.body;
     }
+  }
+  
+  if (!body || typeof body !== 'object') {
+    body = {};
   }
   
   const db = loadLocalDB();

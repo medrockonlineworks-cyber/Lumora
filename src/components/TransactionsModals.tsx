@@ -1009,6 +1009,7 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
       <AnimatePresence>
         {showCelebration && (
           <DepositCelebrationOverlay 
+            key="deposit-celebration-overlay"
             amount={depositAmount} 
             txRef={transactionRef} 
             screenshot={screenshotBase64}
@@ -1017,6 +1018,7 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
         )}
         {showWithdrawCelebration && (
           <WithdrawalCelebrationOverlay
+            key="withdrawal-celebration-overlay"
             amount={withdrawalAmount}
             walletType={balanceType}
             bankName={bankName}
