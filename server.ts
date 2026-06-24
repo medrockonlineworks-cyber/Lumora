@@ -2071,8 +2071,8 @@ async function startServer() {
     }
 
     const value = parseFloat(amount);
-    if (isNaN(value) || value < 600) {
-      return res.status(400).json({ error: "Minimum withdrawal limit is 600 ETB" });
+    if (isNaN(value) || value < 200) {
+      return res.status(400).json({ error: "Minimum withdrawal limit is 200 ETB" });
     }
 
     const profile = db.profiles.find(p => p.userId === userId);

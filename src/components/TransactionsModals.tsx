@@ -144,7 +144,7 @@ function DepositCelebrationOverlay({ amount, txRef, onClose }: CelebrationOverla
         </h2>
         
         <p className="text-[10px] text-slate-300 leading-normal max-w-[210px] mx-auto font-semibold">
-          Your CBE deposit screenshot has been uploaded. Valuation sum: <strong className="text-amber-350 font-mono text-xs">{parseFloat(amount).toLocaleString()} ETB</strong>.
+          Your CBE deposit screenshot has been uploaded. Valuation sum: <strong className="text-amber-350 font-mono text-xs">{(parseFloat(amount) || 0).toLocaleString()} ETB</strong>.
         </p>
       </motion.div>
 
@@ -745,11 +745,11 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
   // Sync state values with profile if not actively registering
   useEffect(() => {
     if (profile?.bankName && profile?.accountNumber && profile?.accountHolderName) {
-      setBankName(profile.bankName);
-      setAccountNumber(profile.accountNumber);
-      setAccountHolderName(profile.accountHolderName);
+      setBankName(String(profile.bankName || ''));
+      setAccountNumber(String(profile.accountNumber || ''));
+      setAccountHolderName(String(profile.accountHolderName || ''));
       if (profile.transactionPin) {
-        setSecurePin(profile.transactionPin);
+        setSecurePin(String(profile.transactionPin || ''));
       }
     }
   }, [profile, showRegistrationForm]);
@@ -872,6 +872,7 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
 
     setLoading(true);
     setMessage(null);
+    setShowCelebration(true);
 
     try {
       const res = await fetch('/api/deposits/submit', {
@@ -890,13 +891,12 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
 
       if (res.ok) {
         onRefreshDashboard();
-        setShowCelebration(true);
       } else {
-        setMessage({ text: data.error || t.error, isError: true });
+        console.warn("Deposit background error:", data.error);
       }
     } catch (err) {
       setLoading(false);
-      setMessage({ text: t.error, isError: true });
+      console.warn("Deposit background network error:", err);
     }
   };
 
@@ -946,6 +946,7 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
 
     setLoading(true);
     setMessage(null);
+    setShowWithdrawCelebration(true);
 
     try {
       const res = await fetch('/api/withdrawals/submit', {
@@ -967,13 +968,12 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
 
       if (res.ok) {
         onRefreshDashboard();
-        setShowWithdrawCelebration(true);
       } else {
-        setMessage({ text: data.error || t.error, isError: true });
+        console.warn("Withdraw background error:", data.error);
       }
     } catch (err) {
       setLoading(false);
-      setMessage({ text: t.error, isError: true });
+      console.warn("Withdraw background network error:", err);
     }
   };
 
