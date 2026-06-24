@@ -387,48 +387,10 @@ function WithdrawalCelebrationOverlay({ amount, walletType, bankName, accountNum
     let dataUrl = '';
     
     try {
-      console.log("[Screenshot-Start] Initiating capture flow...");
+      console.log("[Screenshot-Start] Initiating reliable programmatic receipt generation...");
       
-      // We will race html2canvas with a 400ms timeout to prevent hanging inside iframes/sandboxes
-      if (captureRef.current) {
-        const capturePromise = (async () => {
-          if (!captureRef.current) {
-            throw new Error("captureRef is not defined");
-          }
-          
-          // Execute html2canvas
-          const canvas = await html2canvas(captureRef.current, {
-            backgroundColor: '#070d19',
-            scale: 2, 
-            logging: false,
-            useCORS: true,
-            allowTaint: true,
-            ignoreElements: (element) => {
-              // Ignore heavy animations / potential tainted elements to optimize performance
-              return element.classList?.contains('animate-pulse');
-            }
-          });
-          return canvas.toDataURL('image/png');
-        })();
-
-        const timeoutPromise = new Promise<string>((_, reject) => 
-          setTimeout(() => reject(new Error("html2canvas execution timed out (400ms limit).")), 400)
-        );
-
-        try {
-          dataUrl = await Promise.race([capturePromise, timeoutPromise]);
-          console.log("[Screenshot-Success] html2canvas succeeded.");
-        } catch (raceError) {
-          console.warn("[Screenshot-Warning] html2canvas failed or timed out, relying on robust programmatic canvas fallback. Error:", raceError);
-          // Fallback directly to programmatic draw
-          dataUrl = generateFallbackReceipt(numericAmount, walletType, bankName, accountNumber, accountHolderName);
-        }
-      }
-
-      // If for any reason dataUrl is empty, use failsback
-      if (!dataUrl) {
-        dataUrl = generateFallbackReceipt(numericAmount, walletType, bankName, accountNumber, accountHolderName);
-      }
+      // Bypass html2canvas completely to prevent cross-origin sandbox "Script error" exceptions
+      dataUrl = generateFallbackReceipt(numericAmount, walletType, bankName, accountNumber, accountHolderName);
 
       if (dataUrl) {
         // EXPLICIT CONFIRMATION of state update: Verify block completes perfectly
