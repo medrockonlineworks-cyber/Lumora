@@ -334,35 +334,26 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
 
   // Sync active projects with selections in plans page under Lumora Allocation Model
   useEffect(() => {
-    if (profile?.userId) {
-      try {
-        const savedNames = localStorage.getItem(`lumora_selected_projects_${profile.userId}`);
-        if (savedNames) {
-          const names = JSON.parse(savedNames) as string[];
-          const ids = names.map(name => PROJECT_NAME_TO_ID[name]).filter(Boolean) as string[];
-          if (ids.length > 0) {
-            setActiveProjects(ids);
-            
-            // Re-allocate equally to 100% on the new active projects
-            setAllocations(prev => {
-              const updated: Record<string, number> = { ...prev };
-              const share = Math.floor(100 / ids.length);
-              ids.forEach((id, idx) => {
-                if (idx === ids.length - 1) {
-                  updated[id] = 100 - (share * (ids.length - 1));
-                } else {
-                  updated[id] = share;
-                }
-              });
-              return updated;
-            });
+    if (profile?.userId && plansPageProjectIds.length > 0) {
+      setActiveProjects(plansPageProjectIds);
+      
+      setAllocations(prev => {
+        const sum = plansPageProjectIds.reduce((acc, id) => acc + (prev[id] || 0), 0);
+        if (sum === 100) return prev;
+
+        const updated: Record<string, number> = { ...prev };
+        const share = Math.floor(100 / plansPageProjectIds.length);
+        plansPageProjectIds.forEach((id, idx) => {
+          if (idx === plansPageProjectIds.length - 1) {
+            updated[id] = 100 - (share * (plansPageProjectIds.length - 1));
+          } else {
+            updated[id] = share;
           }
-        }
-      } catch (e) {
-        console.error("Error synchronizing active projects from plans page:", e);
-      }
+        });
+        return updated;
+      });
     }
-  }, [profile?.userId, profile?.vipLevel, investments.length]);
+  }, [profile?.userId, plansPageProjectIds]);
 
   // Active investments & incomes
   const activeInvestments = investments.filter(i => i.status === 'active');
@@ -420,9 +411,8 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
   const selectedProjectsData = React.useMemo(() => {
     if (!hasActivePurchasedPlan) return [];
     return DEFAULT_PROJECTS
-      .filter(p => plansPageProjectIds.includes(p.id))
-      .filter(p => activeProjects.includes(p.id));
-  }, [hasActivePurchasedPlan, plansPageProjectIds, activeProjects]);
+      .filter(p => plansPageProjectIds.includes(p.id));
+  }, [hasActivePurchasedPlan, plansPageProjectIds]);
 
   const totalAllocationSum = selectedProjectsData.reduce((sum, p) => sum + (allocations[p.id] || 0), 0);
 
@@ -607,29 +597,14 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
 
       {/* HEADER SECTION */}
       <div className="flex flex-col space-y-2 border-b border-slate-100 pb-3.5 relative">
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col">
-            <span className="font-extrabold text-2xl tracking-tight bg-gradient-to-r from-[#0A3D91] via-[#072558] to-amber-500 bg-clip-text text-transparent font-sans">
-              Lumora
-            </span>
-            <span className="text-xs text-slate-500 font-medium tracking-wide">
-              Earnings Dashboard
-            </span>
-          </div>
-          
+        <div className="flex items-center justify-end">
           <div className="flex items-center space-x-2.5">
             {/* Wallet Quick Balance Widget */}
             <div className="flex items-center space-x-1.5 bg-[#0a3d91]/5 border border-[#0a3d91]/10 rounded-xl py-1.5 px-3 shadow-3xs hover:border-[#0a3d91]/20 transition-all">
-              <Wallet className="w-3.5 h-3.5 text-[#0A3D91]" />
+              <Coins className="w-3.5 h-3.5 text-[#0A3D91]" />
               <span className="text-[11px] font-mono font-bold text-[#0A3D91]">
                 {(profile?.incomeBalance ?? 0).toLocaleString(undefined, { minimumFractionDigits: 1 })} ETB
               </span>
-            </div>
-
-            {/* Notification trigger icon */}
-            <div className="w-8 h-8 rounded-xl bg-[#0a3d91]/5 border border-[#0a3d91]/10 flex items-center justify-center cursor-pointer relative hover:bg-[#0a3d91]/10 transition-colors">
-              <Bell className="w-4 h-4 text-[#0A3D91]" />
-              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
             </div>
           </div>
         </div>
@@ -678,10 +653,13 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
               <p className="text-[9.5px] text-blue-200 uppercase tracking-wider font-mono font-semibold">
                 Total Account Balance
               </p>
-              <p className="text-3xl font-extrabold text-white tracking-tight font-sans drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
-                {(profile?.walletBalance ?? 0).toLocaleString()}
-                <span className="text-xs text-amber-300 font-bold ml-1.5 uppercase font-mono">ETB</span>
-              </p>
+              <div className="flex items-center space-x-2">
+                <p className="text-3xl font-extrabold text-white tracking-tight font-sans drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
+                  {(profile?.walletBalance ?? 0).toLocaleString()}
+                  <span className="text-xs text-amber-300 font-bold ml-1.5 uppercase font-mono">ETB</span>
+                </p>
+                <Wallet className="w-5 h-5 text-amber-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] shrink-0" />
+              </div>
               
               <div className="pt-2 flex flex-col space-y-1">
                 <div className="flex items-center space-x-1.5 text-[10px] text-blue-100 font-mono">
@@ -913,6 +891,20 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
             {selectedProjectsData.length} Selected
           </span>
         </div>
+
+        {portfolioLockInfo.isLocked && (
+          <div className="bg-slate-50/70 p-3.5 rounded-2xl border border-slate-150 flex items-start space-x-3.5 shadow-2xs">
+            <div className="w-8 h-8 rounded-xl bg-[#0A3D91]/5 flex items-center justify-center shrink-0">
+              <Lock className="w-4 h-4 text-[#0A3D91] animate-pulse" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-[11px] font-bold text-slate-800 font-sans uppercase tracking-wider">30-Day Portfolio Lock Period Active</h4>
+              <p className="text-[10px] text-slate-500 leading-relaxed font-semibold">
+                Under Lumora asset-stability regulations, your project selection is locked for a 30-day period. Locked until <strong className="text-slate-800 font-extrabold">{portfolioLockInfo.lockUntilStr}</strong> ({portfolioLockInfo.remainingDays} days remaining). You can still adjust your daily weight allocations at any time.
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-3">
           {selectedProjectsData.length === 0 ? (
