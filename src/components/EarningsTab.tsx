@@ -357,13 +357,31 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
   const userVipLevel = profile?.vipLevel || 1;
   const levelIncomeTotal = getDailyLevelIncome(userVipLevel);
 
-  // Ticking Countdown to local midnight
+  // Ticking Countdown to nearest payout or fallback to midnight
   useEffect(() => {
     const updateCountdown = () => {
       const now = new Date();
-      const nextMidnight = new Date();
-      nextMidnight.setHours(24, 0, 0, 0);
-      const diffMs = nextMidnight.getTime() - now.getTime();
+      const nowTime = now.getTime();
+      
+      const activeList = investments ? investments.filter(inv => inv.status === 'active' && inv.remainingDays > 0) : [];
+      let diffMs = Infinity;
+      
+      if (activeList.length > 0) {
+        activeList.forEach(inv => {
+          const lastPayout = new Date(inv.lastPayoutDate || inv.startDate);
+          const nextPayout = lastPayout.getTime() + 24 * 60 * 60 * 1000;
+          const diff = nextPayout - nowTime;
+          if (diff > 0 && diff < diffMs) {
+            diffMs = diff;
+          }
+        });
+      }
+      
+      if (diffMs === Infinity || diffMs <= 0) {
+        const nextMidnight = new Date();
+        nextMidnight.setHours(24, 0, 0, 0);
+        diffMs = nextMidnight.getTime() - nowTime;
+      }
       
       const hours = Math.floor(diffMs / (1000 * 60 * 60));
       const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
@@ -382,7 +400,7 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
     updateCountdown();
     const interval = setInterval(updateCountdown, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [investments]);
 
   // Simulating small micro fractional yield stream
   useEffect(() => {
@@ -1231,7 +1249,7 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
                 />
               </div>
               <p className="text-[9px] text-slate-400 font-sans leading-relaxed">
-                Automated smart settlement occurs daily at midnight. Earnings are compiled automatically based on your active projects.
+                Automated smart settlement occurs every 24 hours from plan activation. Earnings are compiled automatically based on your active projects.
               </p>
             </div>
           </div>

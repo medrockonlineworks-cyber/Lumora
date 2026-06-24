@@ -7,7 +7,12 @@ import {
   LumoraCard, CardTransaction, EligibilityCheck
 } from '../types';
 
-import { initializeApp, getApps, getApp } from "firebase/app";
+import { initializeApp, getApps, getApp, setLogLevel } from "firebase/app";
+try {
+  setLogLevel("silent");
+} catch (e) {
+  // Silent catch
+}
 import { 
   getFirestore, 
   initializeFirestore,
@@ -681,7 +686,7 @@ export function setupClientFirebaseSync() {
         if (!remoteKeys.has(id)) {
           console.log(`[Client Firebase Sync] Auto-replicating missing item ${col.name}/${id} to Firestore...`);
           setDoc(doc(fDb, col.name, id), item).catch(err => {
-            // Silently ignore or catch quota/permissions issues
+            checkQuotaExceeded(err);
           });
         }
       }
