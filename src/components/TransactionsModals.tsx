@@ -962,28 +962,28 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
 
   return (
     <div className="fixed inset-0 z-50 bg-[#070d19]/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <AnimatePresence>
+        {showCelebration && (
+          <DepositCelebrationOverlay 
+            amount={depositAmount} 
+            txRef={transactionRef} 
+            screenshot={screenshotBase64}
+            onClose={onClose} 
+          />
+        )}
+        {showWithdrawCelebration && (
+          <WithdrawalCelebrationOverlay
+            amount={withdrawalAmount}
+            walletType={balanceType}
+            bankName={bankName}
+            accountNumber={accountNumber}
+            accountHolderName={accountHolderName}
+            onClose={onClose}
+          />
+        )}
+      </AnimatePresence>
+
       <div className="w-full max-w-sm bg-white border border-blue-100 rounded-3xl p-6 shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-200 scrollbar-none max-h-[92vh] overflow-y-auto text-slate-800">
-        
-        <AnimatePresence>
-          {showCelebration && (
-            <DepositCelebrationOverlay 
-              amount={depositAmount} 
-              txRef={transactionRef} 
-              screenshot={screenshotBase64}
-              onClose={onClose} 
-            />
-          )}
-          {showWithdrawCelebration && (
-            <WithdrawalCelebrationOverlay
-              amount={withdrawalAmount}
-              walletType={balanceType}
-              bankName={bankName}
-              accountNumber={accountNumber}
-              accountHolderName={accountHolderName}
-              onClose={onClose}
-            />
-          )}
-        </AnimatePresence>
         
         {/* Header bar within popup */}
         <div className="flex items-center justify-between pb-3.5 border-b border-blue-100 mb-4">
