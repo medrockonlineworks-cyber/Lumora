@@ -743,9 +743,11 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
               </div>
             </div>
 
-            <div className="pt-2 text-slate-500 font-medium leading-relaxed bg-slate-50 border border-slate-150 p-3.5 rounded-[16px] text-[10.5px]">
-              <span className="font-extrabold text-[#0A3D91] uppercase tracking-wide block mb-1">⚙️ AUTOMATIC PORTFOLIO SYSTEM ACTIVED</span>
-              Your daily level income is automatically split and distributed 100% evenly among all active investment plans under the Lumora Asset Allocation model. No manual rebalancing is required.
+            <div className="pt-2 text-slate-500 font-medium leading-relaxed bg-slate-50 border border-slate-150 p-3.5 rounded-[16px] text-[10.5px] space-y-1.5">
+              <span className="font-extrabold text-[#0A3D91] uppercase tracking-wide block mb-1">⚙️ AUTOMATIC PORTFOLIO SYSTEM ACTIVATED</span>
+              <p>Your active projects automatically generate and accumulate returns throughout the day under the Lumora Asset Allocation model.</p>
+              <p>The system continuously allocates project performance and combines earnings from all active projects to fulfill 100% of your daily level return target.</p>
+              <p>Once the daily target is reached, the accumulated profit is credited and becomes available for collection in the Claim Center.</p>
             </div>
           </div>
 
@@ -806,7 +808,7 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
             <div className="space-y-1">
               <h4 className="text-[11px] font-bold text-slate-800 font-sans uppercase tracking-wider">30-Day Portfolio Lock Period Active</h4>
               <p className="text-[10px] text-slate-500 leading-relaxed font-semibold">
-                Under Lumora asset-stability regulations, your project selection is locked for a 30-day period. Locked until <strong className="text-slate-800 font-extrabold">{portfolioLockInfo.lockUntilStr}</strong> ({portfolioLockInfo.remainingDays} days remaining). You can still adjust your daily weight allocations at any time.
+                Under Lumora asset-stability regulations, your active project selection is locked for a 30-day period. Locked until <strong className="text-slate-800 font-extrabold">{portfolioLockInfo.lockUntilStr}</strong> ({portfolioLockInfo.remainingDays} days remaining). The system automatically manages your distributions evenly across your active selections.
               </p>
             </div>
           </div>
@@ -818,7 +820,7 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
               <Lock className="w-8 h-8 text-[#0A3D91]/60 mx-auto animate-bounce" />
               <p className="text-xs font-bold text-[#0A3D91] uppercase tracking-wider">No Active Investment Projects</p>
               <p className="text-[10px] text-slate-800 font-extrabold max-w-sm mx-auto leading-relaxed">
-                You do not have any active investment plan. Please visit the <strong className="text-[#0A3D91]">Plans</strong> page and purchase a VIP plan to enable custom project allocations.
+                You do not have any active investment plan. Please visit the <strong className="text-[#0A3D91]">Plans</strong> page and purchase a VIP plan to enable automated project allocations.
               </p>
             </div>
           ) : (
@@ -1134,7 +1136,7 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
             {[
               "Monitoring global markets 24/7",
               "Managing risk exposure",
-              "Rebalancing portfolio allocations",
+              "Automating portfolio allocations",
               "Protecting capital during volatility",
               "Optimizing investment performance",
               "Identifying new opportunities"
@@ -1178,7 +1180,7 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
           <div className="space-y-1">
             <span className="text-[9.5px] uppercase font-bold text-[#0A3D91] tracking-wider font-mono block">How Daily Returns are Managed</span>
             <p className="text-[9.5px] text-slate-600 leading-relaxed font-semibold font-sans">
-              The Lumora investment management system continuously analyzes market conditions, monitors selected project performance, manages risk, diversifies allocations, and adjusts strategies to maintain stability and long-term growth. Daily income is distributed across selected projects based on allocation weight and finalized at settlement time.
+              The Lumora investment management system continuously analyzes market conditions, monitors selected project performance, manages risk, diversifies allocations, and adjusts strategies to maintain stability and long-term growth. Daily income is automatically distributed evenly across your active projects and finalized at settlement time.
             </p>
           </div>
         </div>
@@ -1229,7 +1231,7 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
                 />
               </div>
               <p className="text-[9px] text-slate-400 font-sans leading-relaxed">
-                Automated smart settlement occurs daily at midnight. Ensure your allocations are configured.
+                Automated smart settlement occurs daily at midnight. Earnings are compiled automatically based on your active projects.
               </p>
             </div>
           </div>
