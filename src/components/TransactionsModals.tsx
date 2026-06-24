@@ -26,6 +26,43 @@ const VIP_PRESETS = [
   { level: 8, amount: 500000, name: "VIP 7" },
 ];
 
+function compressImage(base64Str: string, maxWidth = 500, maxHeight = 500, quality = 0.6): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.src = base64Str;
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+      } else {
+        if (height > maxHeight) {
+          width = Math.round((width * maxHeight) / height);
+          height = maxHeight;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      } else {
+        resolve(base64Str);
+      }
+    };
+    img.onerror = () => {
+      resolve(base64Str);
+    };
+  });
+}
+
 function DepositCelebrationOverlay({ amount, txRef, onClose, screenshot }: CelebrationOverlayProps) {
   // Confetti particles coordinates
   const particles = Array.from({ length: 35 }).map((_, i) => ({
@@ -820,8 +857,15 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
         return;
       }
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setScreenshotBase64(reader.result as string);
+      reader.onloadend = async () => {
+        const rawBase64 = reader.result as string;
+        try {
+          const compressed = await compressImage(rawBase64, 400, 400, 0.5);
+          setScreenshotBase64(compressed);
+        } catch (err) {
+          console.warn("Screenshot compression failed, using raw base64:", err);
+          setScreenshotBase64(rawBase64);
+        }
         setMessage(null);
         if (!transactionRef.trim()) {
           const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';

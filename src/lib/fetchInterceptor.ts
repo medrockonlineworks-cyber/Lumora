@@ -779,7 +779,21 @@ export function setupClientFirebaseSync() {
 }
 
 function saveLocalDB(db: LumoraDB) {
-  localStorage.setItem('lumora_local_db', JSON.stringify(db));
+  try {
+    localStorage.setItem('lumora_local_db', JSON.stringify(db));
+  } catch (err) {
+    console.error("[Client LocalDB] Local storage save failed:", err);
+    try {
+      const dbCopy = {
+        ...db,
+        deposits: db.deposits ? db.deposits.map(d => ({ ...d, receiptImage: "pruned_storage_limit" })) : [],
+        profiles: db.profiles ? db.profiles.map(p => ({ ...p, idCardFront: "", idCardBack: "", idSelfie: "" })) : []
+      };
+      localStorage.setItem('lumora_local_db', JSON.stringify(dbCopy));
+    } catch (innerErr) {
+      console.error("[Client LocalDB] Critical localStorage fallback also failed:", innerErr);
+    }
+  }
   syncClientToFirestore(db).catch(err => {
     console.warn("[Client Firestore Sync] Cloud update error:", err);
   });
