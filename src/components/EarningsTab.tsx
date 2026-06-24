@@ -595,35 +595,6 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
       <div className="absolute top-0 right-[-10%] w-60 h-60 bg-amber-500/5 rounded-full blur-[100px] pointer-events-none -z-10"></div>
       <div className="absolute bottom-[20%] left-[-10%] w-72 h-72 bg-[#0A3D91]/5 rounded-full blur-[120px] pointer-events-none -z-10"></div>
 
-      {/* HEADER SECTION */}
-      <div className="flex flex-col space-y-2 border-b border-slate-100 pb-3.5 relative">
-        <div className="flex items-center justify-end">
-          <div className="flex items-center space-x-2.5">
-            {/* Wallet Quick Balance Widget */}
-            <div className="flex items-center space-x-1.5 bg-[#0a3d91]/5 border border-[#0a3d91]/10 rounded-xl py-1.5 px-3 shadow-3xs hover:border-[#0a3d91]/20 transition-all">
-              <Coins className="w-3.5 h-3.5 text-[#0A3D91]" />
-              <span className="text-[11px] font-mono font-bold text-[#0A3D91]">
-                {(profile?.incomeBalance ?? 0).toLocaleString(undefined, { minimumFractionDigits: 1 })} ETB
-              </span>
-            </div>
-          </div>
-        </div>
-        {/* Glowing animated line */}
-        <div className="w-full h-[1px] bg-slate-100 relative overflow-hidden mt-2">
-          <motion.div 
-            className="absolute top-0 left-0 h-full bg-gradient-to-r from-transparent via-amber-400 to-transparent w-40"
-            animate={{
-              x: ['-100%', '300%']
-            }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              ease: "linear"
-            }}
-          />
-        </div>
-      </div>
-
       {/* COMPREHENSIVE VAULT CARD */}
       <div className="relative rounded-3xl overflow-hidden border border-[#0A3D91]/20 bg-gradient-to-br from-[#0a3d91] via-[#072558] to-[#0a3d91] p-5 shadow-lg text-white transition-all duration-300">
         
@@ -649,24 +620,39 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
 
           <div className="grid grid-cols-12 gap-4 items-center">
             {/* Balance data */}
-            <div className="col-span-7 space-y-1">
-              <p className="text-[9.5px] text-blue-200 uppercase tracking-wider font-mono font-semibold">
-                Total Account Balance
-              </p>
-              <div className="flex items-center space-x-2">
-                <p className="text-3xl font-extrabold text-white tracking-tight font-sans drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
-                  {(profile?.walletBalance ?? 0).toLocaleString()}
-                  <span className="text-xs text-amber-300 font-bold ml-1.5 uppercase font-mono">ETB</span>
+            <div className="col-span-7 space-y-3">
+              <div>
+                <p className="text-[9.5px] text-blue-200 uppercase tracking-wider font-mono font-bold">
+                  Total Account Balance
                 </p>
-                <Wallet className="w-5 h-5 text-amber-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] shrink-0" />
+                <div className="flex items-center space-x-2 mt-0.5">
+                  <p className="text-3xl font-extrabold text-white tracking-tight font-sans drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
+                    {(profile?.walletBalance ?? 0).toLocaleString()}
+                    <span className="text-xs text-amber-300 font-bold ml-1.5 uppercase font-mono">ETB</span>
+                  </p>
+                  <Wallet className="w-5 h-5 text-amber-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] shrink-0" />
+                </div>
+              </div>
+
+              <div className="border-t border-blue-200/10 pt-2.5">
+                <p className="text-[9.5px] text-blue-200 uppercase tracking-wider font-mono font-bold">
+                  Income Balance
+                </p>
+                <div className="flex items-center space-x-2 mt-0.5">
+                  <p className="text-3xl font-extrabold text-white tracking-tight font-sans drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
+                    {(profile?.incomeBalance ?? 0).toLocaleString(undefined, { minimumFractionDigits: 1 })}
+                    <span className="text-xs text-amber-300 font-bold ml-1.5 uppercase font-mono">ETB</span>
+                  </p>
+                  <Coins className="w-5 h-5 text-amber-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] shrink-0" />
+                </div>
               </div>
               
-              <div className="pt-2 flex flex-col space-y-1">
-                <div className="flex items-center space-x-1.5 text-[10px] text-blue-100 font-mono">
+              <div className="pt-1.5 flex flex-col space-y-1">
+                <div className="flex items-center space-x-1.5 text-[9.5px] text-blue-100 font-mono">
                   <Activity className="w-3.5 h-3.5 text-amber-300 animate-pulse shrink-0" />
                   <span>Stream rate: <strong className="text-amber-200">+{liveStreamRate.toFixed(4)}</strong></span>
                 </div>
-                <div className="flex items-center space-x-1.5 text-[10px] text-blue-100 font-mono">
+                <div className="flex items-center space-x-1.5 text-[9.5px] text-blue-100 font-mono">
                   <TrendingUp className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
                   <span>Est. Daily Yield: <strong className="text-emerald-300">+{levelIncomeTotal.toLocaleString()} ETB</strong></span>
                 </div>
