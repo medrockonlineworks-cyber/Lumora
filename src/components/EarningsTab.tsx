@@ -44,12 +44,49 @@ interface Project {
 }
 
 const DEFAULT_PROJECTS: Project[] = [
-  { id: 'crypto', name: 'Cryptocurrency Market', icon: '🪙', status: 'Active', trend: '+0.8%', isPositive: true, defaultAlloc: 30 },
-  { id: 'forex', name: 'Forex Trading', icon: '💱', status: 'Active', trend: '+0.7%', isPositive: true, defaultAlloc: 25 },
-  { id: 'stock', name: 'Global Stock Indexes', icon: '📈', status: 'Active', trend: '+0.6%', isPositive: true, defaultAlloc: 20 },
-  { id: 'ai_fund', name: 'AI Technology Fund', icon: '🤖', status: 'Monitoring', trend: '+0.4%', isPositive: true, defaultAlloc: 15 },
-  { id: 'infra', name: 'Core Infrastructure', icon: '🏗️', status: 'Active', trend: '+0.5%', isPositive: true, defaultAlloc: 10 }
+  { id: 'crypto', name: 'Cryptocurrency Trading', icon: '🪙', status: 'Active', trend: '+1.2%', isPositive: true, defaultAlloc: 20 },
+  { id: 'forex', name: 'Forex Trading', icon: '💱', status: 'Active', trend: '+0.5%', isPositive: true, defaultAlloc: 20 },
+  { id: 'stocks', name: 'Stock Investing', icon: '📈', status: 'Active', trend: '+0.8%', isPositive: true, defaultAlloc: 20 },
+  { id: 'gold', name: 'Gold & Precious Metals Investment', icon: '🏆', status: 'Active', trend: '+0.3%', isPositive: true, defaultAlloc: 10 },
+  { id: 'realestate', name: 'Real Estate Investment', icon: '🏢', status: 'Active', trend: '+0.4%', isPositive: true, defaultAlloc: 10 },
+  { id: 'agriculture', name: 'Agriculture Investment', icon: '🌾', status: 'Active', trend: '+0.9%', isPositive: true, defaultAlloc: 5 },
+  { id: 'p2p', name: 'Peer-to-Peer Lending', icon: '🤝', status: 'Active', trend: '+0.7%', isPositive: true, defaultAlloc: 5 },
+  { id: 'indexfunds', name: 'Index Fund Investment', icon: '📊', status: 'Active', trend: '+0.6%', isPositive: true, defaultAlloc: 5 },
+  { id: 'renewable', name: 'Renewable Energy Projects', icon: '⚡', status: 'Active', trend: '+1.1%', isPositive: true, defaultAlloc: 5 },
+  { id: 'startup', name: 'Startup Crowdfunding', icon: '🚀', status: 'Active', trend: '+1.5%', isPositive: true, defaultAlloc: 5 },
+  { id: 'bonds', name: 'Bond Investments', icon: '📄', status: 'Active', trend: '+0.2%', isPositive: true, defaultAlloc: 5 },
+  { id: 'commodity', name: 'Commodity Trading', icon: '📦', status: 'Active', trend: '+0.4%', isPositive: true, defaultAlloc: 5 }
 ];
+
+const PROJECT_NAME_TO_ID: Record<string, string> = {
+  'Cryptocurrency Trading': 'crypto',
+  'Forex Trading': 'forex',
+  'Stock Investing': 'stocks',
+  'Gold & Precious Metals Investment': 'gold',
+  'Real Estate Investment': 'realestate',
+  'Agriculture Investment': 'agriculture',
+  'Peer-to-Peer Lending': 'p2p',
+  'Index Fund Investment': 'indexfunds',
+  'Renewable Energy Projects': 'renewable',
+  'Startup Crowdfunding': 'startup',
+  'Bond Investments': 'bonds',
+  'Commodity Trading': 'commodity'
+};
+
+const PROJECT_ID_TO_NAME: Record<string, string> = {
+  'crypto': 'Cryptocurrency Trading',
+  'forex': 'Forex Trading',
+  'stocks': 'Stock Investing',
+  'gold': 'Gold & Precious Metals Investment',
+  'realestate': 'Real Estate Investment',
+  'agriculture': 'Agriculture Investment',
+  'p2p': 'Peer-to-Peer Lending',
+  'indexfunds': 'Index Fund Investment',
+  'renewable': 'Renewable Energy Projects',
+  'startup': 'Startup Crowdfunding',
+  'bonds': 'Bond Investments',
+  'commodity': 'Commodity Trading'
+};
 
 const getDailyLevelIncome = (vipLevel: number) => {
   switch (vipLevel) {
@@ -93,7 +130,7 @@ const MARKET_SENTIMENTS: MarketSentiment[] = [
   { 
     id: 'crypto',
     ticker: 'BTC/USD', 
-    name: 'Cryptocurrency Market', 
+    name: 'Cryptocurrency Trading', 
     sentiment: 'Bullish', 
     score: 87, 
     change: '+2.41%', 
@@ -111,9 +148,9 @@ const MARKET_SENTIMENTS: MarketSentiment[] = [
     influence: 'Triggers minor hedging adjustments on your Forex Trading allocations.'
   },
   { 
-    id: 'stock',
+    id: 'stocks',
     ticker: 'SPX 500', 
-    name: 'Global Stock Indexes', 
+    name: 'Stock Investing', 
     sentiment: 'Bullish', 
     score: 79, 
     change: '+1.18%', 
@@ -121,24 +158,94 @@ const MARKET_SENTIMENTS: MarketSentiment[] = [
     influence: 'Fuels stable compounding growth on your Global Stock Indexes.'
   },
   { 
-    id: 'ai_fund',
-    ticker: 'AIX Index', 
-    name: 'AI Technology Fund', 
+    id: 'gold',
+    ticker: 'XAU/USD', 
+    name: 'Gold & Precious Metals Investment', 
     sentiment: 'Bullish', 
-    score: 94, 
-    change: '+4.85%', 
-    reason: 'High-performance computing breakthroughs and sovereign tech investments are creating a surge of venture capital in artificial intelligence platforms.',
-    influence: 'Accelerates optimized strategic yields on your AI Technology Fund.'
+    score: 82, 
+    change: '+0.85%', 
+    reason: 'Rising global geopolitical tensions and sovereign central bank gold purchasing trends are accelerating safety demand for precious metals.',
+    influence: 'Acts as a strong hedge and secure store of value for your gold holdings.'
   },
   { 
-    id: 'infra',
-    ticker: 'INFRA/US', 
-    name: 'Core Infrastructure', 
+    id: 'realestate',
+    ticker: 'REIT/US', 
+    name: 'Real Estate Investment', 
+    sentiment: 'Bullish', 
+    score: 71, 
+    change: '+0.45%', 
+    reason: 'Robust demand for multi-family residential complexes and urban warehouse logistics space keeps rental yields extremely solid.',
+    influence: 'Generates consistent passive rental cashflows on your Real Estate allocations.'
+  },
+  { 
+    id: 'agriculture',
+    ticker: 'AGRI/GL', 
+    name: 'Agriculture Investment', 
+    sentiment: 'Bullish', 
+    score: 76, 
+    change: '+1.62%', 
+    reason: 'Global demand for organic grains and sustainable farming methods is raising agricultural product futures contracts and harvest values.',
+    influence: 'Supplements defensive growth and essential food system yields on your Agriculture investments.'
+  },
+  { 
+    id: 'p2p',
+    ticker: 'P2P/YLD', 
+    name: 'Peer-to-Peer Lending', 
     sentiment: 'Bearish', 
-    score: 42, 
-    change: '-0.12%', 
-    reason: 'Temporary regulatory and environmental approvals are slowing new capital infrastructure development cycles, causing consolidation.',
-    influence: 'Induces low-risk, defensive consolidation on your Core Infrastructure allocations.'
+    score: 44, 
+    change: '-0.08%', 
+    reason: 'Slight rising credit spread risk across retail borrower pools is driving platform models to raise credit standards, narrowing margins.',
+    influence: 'Stabilizes platform interest cashflows with highly curated premium credit screening.'
+  },
+  { 
+    id: 'indexfunds',
+    ticker: 'MSCI/WD', 
+    name: 'Index Fund Investment', 
+    sentiment: 'Bullish', 
+    score: 80, 
+    change: '+1.25%', 
+    reason: 'Global broad-market indexes are exhibiting positive technical breakouts as inflation metrics continue to normalize near target ranges.',
+    influence: 'Maintains highly diversified compound growth on your Global Index Fund allocations.'
+  },
+  { 
+    id: 'renewable',
+    ticker: 'CLEAN/EN', 
+    name: 'Renewable Energy Projects', 
+    sentiment: 'Bullish', 
+    score: 91, 
+    change: '+3.72%', 
+    reason: 'Massive public subsidies and commercial contracts for wind, solar, and grid storage are driving unparalleled sector expansion.',
+    influence: 'Powers high-growth green technology dividends on your Renewable Energy allocations.'
+  },
+  { 
+    id: 'startup',
+    ticker: 'VC/SEED', 
+    name: 'Startup Crowdfunding', 
+    sentiment: 'Bullish', 
+    score: 85, 
+    change: '+4.12%', 
+    reason: 'High-quality pre-seed and seed rounds are experiencing active term sheets as early-stage tech valuations stabilize at attractive multiples.',
+    influence: 'Generates high-alpha asymmetrical returns on your Startup allocations.'
+  },
+  { 
+    id: 'bonds',
+    ticker: 'US10Y', 
+    name: 'Bond Investments', 
+    sentiment: 'Bearish', 
+    score: 48, 
+    change: '-0.15%', 
+    reason: 'Bond yields are consolidating in tight ranges as the market digests potential future rate path signals from the Federal Reserve.',
+    influence: 'Secures ultra-low risk fixed-income distributions on your Bond allocations.'
+  },
+  { 
+    id: 'commodity',
+    ticker: 'OIL/WTI', 
+    name: 'Commodity Trading', 
+    sentiment: 'Bullish', 
+    score: 68, 
+    change: '+0.95%', 
+    reason: 'Tight supply-side OPEC discipline and rising global industrial activity keep energy and metal commodity prices firmly supported.',
+    influence: 'Triggers inflationary hedge returns on your Commodity Trading allocations.'
   }
 ];
 
@@ -149,8 +256,18 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
   const [payoutCountdown, setPayoutCountdown] = useState<string>('00:00:00');
   const [liveStreamRate, setLiveStreamRate] = useState<number>(0);
   const [activeProjects, setActiveProjects] = useState<string[]>(() => {
+    try {
+      const savedNames = localStorage.getItem(`lumora_selected_projects_${profile.userId}`);
+      if (savedNames) {
+        const names = JSON.parse(savedNames) as string[];
+        const ids = names.map(name => PROJECT_NAME_TO_ID[name]).filter(Boolean) as string[];
+        if (ids.length > 0) return ids;
+      }
+    } catch (e) {
+      console.error(e);
+    }
     const saved = localStorage.getItem('lumora_selected_projects');
-    return saved ? JSON.parse(saved) : DEFAULT_PROJECTS.map(p => p.id);
+    return saved ? JSON.parse(saved) : DEFAULT_PROJECTS.slice(0, 3).map(p => p.id);
   });
   const [allocations, setAllocations] = useState<Record<string, number>>(() => {
     const saved = localStorage.getItem('lumora_project_allocations');
@@ -169,6 +286,38 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
   const [celebratedAmount, setCelebratedAmount] = useState<number>(0);
   const [selectedSentimentFilter, setSelectedSentimentFilter] = useState<'all' | 'bullish' | 'bearish'>('all');
   const [expandedSentimentId, setExpandedSentimentId] = useState<string | null>(null);
+
+  // Sync active projects with selections in plans page under Lumora Allocation Model
+  useEffect(() => {
+    if (profile?.userId) {
+      try {
+        const savedNames = localStorage.getItem(`lumora_selected_projects_${profile.userId}`);
+        if (savedNames) {
+          const names = JSON.parse(savedNames) as string[];
+          const ids = names.map(name => PROJECT_NAME_TO_ID[name]).filter(Boolean) as string[];
+          if (ids.length > 0) {
+            setActiveProjects(ids);
+            
+            // Re-allocate equally to 100% on the new active projects
+            setAllocations(prev => {
+              const updated: Record<string, number> = { ...prev };
+              const share = Math.floor(100 / ids.length);
+              ids.forEach((id, idx) => {
+                if (idx === ids.length - 1) {
+                  updated[id] = 100 - (share * (ids.length - 1));
+                } else {
+                  updated[id] = share;
+                }
+              });
+              return updated;
+            });
+          }
+        }
+      } catch (e) {
+        console.error("Error synchronizing active projects from plans page:", e);
+      }
+    }
+  }, [profile?.userId, profile?.vipLevel, investments.length]);
 
   // Active investments & incomes
   const activeInvestments = investments.filter(i => i.status === 'active');
@@ -351,21 +500,21 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
 
   // Sparkline generator helper
   const renderSparkline = (isPositive: boolean) => {
-    const color = isPositive ? '#06b6d4' : '#e11d48';
+    const color = isPositive ? '#10b981' : '#f43f5e';
     const points = isPositive 
       ? "0,35 15,28 30,30 45,15 60,18 75,5" 
       : "0,5 15,18 30,15 45,30 60,25 75,35";
     return (
       <svg className="w-16 h-8 overflow-visible" viewBox="0 0 75 40">
         <defs>
-          <linearGradient id="cyan-glow" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.4" />
-            <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.0" />
+          <linearGradient id={`sparkline-glow-${isPositive}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity="0.35" />
+            <stop offset="100%" stopColor={color} stopOpacity="0.0" />
           </linearGradient>
         </defs>
         <path
           d={`M ${points} L 75 40 L 0 40 Z`}
-          fill="url(#cyan-glow)"
+          fill={`url(#sparkline-glow-${isPositive})`}
         />
         <polyline
           fill="none"
@@ -374,7 +523,6 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
           strokeLinecap="round"
           strokeLinejoin="round"
           points={points}
-          className="drop-shadow-[0_0_4px_rgba(6,182,212,0.5)]"
         />
         <circle cx="75" cy={isPositive ? "5" : "35"} r="2" fill={color} className="animate-ping" />
       </svg>
@@ -382,44 +530,44 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
   };
 
   return (
-    <div id="lumora-earnings-tab" className="bg-[#050B1A] text-white p-4 rounded-3xl space-y-6 pb-28 animate-in fade-in slide-in-from-bottom-4 duration-300 relative overflow-hidden">
+    <div id="lumora-earnings-tab" className="space-y-6 pb-28 animate-in fade-in slide-in-from-bottom-4 duration-300 relative text-slate-800">
       
-      {/* Absolute Neon Glow background decorations */}
-      <div className="absolute top-0 right-[-10%] w-60 h-60 bg-cyan-500/10 rounded-full blur-[100px] pointer-events-none -z-10"></div>
-      <div className="absolute bottom-[20%] left-[-10%] w-72 h-72 bg-blue-500/10 rounded-full blur-[120px] pointer-events-none -z-10"></div>
+      {/* Absolute Amber & Blue Glow background decorations */}
+      <div className="absolute top-0 right-[-10%] w-60 h-60 bg-amber-500/5 rounded-full blur-[100px] pointer-events-none -z-10"></div>
+      <div className="absolute bottom-[20%] left-[-10%] w-72 h-72 bg-[#0A3D91]/5 rounded-full blur-[120px] pointer-events-none -z-10"></div>
 
       {/* HEADER SECTION */}
-      <div className="flex flex-col space-y-2 border-b border-cyan-500/10 pb-3.5 relative">
+      <div className="flex flex-col space-y-2 border-b border-slate-100 pb-3.5 relative">
         <div className="flex items-center justify-between">
           <div className="flex flex-col">
-            <span className="font-extrabold text-2xl tracking-tight bg-gradient-to-r from-white via-cyan-300 to-cyan-500 bg-clip-text text-transparent font-sans">
+            <span className="font-extrabold text-2xl tracking-tight bg-gradient-to-r from-[#0A3D91] via-[#072558] to-amber-500 bg-clip-text text-transparent font-sans">
               Lumora
             </span>
-            <span className="text-xs text-cyan-400/90 font-medium tracking-wide">
+            <span className="text-xs text-slate-500 font-medium tracking-wide">
               Earnings Dashboard
             </span>
           </div>
           
           <div className="flex items-center space-x-2.5">
             {/* Wallet Quick Balance Widget */}
-            <div className="flex items-center space-x-1.5 bg-[#09152e]/90 border border-cyan-500/15 rounded-xl py-1.5 px-3 shadow-md hover:border-cyan-500/30 transition-all">
-              <Wallet className="w-3.5 h-3.5 text-cyan-400" />
-              <span className="text-[11px] font-mono font-bold text-slate-100">
+            <div className="flex items-center space-x-1.5 bg-[#0a3d91]/5 border border-[#0a3d91]/10 rounded-xl py-1.5 px-3 shadow-3xs hover:border-[#0a3d91]/20 transition-all">
+              <Wallet className="w-3.5 h-3.5 text-[#0A3D91]" />
+              <span className="text-[11px] font-mono font-bold text-[#0A3D91]">
                 {(profile?.incomeBalance ?? 0).toLocaleString(undefined, { minimumFractionDigits: 1 })} ETB
               </span>
             </div>
 
             {/* Notification trigger icon */}
-            <div className="w-8 h-8 rounded-xl bg-[#09152e]/90 border border-cyan-500/15 flex items-center justify-center cursor-pointer relative hover:bg-[#0c1e40] transition-colors">
-              <Bell className="w-4 h-4 text-cyan-400" />
+            <div className="w-8 h-8 rounded-xl bg-[#0a3d91]/5 border border-[#0a3d91]/10 flex items-center justify-center cursor-pointer relative hover:bg-[#0a3d91]/10 transition-colors">
+              <Bell className="w-4 h-4 text-[#0A3D91]" />
               <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
             </div>
           </div>
         </div>
         {/* Glowing animated line */}
-        <div className="w-full h-[1px] bg-cyan-950 relative overflow-hidden mt-2">
+        <div className="w-full h-[1px] bg-slate-100 relative overflow-hidden mt-2">
           <motion.div 
-            className="absolute top-0 left-0 h-full bg-gradient-to-r from-transparent via-cyan-400 to-transparent w-40"
+            className="absolute top-0 left-0 h-full bg-gradient-to-r from-transparent via-amber-400 to-transparent w-40"
             animate={{
               x: ['-100%', '300%']
             }}
@@ -433,24 +581,24 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
       </div>
 
       {/* COMPREHENSIVE VAULT CARD */}
-      <div className="relative rounded-3xl overflow-hidden border border-cyan-500/15 bg-gradient-to-br from-[#0c1933]/90 via-[#071124]/95 to-[#050B1A] p-5 shadow-[0_0_20px_rgba(6,182,212,0.06)] hover:shadow-[0_0_25px_rgba(6,182,212,0.12)] transition-all duration-300">
+      <div className="relative rounded-3xl overflow-hidden border border-[#0A3D91]/20 bg-gradient-to-br from-[#0a3d91] via-[#072558] to-[#0a3d91] p-5 shadow-lg text-white transition-all duration-300">
         
-        {/* Matrix scanning effect overlay */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(18,24,38,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(18,24,38,0.1)_1px,transparent_1px)] bg-[size:16px_16px] opacity-25 pointer-events-none"></div>
+        {/* Subtle geometric pattern overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:16px_16px] opacity-40 pointer-events-none"></div>
         
         <div className="relative z-10 flex flex-col space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2.5">
-              <div className="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-500/25 flex items-center justify-center">
-                <Coins className="w-4 h-4 text-cyan-400 animate-pulse" />
+              <div className="w-8 h-8 rounded-xl bg-amber-400/20 border border-amber-300/30 flex items-center justify-center">
+                <Coins className="w-4 h-4 text-amber-300 animate-pulse" />
               </div>
-              <span className="text-[10px] font-black tracking-widest font-mono text-cyan-400/90 uppercase">
+              <span className="text-[10px] font-black tracking-widest font-mono text-amber-300 uppercase">
                 LUMORA COMPREHENSIVE VAULT
               </span>
             </div>
             
-            <span className="px-2.5 py-0.5 text-[8px] font-black font-mono rounded-full bg-cyan-950/80 border border-cyan-500/30 text-cyan-400 flex items-center space-x-1 shadow-sm">
-              <Cpu className="w-3 h-3 text-cyan-400 animate-spin-slow shrink-0" />
+            <span className="px-2.5 py-0.5 text-[8px] font-black font-mono rounded-full bg-[#072558]/80 border border-blue-400/20 text-blue-200 flex items-center space-x-1 shadow-sm">
+              <Cpu className="w-3 h-3 text-blue-200 animate-spin-slow shrink-0" />
               <span className="uppercase tracking-wide">SECURE VAULT ACTIVE</span>
             </span>
           </div>
@@ -458,22 +606,22 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
           <div className="grid grid-cols-12 gap-4 items-center">
             {/* Balance data */}
             <div className="col-span-7 space-y-1">
-              <p className="text-[9.5px] text-slate-400 uppercase tracking-wider font-mono font-semibold">
+              <p className="text-[9.5px] text-blue-200 uppercase tracking-wider font-mono font-semibold">
                 Total Account Balance
               </p>
               <p className="text-3xl font-extrabold text-white tracking-tight font-sans drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
                 {(profile?.walletBalance ?? 0).toLocaleString()}
-                <span className="text-xs text-cyan-400 font-bold ml-1.5 uppercase font-mono">ETB</span>
+                <span className="text-xs text-amber-300 font-bold ml-1.5 uppercase font-mono">ETB</span>
               </p>
               
               <div className="pt-2 flex flex-col space-y-1">
-                <div className="flex items-center space-x-1.5 text-[10px] text-slate-300 font-mono">
-                  <Activity className="w-3.5 h-3.5 text-cyan-400 animate-pulse shrink-0" />
-                  <span>Stream rate: <strong className="text-cyan-300">+{liveStreamRate.toFixed(4)}</strong></span>
+                <div className="flex items-center space-x-1.5 text-[10px] text-blue-100 font-mono">
+                  <Activity className="w-3.5 h-3.5 text-amber-300 animate-pulse shrink-0" />
+                  <span>Stream rate: <strong className="text-amber-200">+{liveStreamRate.toFixed(4)}</strong></span>
                 </div>
-                <div className="flex items-center space-x-1.5 text-[10px] text-slate-300 font-mono">
-                  <TrendingUp className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span>Est. Daily Yield: <strong className="text-emerald-400">+{levelIncomeTotal.toLocaleString()} ETB</strong></span>
+                <div className="flex items-center space-x-1.5 text-[10px] text-blue-100 font-mono">
+                  <TrendingUp className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
+                  <span>Est. Daily Yield: <strong className="text-emerald-300">+{levelIncomeTotal.toLocaleString()} ETB</strong></span>
                 </div>
               </div>
             </div>
@@ -486,7 +634,7 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
                     cx="40"
                     cy="40"
                     r="32"
-                    stroke="#101e38"
+                    stroke="rgba(30,58,138,0.4)"
                     strokeWidth="4"
                     fill="transparent"
                   />
@@ -494,7 +642,7 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
                     cx="40"
                     cy="40"
                     r="32"
-                    stroke="#06b6d4"
+                    stroke="#fbbf24"
                     strokeWidth="4"
                     fill="transparent"
                     strokeDasharray={2 * Math.PI * 32}
@@ -505,37 +653,37 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <span className="text-xs font-mono font-bold text-white leading-none">100%</span>
-                  <span className="text-[7.5px] text-cyan-400/80 uppercase font-mono font-semibold tracking-wider mt-0.5">SECURE</span>
+                  <span className="text-[7.5px] text-amber-300 uppercase font-mono font-semibold tracking-wider mt-0.5">SECURE</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="pt-3 border-t border-cyan-550/15 flex items-center justify-between text-[9px] text-slate-400 font-mono">
-            <div className="flex items-center space-x-1.5 text-cyan-400/90 font-medium">
-              <ShieldCheck className="w-4 h-4 text-cyan-400 stroke-[2]" />
+          <div className="pt-3 border-t border-blue-200/10 flex items-center justify-between text-[9px] text-blue-200 font-mono">
+            <div className="flex items-center space-x-1.5 text-blue-200 font-medium">
+              <ShieldCheck className="w-4 h-4 text-blue-200 stroke-[2]" />
               <span>Secure Vault Protected by AI Systems</span>
             </div>
             
-            <div className="flex items-center space-x-1 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-500/15 text-[8px]">
-              <Clock className="w-3 h-3 text-cyan-400 shrink-0" />
-              <span>Settlement: <strong className="text-cyan-400">{payoutCountdown}</strong></span>
+            <div className="flex items-center space-x-1 bg-[#072558]/80 px-2 py-0.5 rounded border border-blue-400/20 text-[8px]">
+              <Clock className="w-3 h-3 text-blue-250 shrink-0" />
+              <span>Settlement: <strong className="text-amber-300">{payoutCountdown}</strong></span>
             </div>
           </div>
         </div>
       </div>
 
       {/* DAILY LEVEL INCOME FULFILLMENT ENGINE */}
-      <div className="p-5 rounded-3xl bg-gradient-to-br from-[#0c1a36] to-[#060e1f] border border-cyan-500/15 shadow-md text-left relative overflow-hidden">
+      <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-sm text-left relative overflow-hidden">
         
-        <div className="flex justify-between items-center pb-3.5 border-b border-cyan-500/10">
+        <div className="flex justify-between items-center pb-3.5 border-b border-slate-100">
           <div className="flex items-center space-x-2">
-            <Sliders className="w-4.5 h-4.5 text-cyan-400" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-white font-sans">
+            <Sliders className="w-4.5 h-4.5 text-[#0A3D91]" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 font-sans">
               Daily Level Income Fulfillment
             </h3>
           </div>
-          <span className="text-[9px] font-bold text-cyan-400 bg-cyan-950 border border-cyan-500/25 px-2.5 py-0.5 rounded-full font-mono">
+          <span className="text-[9px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full font-mono">
             {getLevelName(userVipLevel)}
           </span>
         </div>
@@ -544,22 +692,22 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
           
           <div className="space-y-3.5 flex-1 w-full">
             <div className="flex items-baseline justify-between">
-              <span className="text-[11px] text-slate-300 font-mono font-medium">Daily Target Income:</span>
-              <span className="text-xl font-mono font-extrabold text-cyan-300">
-                {levelIncomeTotal} <span className="text-xs text-white">ETB</span>
+              <span className="text-[11px] text-slate-500 font-mono font-medium">Daily Target Income:</span>
+              <span className="text-xl font-mono font-extrabold text-[#0A3D91]">
+                {levelIncomeTotal} <span className="text-xs text-slate-500">ETB</span>
               </span>
             </div>
 
             <div className="space-y-2">
-              <div className="flex justify-between text-[10px] font-semibold text-slate-400 font-mono">
+              <div className="flex justify-between text-[10px] font-semibold text-slate-500 font-mono">
                 <span>Distribution Status:</span>
-                <span className={totalAllocationSum === 100 ? "text-cyan-400" : "text-amber-400 animate-pulse"}>
+                <span className={totalAllocationSum === 100 ? "text-[#0A3D91] font-bold" : "text-amber-500 animate-pulse font-bold"}>
                   {totalAllocationSum}% Allocated
                 </span>
               </div>
-              <div className="w-full h-2.5 bg-[#09152e] rounded-full overflow-hidden flex border border-cyan-500/10 p-[1px]">
+              <div className="w-full h-2.5 bg-slate-50 rounded-full overflow-hidden flex border border-slate-200/60 p-[1px]">
                 <div 
-                  className={`rounded-full h-full transition-all duration-500 ${totalAllocationSum === 100 ? "bg-gradient-to-r from-cyan-500 to-blue-500" : "bg-amber-500"}`}
+                  className={`rounded-full h-full transition-all duration-500 ${totalAllocationSum === 100 ? "bg-gradient-to-r from-[#0A3D91] to-blue-500" : "bg-amber-500"}`}
                   style={{ width: `${Math.min(100, totalAllocationSum)}%` }}
                 ></div>
               </div>
@@ -568,22 +716,22 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
             <div className="flex flex-wrap gap-2 pt-1.5">
               <button 
                 onClick={handleAutoDistribute}
-                className="text-[10px] font-mono font-black uppercase bg-[#09152e] border border-cyan-500/20 px-3 py-1.5 rounded-xl text-cyan-400 hover:bg-cyan-950/50 hover:border-cyan-400 transition-colors"
+                className="text-[10px] font-mono font-black uppercase bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 Distribute Evenly
               </button>
               {totalAllocationSum !== 100 && (
                 <button 
                   onClick={handleRebalance}
-                  className="text-[10px] font-mono font-black uppercase bg-cyan-900/35 border border-cyan-400/40 px-3 py-1.5 rounded-xl text-cyan-300 hover:bg-cyan-900/50 hover:border-cyan-400 transition-all flex items-center space-x-1"
+                  className="text-[10px] font-mono font-black uppercase bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl text-amber-700 hover:bg-amber-100 transition-all flex items-center space-x-1 cursor-pointer"
                 >
-                  <RefreshCw className="w-3 h-3 text-cyan-400 animate-spin-slow shrink-0" />
+                  <RefreshCw className="w-3 h-3 text-amber-600 animate-spin-slow shrink-0" />
                   <span>Auto Rebalance (100%)</span>
                 </button>
               )}
               <button 
                 onClick={() => setIsEditingAlloc(!isEditingAlloc)}
-                className={`text-[10px] font-mono font-black uppercase px-3 py-1.5 rounded-xl transition-all ${isEditingAlloc ? 'bg-cyan-500 text-[#050B1A] border border-cyan-400' : 'bg-[#09152e] border border-cyan-500/15 text-slate-300 hover:border-cyan-500/35'}`}
+                className={`text-[10px] font-mono font-black uppercase px-3 py-1.5 rounded-xl transition-all cursor-pointer ${isEditingAlloc ? 'bg-[#0A3D91] text-white border border-[#0A3D91]' : 'bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100'}`}
               >
                 {isEditingAlloc ? 'Lock Allocation' : 'Customize Sliders'}
               </button>
@@ -591,7 +739,7 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
           </div>
 
           {/* Daily Income Fulfillment Ring UI Element */}
-          <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-[#09142c]/50 border border-cyan-500/10 min-w-[150px] shrink-0 text-center space-y-2">
+          <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-50 border border-slate-150 min-w-[150px] shrink-0 text-center space-y-2">
             <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 font-mono">Fulfillment Cycle</span>
             <div className="relative w-16 h-16 flex items-center justify-center">
               <svg className="w-full h-full transform -rotate-90">
@@ -599,7 +747,7 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
                   cx="32"
                   cy="32"
                   r="26"
-                  stroke="#0b1730"
+                  stroke="#e2e8f0"
                   strokeWidth="3.5"
                   fill="transparent"
                 />
@@ -607,7 +755,7 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
                   cx="32"
                   cy="32"
                   r="26"
-                  stroke={totalAllocationSum === 100 ? "#06b6d4" : "#f59e0b"}
+                  stroke={totalAllocationSum === 100 ? "#0A3D91" : "#f59e0b"}
                   strokeWidth="3.5"
                   fill="transparent"
                   strokeDasharray={2 * Math.PI * 26}
@@ -617,10 +765,10 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-[11px] font-mono font-black text-white">{totalAllocationSum}%</span>
+                <span className="text-[11px] font-mono font-black text-slate-800">{totalAllocationSum}%</span>
               </div>
             </div>
-            <p className="text-[8.5px] font-bold text-cyan-400/90 max-w-[120px] leading-tight mt-1">
+            <p className="text-[8.5px] font-bold text-[#0A3D91] max-w-[120px] leading-tight mt-1">
               {totalAllocationSum === 100 
                 ? "Income fully distributed across selected projects"
                 : "Adjust allocations to reach 100% distribution"}
@@ -634,24 +782,24 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="pt-4 border-t border-cyan-500/10 space-y-3"
+            className="pt-4 border-t border-slate-100 space-y-3"
           >
-            <p className="text-[9.5px] text-slate-400 uppercase tracking-wider font-bold font-mono">Select Portfolio Projects & Set Allocation weights:</p>
+            <p className="text-[9.5px] text-slate-500 uppercase tracking-wider font-bold font-mono">Select Portfolio Projects & Set Allocation weights:</p>
             <div className="grid grid-cols-1 gap-2.5">
               {DEFAULT_PROJECTS.map(p => {
                 const isSelected = activeProjects.includes(p.id);
                 return (
-                  <div key={p.id} className={`p-3.5 rounded-2xl border transition-all ${isSelected ? 'bg-[#09152e] border-cyan-500/30' : 'bg-slate-950/20 border-slate-900 opacity-60'}`}>
+                  <div key={p.id} className={`p-3.5 rounded-2xl border transition-all ${isSelected ? 'bg-slate-50/80 border-amber-300' : 'bg-slate-50/20 border-slate-100 opacity-60'}`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3 cursor-pointer" onClick={() => toggleProject(p.id)}>
-                        <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${isSelected ? 'bg-cyan-500 border-cyan-400 text-[#050B1A]' : 'border-slate-700'}`}>
+                        <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${isSelected ? 'bg-[#0A3D91] border-[#0A3D91] text-white' : 'border-slate-300'}`}>
                           {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                         </div>
-                        <span className="text-xs font-black">{p.icon} {p.name}</span>
+                        <span className="text-xs font-black text-slate-800">{p.icon} {p.name}</span>
                       </div>
                       
                       {isSelected && (
-                        <span className="text-xs font-mono font-black text-cyan-400">{allocations[p.id] || 0}%</span>
+                        <span className="text-xs font-mono font-black text-[#0A3D91]">{allocations[p.id] || 0}%</span>
                       )}
                     </div>
 
@@ -663,7 +811,7 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
                           max="100"
                           value={allocations[p.id] || 0}
                           onChange={(e) => handleAllocationSlider(p.id, Number(e.target.value))}
-                          className="w-full accent-cyan-400 bg-cyan-950 h-1 rounded-lg"
+                          className="w-full accent-[#0A3D91] bg-slate-200 h-1 rounded-lg"
                         />
                       </div>
                     )}
@@ -678,11 +826,11 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
       {/* ACTIVE INVESTMENT PROJECTS SECTION */}
       <div className="space-y-3.5 text-left">
         <div className="flex items-center justify-between px-0.5">
-          <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center space-x-1.5">
-            <span className="w-1.5 h-3.5 bg-cyan-400 rounded-full inline-block animate-pulse"></span>
+          <h3 className="font-display font-black text-xs text-slate-800 uppercase tracking-wider flex items-center space-x-1.5">
+            <span className="w-1.5 h-3.5 bg-[#0A3D91] rounded-full inline-block animate-pulse"></span>
             <span>Active Investment Projects</span>
           </h3>
-          <span className="text-[9px] font-mono font-black text-cyan-400 uppercase tracking-wide bg-cyan-950/60 border border-cyan-500/15 px-2.5 py-0.5 rounded-full">
+          <span className="text-[9px] font-mono font-black text-[#0A3D91] uppercase tracking-wide bg-slate-50 border border-slate-150 px-2.5 py-0.5 rounded-full">
             {selectedProjectsData.length} Selected
           </span>
         </div>
@@ -694,26 +842,26 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
             return (
               <div 
                 key={p.id}
-                className="p-4 rounded-2xl bg-[#091226]/80 border border-cyan-500/10 pr-4 pl-5 relative overflow-hidden shadow-sm hover:border-cyan-500/30 hover:shadow-[0_0_15px_rgba(6,182,212,0.1)] transition-all duration-300"
+                className="p-4 rounded-2xl bg-white border border-slate-150 pr-4 pl-5 relative overflow-hidden shadow-2xs hover:border-[#0A3D91]/30 hover:shadow-xs transition-all duration-300"
               >
-                {/* Visual Glassmorphic accent bar on the left */}
-                <div className={`absolute top-0 left-0 w-1 h-full ${p.status === 'Active' ? 'bg-gradient-to-b from-cyan-400 to-blue-500' : 'bg-amber-400'}`}></div>
+                {/* Visual Accent bar on the left */}
+                <div className={`absolute top-0 left-0 w-1 h-full ${p.status === 'Active' ? 'bg-[#0A3D91]' : 'bg-amber-400'}`}></div>
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <span className="text-xl">{p.icon}</span>
                     <div>
                       <div className="flex items-center space-x-2">
-                        <h4 className="font-display font-extrabold text-xs text-white tracking-tight">
+                        <h4 className="font-display font-extrabold text-xs text-slate-800 tracking-tight">
                           {p.name}
                         </h4>
-                        <span className="px-1.5 py-0.5 text-[8px] font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded-md">
+                        <span className="px-1.5 py-0.5 text-[8px] font-bold bg-[#0A3D91]/10 text-[#0A3D91] border border-[#0A3D91]/20 rounded-md">
                           {alloc}%
                         </span>
                       </div>
                       <div className="flex items-center space-x-2 mt-1">
                         <span className="text-[9px] text-slate-400 font-bold font-mono">Today:</span>
-                        <span className="text-[9px] text-cyan-400 font-extrabold font-mono flex items-center">
+                        <span className="text-[9px] text-[#0A3D91] font-extrabold font-mono flex items-center">
                           {p.trend}
                         </span>
                       </div>
@@ -727,8 +875,8 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
                     </div>
 
                     <div className="text-right">
-                      <span className="text-xs font-mono font-black text-cyan-300 block">
-                        {contribETB.toFixed(2)} <span className="text-[9px] text-white">ETB</span>
+                      <span className="text-xs font-mono font-black text-[#0A3D91] block">
+                        {contribETB.toFixed(2)} <span className="text-[9px] text-slate-500">ETB</span>
                       </span>
                       <span className="inline-flex items-center space-x-1 mt-1">
                         <span className={`w-1.5 h-1.5 rounded-full ${p.status === 'Active' ? 'bg-emerald-500 animate-ping' : 'bg-amber-500 animate-pulse'}`}></span>
@@ -746,26 +894,26 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
       </div>
 
       {/* REAL-TIME MARKET CONDITIONS */}
-      <div className="p-4.5 rounded-3xl bg-gradient-to-br from-[#071124] to-[#040a17] border border-cyan-500/10 shadow-sm text-left space-y-4">
+      <div className="p-4.5 rounded-3xl bg-white border border-slate-200 shadow-sm text-left space-y-4">
         
         {/* Header bar */}
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-1.5">
-            <span className="w-1.5 h-3.5 bg-cyan-400 rounded-full inline-block animate-pulse"></span>
-            <span className="text-[10px] font-black uppercase tracking-widest text-cyan-400 font-mono">
+            <span className="w-1.5 h-3.5 bg-[#0A3D91] rounded-full inline-block animate-pulse"></span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#0A3D91] font-mono">
               REAL-TIME MARKET CONDITIONS
             </span>
           </div>
-          <span className="text-[8px] font-black uppercase tracking-wider font-mono text-cyan-300 bg-cyan-950/80 border border-cyan-500/20 px-2.5 py-1 rounded-full flex items-center space-x-1 shadow-sm">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping shrink-0"></span>
+          <span className="text-[8px] font-black uppercase tracking-wider font-mono text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full flex items-center space-x-1 shadow-2xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping shrink-0"></span>
             <span>Last Updated: Live</span>
           </span>
         </div>
 
         {/* Live Infinite Scrolling Sentiment Ticker */}
-        <div className="relative w-full overflow-hidden bg-[#050b1a]/95 py-2.5 border-y border-cyan-500/15 rounded-xl select-none shadow-[inset_0_1px_5px_rgba(0,0,0,0.4)]">
-          <div className="absolute left-0 top-0 bottom-0 w-10 bg-gradient-to-r from-[#050b1a] to-transparent z-10 pointer-events-none"></div>
-          <div className="absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-[#050b1a] to-transparent z-10 pointer-events-none"></div>
+        <div className="relative w-full overflow-hidden bg-slate-50 py-2.5 border-y border-slate-200 rounded-xl select-none shadow-[inset_0_1px_3px_rgba(0,0,0,0.05)]">
+          <div className="absolute left-0 top-0 bottom-0 w-10 bg-gradient-to-r from-slate-50 to-transparent z-10 pointer-events-none"></div>
+          <div className="absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-slate-50 to-transparent z-10 pointer-events-none"></div>
           
           <motion.div 
             className="flex space-x-12 whitespace-nowrap"
@@ -780,27 +928,24 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
             {/* Multiplied copy to allow infinite scroll wrapping */}
             {[...MARKET_SENTIMENTS, ...MARKET_SENTIMENTS, ...MARKET_SENTIMENTS].map((item, idx) => {
               const isSelected = activeProjects.includes(item.id);
+              const matchedProj = DEFAULT_PROJECTS.find(p => p.id === item.id);
               return (
                 <div key={`${item.id}-ticker-${idx}`} className="inline-flex items-center space-x-2.5 text-[10px] font-mono">
                   <span className="text-sm shrink-0">
-                    {item.id === 'crypto' && '🪙'}
-                    {item.id === 'forex' && '💱'}
-                    {item.id === 'stock' && '📈'}
-                    {item.id === 'ai_fund' && '🤖'}
-                    {item.id === 'infra' && '🏗️'}
+                    {matchedProj?.icon || '⚙️'}
                   </span>
-                  <span className="font-black text-slate-200 tracking-tight">{item.ticker}</span>
-                  <span className={`px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider flex items-center space-x-0.5 ${item.sentiment === 'Bullish' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
+                  <span className="font-black text-slate-700 tracking-tight">{item.ticker}</span>
+                  <span className={`px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider flex items-center space-x-0.5 ${item.sentiment === 'Bullish' ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-600 border border-rose-500/20'}`}>
                     <span>{item.sentiment === 'Bullish' ? '▲' : '▼'}</span>
                     <span>{item.sentiment.toUpperCase()}</span>
                     <span className="ml-0.5">{item.change}</span>
                   </span>
                   {isSelected ? (
-                    <span className="text-[8px] font-bold text-cyan-400 font-mono bg-cyan-950/40 px-1.5 py-0.5 rounded border border-cyan-500/15">
+                    <span className="text-[8px] font-bold text-[#0A3D91] font-mono bg-[#0A3D91]/10 px-1.5 py-0.5 rounded border border-[#0A3D91]/15">
                       ACTIVE PORTFOLIO ({allocations[item.id] || 0}%)
                     </span>
                   ) : (
-                    <span className="text-[8px] text-slate-500 font-semibold font-mono">
+                    <span className="text-[8px] text-slate-400 font-semibold font-mono">
                       OFF-PORTFOLIO
                     </span>
                   )}
@@ -812,41 +957,41 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
 
         {/* Traditional Market Grid Widgets */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="p-3 rounded-2xl bg-[#091226]/50 border border-cyan-500/10 flex flex-col justify-between items-start select-none">
+          <div className="p-3 rounded-2xl bg-slate-50 border border-slate-150 flex flex-col justify-between items-start select-none">
             <span className="text-[9px] uppercase font-bold text-slate-400 tracking-wider font-mono">
               Cryptocurrency Market
             </span>
-            <span className="text-xs font-semibold text-emerald-400 mt-1 flex items-center space-x-1">
+            <span className="text-xs font-semibold text-emerald-600 mt-1 flex items-center space-x-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
               <span>Bullish • Stable Growth</span>
             </span>
           </div>
 
-          <div className="p-3 rounded-2xl bg-[#091226]/50 border border-cyan-500/10 flex flex-col justify-between items-start select-none">
+          <div className="p-3 rounded-2xl bg-slate-50 border border-slate-150 flex flex-col justify-between items-start select-none">
             <span className="text-[9px] uppercase font-bold text-slate-400 tracking-wider font-mono">
               Forex Market
             </span>
-            <span className="text-xs font-semibold text-emerald-400 mt-1 flex items-center space-x-1">
+            <span className="text-xs font-semibold text-emerald-600 mt-1 flex items-center space-x-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
               <span>Bullish • Positive Trend</span>
             </span>
           </div>
 
-          <div className="p-3 rounded-2xl bg-[#091226]/50 border border-cyan-500/10 flex flex-col justify-between items-start select-none">
+          <div className="p-3 rounded-2xl bg-slate-50 border border-slate-150 flex flex-col justify-between items-start select-none">
             <span className="text-[9px] uppercase font-bold text-slate-400 tracking-wider font-mono">
               Stock Market
             </span>
-            <span className="text-xs font-semibold text-amber-400 mt-1 flex items-center space-x-1">
+            <span className="text-xs font-semibold text-amber-600 mt-1 flex items-center space-x-1">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
               <span>Bearish • Moderate Volatility</span>
             </span>
           </div>
 
-          <div className="p-3 rounded-2xl bg-[#091226]/50 border border-cyan-500/10 flex flex-col justify-between items-start select-none">
+          <div className="p-3 rounded-2xl bg-slate-50 border border-slate-150 flex flex-col justify-between items-start select-none">
             <span className="text-[9px] uppercase font-bold text-slate-400 tracking-wider font-mono">
               Portfolio Risk Level
             </span>
-            <span className="text-xs font-semibold text-emerald-400 mt-1 flex items-center space-x-1">
+            <span className="text-xs font-semibold text-emerald-600 mt-1 flex items-center space-x-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
               <span>Controlled</span>
             </span>
@@ -854,18 +999,18 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
         </div>
 
         {/* Sentiment Analysis Breakdown List */}
-        <div className="pt-3 border-t border-cyan-500/10 space-y-3">
+        <div className="pt-3 border-t border-slate-100 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-[9.5px] uppercase font-black tracking-widest text-slate-300 font-mono">
+            <span className="text-[9.5px] uppercase font-black tracking-widest text-slate-400 font-mono">
               Market Sentiment & Influence Indicators
             </span>
             {/* Filter buttons */}
-            <div className="flex space-x-1 bg-[#050b1a]/80 p-0.5 rounded-lg border border-cyan-500/10">
+            <div className="flex space-x-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
               {(['all', 'bullish', 'bearish'] as const).map((filter) => (
                 <button
                   key={filter}
                   onClick={() => setSelectedSentimentFilter(filter)}
-                  className={`px-2 py-0.5 text-[8.5px] font-mono font-bold rounded uppercase transition-colors ${selectedSentimentFilter === filter ? 'bg-cyan-500 text-[#050B1A]' : 'text-slate-400 hover:text-white'}`}
+                  className={`px-2 py-0.5 text-[8.5px] font-mono font-bold rounded uppercase transition-colors cursor-pointer ${selectedSentimentFilter === filter ? 'bg-[#0A3D91] text-white' : 'text-slate-500 hover:text-slate-800'}`}
                 >
                   {filter}
                 </button>
@@ -886,7 +1031,7 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
               return (
                 <div 
                   key={item.id} 
-                  className={`rounded-2xl border transition-all duration-200 ${isExpanded ? 'bg-[#091226] border-cyan-500/25 shadow-lg' : 'bg-[#091226]/40 border-cyan-500/5 hover:border-cyan-500/15'}`}
+                  className={`rounded-2xl border transition-all duration-200 ${isExpanded ? 'bg-slate-50 border-[#0A3D91]/30 shadow-xs' : 'bg-slate-50/40 border-slate-150 hover:border-slate-250'}`}
                 >
                   <div 
                     onClick={() => setExpandedSentimentId(isExpanded ? null : item.id)}
@@ -894,28 +1039,24 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
                   >
                     <div className="flex items-center space-x-3">
                       <span className="text-lg">
-                        {item.id === 'crypto' && '🪙'}
-                        {item.id === 'forex' && '💱'}
-                        {item.id === 'stock' && '📈'}
-                        {item.id === 'ai_fund' && '🤖'}
-                        {item.id === 'infra' && '🏗️'}
+                        {DEFAULT_PROJECTS.find(p => p.id === item.id)?.icon || '⚙️'}
                       </span>
                       <div>
                         <div className="flex items-center space-x-2">
-                          <span className="text-xs font-extrabold text-slate-100">{item.name}</span>
-                          <span className="text-[9px] font-mono font-bold text-cyan-400">{item.ticker}</span>
+                          <span className="text-xs font-extrabold text-slate-800">{item.name}</span>
+                          <span className="text-[9px] font-mono font-bold text-[#0A3D91]">{item.ticker}</span>
                         </div>
-                        <p className="text-[9px] text-slate-400 font-mono mt-0.5 font-semibold">
-                          Sentiment score: <strong className={item.sentiment === 'Bullish' ? 'text-emerald-400' : 'text-rose-400'}>{item.score}%</strong>
+                        <p className="text-[9px] text-slate-500 font-mono mt-0.5 font-semibold">
+                          Sentiment score: <strong className={item.sentiment === 'Bullish' ? 'text-emerald-600' : 'text-rose-600'}>{item.score}%</strong>
                         </p>
                       </div>
                     </div>
 
                     <div className="flex items-center space-x-3">
-                      <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${item.sentiment === 'Bullish' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/15 text-rose-400 border border-rose-500/20'}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${item.sentiment === 'Bullish' ? 'bg-emerald-500/15 text-emerald-600 border border-emerald-500/20' : 'bg-rose-500/15 text-rose-600 border border-rose-500/20'}`}>
                         {item.sentiment}
                       </span>
-                      <ChevronRight className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-90 text-cyan-400' : ''}`} />
+                      <ChevronRight className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-90 text-[#0A3D91]' : ''}`} />
                     </div>
                   </div>
 
@@ -927,18 +1068,18 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
                         exit={{ opacity: 0, height: 0 }}
                         className="overflow-hidden"
                       >
-                        <div className="px-3.5 pb-3.5 pt-0.5 border-t border-cyan-500/5 space-y-3.5 text-[10px]">
+                        <div className="px-3.5 pb-3.5 pt-0.5 border-t border-slate-100 space-y-3.5 text-[10px]">
                           {/* Reason */}
                           <div className="space-y-1">
                             <span className="text-[8.5px] font-black uppercase text-slate-400 tracking-wider font-mono block">Market Catalyst Analysis:</span>
-                            <p className="text-slate-300 font-medium font-sans leading-relaxed">
+                            <p className="text-slate-600 font-medium font-sans leading-relaxed">
                               {item.reason}
                             </p>
                           </div>
 
                           {/* Live connection/Portfolio influence box */}
-                          <div className={`p-3 rounded-xl border flex items-start space-x-2.5 ${isSelected ? 'bg-cyan-500/5 border-cyan-500/20 text-cyan-200' : 'bg-slate-950/40 border-slate-900 text-slate-400'}`}>
-                            <Info className={`w-4 h-4 shrink-0 mt-0.5 ${isSelected ? 'text-cyan-400' : 'text-slate-500'}`} />
+                          <div className={`p-3 rounded-xl border flex items-start space-x-2.5 ${isSelected ? 'bg-amber-500/5 border-amber-300/30 text-slate-750' : 'bg-slate-100 border-slate-200 text-slate-500'}`}>
+                            <Info className={`w-4 h-4 shrink-0 mt-0.5 ${isSelected ? 'text-amber-500' : 'text-slate-400'}`} />
                             <div className="space-y-1">
                               <span className="text-[8.5px] font-black uppercase tracking-wider font-mono block">
                                 {isSelected ? 'ACTIVE PORTFOLIO IMPACT' : 'OFF-PORTFOLIO IMPACT'}
@@ -946,12 +1087,12 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
                               <p className="font-medium font-sans leading-relaxed">
                                 {isSelected ? (
                                   <>
-                                    This {item.sentiment.toLowerCase()} market signal directly influences your <strong className="text-white">{alloc}% active allocation</strong>. 
-                                    Your portfolio is capturing <strong className="text-cyan-300">{contribution.toFixed(2)} ETB</strong> daily from this project based on system calculations. {item.influence}
+                                    This {item.sentiment.toLowerCase()} market signal directly influences your <strong className="text-slate-800">{alloc}% active allocation</strong>. 
+                                    Your portfolio is capturing <strong className="text-[#0A3D91]">{contribution.toFixed(2)} ETB</strong> daily from this project based on system calculations. {item.influence}
                                   </>
                                 ) : (
                                   <>
-                                    This {item.sentiment.toLowerCase()} market signal is not currently affecting your earnings because you have <strong className="text-slate-300">0% allocated</strong>. 
+                                    This {item.sentiment.toLowerCase()} market signal is not currently affecting your earnings because you have <strong className="text-slate-400">0% allocated</strong>. 
                                     To participate in these market opportunities, select this project and increase its weight in the "Daily Level Income Fulfillment" sliders above.
                                   </>
                                 )}
@@ -971,15 +1112,14 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
       </div>
 
       {/* LUMORA INVESTMENT TEAM ACTIVITY */}
-      <div className="relative p-5 rounded-3xl bg-gradient-to-br from-[#0c1a36]/90 via-[#071124]/95 to-[#050B1A] border border-cyan-500/15 shadow-[0_0_15px_rgba(6,182,212,0.05)] text-left overflow-hidden">
+      <div className="relative p-5 rounded-3xl bg-white border border-slate-200 shadow-sm text-left overflow-hidden">
         
-        {/* Futurist control room style scanning line effect */}
-        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent animate-pulse pointer-events-none"></div>
-        <div className="absolute inset-x-0 h-4 bg-gradient-to-b from-cyan-500/5 to-transparent animate-pulse pointer-events-none" style={{ animationDuration: '3.5s' }}></div>
+        {/* Subtle geometric overlay */}
+        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-amber-400/50 to-transparent pointer-events-none"></div>
 
-        <div className="flex items-center space-x-2 pb-3 border-b border-cyan-500/10 mb-4">
-          <Cpu className="w-4.5 h-4.5 text-cyan-400" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-white font-mono">
+        <div className="flex items-center space-x-2 pb-3 border-b border-slate-100 mb-4">
+          <Cpu className="w-4.5 h-4.5 text-[#0A3D91]" />
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-800 font-mono">
             LUMORA INVESTMENT TEAM ACTIVITY
           </span>
         </div>
@@ -994,32 +1134,32 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
               "Optimizing investment performance",
               "Identifying new opportunities"
             ].map((text, i) => (
-              <div key={i} className="flex items-center space-x-2 text-[10px] text-slate-300 font-bold font-mono">
-                <Check className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+              <div key={i} className="flex items-center space-x-2 text-[10px] text-slate-600 font-bold font-mono">
+                <Check className="w-3.5 h-3.5 text-[#0A3D91] shrink-0" />
                 <span>{text}</span>
               </div>
             ))}
           </div>
 
-          <div className="md:col-span-5 p-3.5 rounded-2xl bg-slate-950/50 border border-cyan-500/10 space-y-2.5">
+          <div className="md:col-span-5 p-3.5 rounded-2xl bg-slate-50 border border-slate-150 space-y-2.5">
             <span className="text-[8.5px] uppercase font-black tracking-widest text-slate-400 font-mono block">AI Status Panel</span>
             
             <div className="space-y-1.5 font-mono text-[9px]">
               <div className="flex items-center justify-between">
-                <span className="text-slate-400">Team Monitoring:</span>
-                <span className="text-cyan-400 font-extrabold uppercase tracking-wide">Active</span>
+                <span className="text-slate-500">Team Monitoring:</span>
+                <span className="text-[#0A3D91] font-extrabold uppercase tracking-wide">Active</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-400">Risk Management:</span>
-                <span className="text-cyan-400 font-extrabold uppercase tracking-wide">Enabled</span>
+                <span className="text-slate-500">Risk Management:</span>
+                <span className="text-[#0A3D91] font-extrabold uppercase tracking-wide">Enabled</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-400">Portfolio Opt.:</span>
-                <span className="text-cyan-400 font-extrabold uppercase tracking-wide animate-pulse">Running</span>
+                <span className="text-slate-500">Portfolio Opt.:</span>
+                <span className="text-[#0A3D91] font-extrabold uppercase tracking-wide animate-pulse">Running</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-400">Market Analysis:</span>
-                <span className="text-emerald-400 font-extrabold uppercase tracking-wide">Real-Time</span>
+                <span className="text-slate-500">Market Analysis:</span>
+                <span className="text-emerald-600 font-extrabold uppercase tracking-wide">Real-Time</span>
               </div>
             </div>
           </div>
@@ -1027,12 +1167,12 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
       </div>
 
       {/* HOW DAILY RETURNS ARE MANAGED */}
-      <div className="p-4 rounded-3xl bg-[#091226]/50 border border-cyan-500/10 text-left relative overflow-hidden">
+      <div className="p-4 rounded-3xl bg-blue-50/50 border border-[#0A3D91]/15 text-left relative overflow-hidden">
         <div className="flex items-start space-x-3">
-          <Info className="w-4 h-4 shrink-0 mt-0.5 text-cyan-400" />
+          <Info className="w-4 h-4 shrink-0 mt-0.5 text-[#0A3D91]" />
           <div className="space-y-1">
-            <span className="text-[9.5px] uppercase font-bold text-cyan-400 tracking-wider font-mono block">How Daily Returns are Managed</span>
-            <p className="text-[9.5px] text-slate-400 leading-relaxed font-bold font-sans">
+            <span className="text-[9.5px] uppercase font-bold text-[#0A3D91] tracking-wider font-mono block">How Daily Returns are Managed</span>
+            <p className="text-[9.5px] text-slate-600 leading-relaxed font-semibold font-sans">
               The Lumora investment management system continuously analyzes market conditions, monitors selected project performance, manages risk, diversifies allocations, and adjusts strategies to maintain stability and long-term growth. Daily income is distributed across selected projects based on allocation weight and finalized at settlement time.
             </p>
           </div>
@@ -1040,48 +1180,48 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
       </div>
 
       {/* CLAIM CENTER (SETTLEMENT SYSTEM) */}
-      <div className="p-5 rounded-3xl bg-gradient-to-br from-[#0c1c38] to-[#040b17] border border-cyan-500/15 text-left relative overflow-hidden shadow-[0_0_20px_rgba(6,182,212,0.08)]">
+      <div className="p-5 rounded-3xl bg-white border border-slate-200 text-left relative overflow-hidden shadow-sm">
         
-        <div className="flex items-center space-x-2 pb-3.5 border-b border-cyan-500/10 mb-4">
-          <Activity className="w-4.5 h-4.5 text-cyan-400" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-white font-mono">
+        <div className="flex items-center space-x-2 pb-3.5 border-b border-slate-100 mb-4">
+          <Activity className="w-4.5 h-4.5 text-[#0A3D91]" />
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-800 font-mono">
             CLAIM CENTER (SETTLEMENT SYSTEM)
           </span>
         </div>
 
         <div className="space-y-3.5">
-          <div className="bg-[#050B1A]/80 p-4 rounded-2xl border border-cyan-500/10 space-y-2.5">
+          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-150 space-y-2.5">
             <div className="flex items-baseline justify-between">
-              <span className="text-[11px] text-slate-300 font-mono font-medium">Daily Level Income Total:</span>
-              <span className="text-lg font-mono font-black text-cyan-300">
+              <span className="text-[11px] text-slate-500 font-mono font-medium">Daily Level Income Total:</span>
+              <span className="text-lg font-mono font-black text-[#0A3D91]">
                 {levelIncomeTotal} ETB
               </span>
             </div>
 
-            <div className="space-y-1.5 pt-2 border-t border-cyan-950">
-              <span className="text-[8.5px] uppercase font-black text-slate-400 tracking-wider font-mono block">Project Breakdown:</span>
+            <div className="space-y-1.5 pt-2 border-t border-slate-150">
+              <span className="text-[8.5px] uppercase font-black text-[#0A3D91] tracking-wider font-mono block">Project Breakdown:</span>
               <div className="space-y-1 text-[10px] font-mono font-semibold">
                 {selectedProjectsData.map(p => (
-                  <div key={p.id} className="flex justify-between text-slate-300">
+                  <div key={p.id} className="flex justify-between text-slate-600">
                     <span>{p.icon} {p.name} ({allocations[p.id] || 0}%):</span>
-                    <span className="text-cyan-400">{calculatedContributions[p.id] || 0} ETB</span>
+                    <span className="text-[#0A3D91]">{calculatedContributions[p.id] || 0} ETB</span>
                   </div>
                 ))}
               </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-between bg-cyan-950/40 p-3 rounded-2xl border border-cyan-500/10">
-            <span className="text-[10px] text-slate-300 font-mono font-medium">Accumulated Profit Status:</span>
+          <div className="flex items-center justify-between bg-emerald-50/50 p-3 rounded-2xl border border-emerald-100">
+            <span className="text-[10px] text-slate-600 font-mono font-medium">Accumulated Profit Status:</span>
             <div className="flex items-center space-x-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-              <span className="text-xs font-mono font-black text-emerald-400 uppercase tracking-wide">Ready to Claim</span>
+              <span className="text-xs font-mono font-black text-emerald-600 uppercase tracking-wide">Ready to Claim</span>
             </div>
           </div>
 
           {claimStatus && (
-            <div className={`p-3.5 rounded-2xl border text-xs leading-relaxed font-semibold flex items-start space-x-2.5 ${claimStatus.isError ? 'bg-amber-500/10 border-amber-500/25 text-amber-200' : 'bg-emerald-500/10 border-emerald-500/25 text-emerald-200'}`}>
-              {claimStatus.isError ? <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" /> : <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-400" />}
+            <div className={`p-3.5 rounded-2xl border text-xs leading-relaxed font-semibold flex items-start space-x-2.5 ${claimStatus.isError ? 'bg-amber-500/10 border-amber-500/25 text-amber-850' : 'bg-emerald-500/10 border-emerald-500/25 text-emerald-850'}`}>
+              {claimStatus.isError ? <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600" /> : <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />}
               <span>{claimStatus.text}</span>
             </div>
           )}
@@ -1089,16 +1229,16 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
           <button 
             onClick={handleClaimProfit}
             disabled={claimLoading}
-            className={`w-full py-4 px-5 rounded-2xl text-xs font-black uppercase font-mono tracking-widest text-center shadow-lg transition-all duration-300 flex items-center justify-center space-x-2.5 ${claimLoading ? 'bg-cyan-950 text-cyan-400/50 cursor-not-allowed border border-cyan-500/10' : 'bg-gradient-to-r from-cyan-400 via-cyan-500 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-[#050B1A] hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] active:scale-98 cursor-pointer'}`}
+            className={`w-full py-4 px-5 rounded-2xl text-xs font-black uppercase font-mono tracking-widest text-center shadow-md transition-all duration-300 flex items-center justify-center space-x-2.5 cursor-pointer ${claimLoading ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200' : 'bg-gradient-to-r from-[#0A3D91] via-blue-700 to-[#0A3D91] hover:from-[#072452] hover:to-[#0A3D91] text-white shadow-sm hover:shadow-md active:scale-98'}`}
           >
             {claimLoading ? (
               <>
-                <RefreshCw className="w-4 h-4 text-cyan-400 animate-spin" />
+                <RefreshCw className="w-4 h-4 text-slate-400 animate-spin" />
                 <span>Processing Settlement...</span>
               </>
             ) : (
               <>
-                <Flame className="w-4.5 h-4.5 text-[#050B1A] animate-pulse" />
+                <Flame className="w-4.5 h-4.5 text-white animate-pulse" />
                 <span>Claim Profit ({levelIncomeTotal} ETB)</span>
               </>
             )}
@@ -1114,25 +1254,25 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="relative w-full max-w-sm overflow-hidden rounded-3xl border border-cyan-500/25 bg-gradient-to-br from-[#0c1933] to-[#050B1A] p-6 text-center shadow-2xl"
+              className="relative w-full max-w-sm overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-2xl text-slate-800"
             >
-              <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent"></div>
+              <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-amber-400 to-transparent"></div>
               
-              <div className="w-16 h-16 rounded-full bg-cyan-500/10 border border-cyan-500/35 flex items-center justify-center mx-auto mb-4.5 shadow-[0_0_15px_rgba(6,182,212,0.2)]">
-                <Award className="w-8 h-8 text-cyan-400 animate-pulse" />
+              <div className="w-16 h-16 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto mb-4.5 shadow-sm">
+                <Award className="w-8 h-8 text-amber-500 animate-pulse" />
               </div>
 
-              <h3 className="font-display font-black text-lg text-white mb-2 tracking-tight">
+              <h3 className="font-display font-black text-lg text-slate-900 mb-2 tracking-tight">
                 Profit Settlement Complete!
               </h3>
               
-              <p className="text-xs text-slate-300 leading-relaxed max-w-[280px] mx-auto mb-5 font-bold font-sans">
-                Successfully credited your daily level earnings to your <strong className="text-cyan-400">Income Pool Balance</strong>. Your portfolio assets have been successfully settled.
+              <p className="text-xs text-slate-600 leading-relaxed max-w-[280px] mx-auto mb-5 font-bold font-sans">
+                Successfully credited your daily level earnings to your <strong className="text-[#0A3D91]">Income Pool Balance</strong>. Your portfolio assets have been successfully settled.
               </p>
 
-              <div className="bg-[#091328] border border-cyan-500/10 p-4 rounded-2xl mb-6 space-y-1.5 font-mono">
+              <div className="bg-slate-50 border border-slate-150 p-4 rounded-2xl mb-6 space-y-1.5 font-mono">
                 <span className="text-[10px] text-slate-400 uppercase tracking-widest font-black block">Transferred Amount</span>
-                <span className="text-2xl font-black text-emerald-400">+{celebratedAmount.toFixed(2)} ETB</span>
+                <span className="text-2xl font-black text-emerald-600">+{celebratedAmount.toFixed(2)} ETB</span>
               </div>
 
               <button 
@@ -1140,7 +1280,7 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
                   setShowCelebration(false);
                   onRefreshDashboard();
                 }}
-                className="w-full py-3 bg-cyan-500 hover:bg-cyan-400 active:scale-98 text-[#050B1A] text-xs font-black uppercase tracking-wider font-mono rounded-xl shadow-lg shadow-cyan-500/20 transition-all cursor-pointer"
+                className="w-full py-3 bg-[#0A3D91] hover:bg-[#072452] active:scale-98 text-white text-xs font-black uppercase tracking-wider font-mono rounded-xl shadow-lg shadow-[#0A3D91]/20 transition-all cursor-pointer"
               >
                 Return to Dashboard
               </button>
