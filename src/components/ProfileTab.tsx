@@ -69,8 +69,8 @@ const getRepaymentSchedule = (amount: number, tenureMonths: number = 6, startDat
   return result;
 };
 
-const getVipBadgeDetails = (level: number) => {
-  if (level === 0) {
+const getVipBadgeDetails = (vipLevel: number) => {
+  if (vipLevel <= 0) {
     return {
       text: 'Basic',
       bgColor: 'bg-slate-100 border-slate-200 text-slate-600',
@@ -79,26 +79,35 @@ const getVipBadgeDetails = (level: number) => {
     };
   }
   
+  if (vipLevel === 1) {
+    return {
+      text: 'Starter',
+      bgColor: 'bg-gradient-to-r from-teal-400 to-emerald-500 text-white border-teal-300',
+      iconEmoji: '✨',
+      glowClass: 'shadow-emerald-500/25'
+    };
+  }
+  
   const colors: Record<number, { text: string; bgColor: string; iconEmoji: string; glowClass: string }> = {
-    1: { text: 'VIP 1 Copper', bgColor: 'bg-gradient-to-r from-orange-400 to-amber-500 text-white border-amber-300', iconEmoji: '🥉', glowClass: 'shadow-amber-500/25' },
-    2: { text: 'VIP 2 Bronze', bgColor: 'bg-gradient-to-r from-amber-600 to-amber-700 text-white border-amber-500', iconEmoji: '🥈', glowClass: 'shadow-amber-600/30' },
-    3: { text: 'VIP 3 Silver', bgColor: 'bg-gradient-to-r from-slate-300 via-slate-400 to-slate-500 text-white border-slate-250', iconEmoji: '🥇', glowClass: 'shadow-slate-400/25' },
-    4: { text: 'VIP 4 Gold', bgColor: 'bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-650 text-slate-950 border-yellow-300', iconEmoji: '🔑', glowClass: 'shadow-yellow-550/30' },
-    5: { text: 'VIP 5 Sapphire', bgColor: 'bg-gradient-to-r from-teal-400 to-emerald-600 text-white border-teal-300', iconEmoji: '💼', glowClass: 'shadow-teal-500/25' },
-    6: { text: 'VIP 6 Cobalt', bgColor: 'bg-gradient-to-r from-blue-500 via-indigo-500 to-sky-600 text-white border-blue-300', iconEmoji: '🔹', glowClass: 'shadow-blue-500/30' },
-    7: { text: 'VIP 7 Ruby', bgColor: 'bg-gradient-to-r from-rose-500 via-pink-600 to-red-650 text-white border-rose-300', iconEmoji: '🎈', glowClass: 'shadow-rose-500/30' },
-    8: { text: 'VIP 8 Emerald', bgColor: 'bg-gradient-to-r from-emerald-500 via-green-600 to-teal-750 text-white border-emerald-300', iconEmoji: '🟢', glowClass: 'shadow-emerald-500/30' },
-    9: { text: 'VIP 9 Amethyst', bgColor: 'bg-gradient-to-r from-purple-500 via-violet-600 to-indigo-850 text-white border-purple-300', iconEmoji: '🔮', glowClass: 'shadow-purple-500/30' },
-    10: { text: 'VIP 10 Diamond', bgColor: 'bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-500 text-white border-cyan-200', iconEmoji: '💎', glowClass: 'shadow-cyan-400/40' },
-    11: { text: 'VIP 11 Platinum', bgColor: 'bg-gradient-to-r from-slate-100 via-slate-300 to-slate-500 text-slate-900 border-white', iconEmoji: '💍', glowClass: 'shadow-slate-300/40' },
-    12: { text: 'VIP 12 Crown', bgColor: 'bg-gradient-to-r from-yellow-400 via-orange-500 to-purple-650 text-white border-yellow-200', iconEmoji: '👑', glowClass: 'shadow-orange-500/40' },
-    13: { text: 'VIP 13 Imperial', bgColor: 'bg-gradient-to-r from-red-500 via-purple-600 to-indigo-900 text-white border-red-300', iconEmoji: '🏛️', glowClass: 'shadow-purple-600/50' },
-    14: { text: 'VIP 14 Royal Sovereign', bgColor: 'bg-gradient-to-r from-amber-400 via-rose-500 to-violet-750 text-white border-amber-200', iconEmoji: '⚜️', glowClass: 'shadow-rose-500/60' },
-    15: { text: 'VIP 15 Ultimate Sovereign', bgColor: 'bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-600 text-slate-950 border-amber-200', iconEmoji: '🪐', glowClass: 'shadow-amber-400/70' }
+    2: { text: 'VIP 1', bgColor: 'bg-gradient-to-r from-orange-400 to-amber-500 text-white border-amber-300', iconEmoji: '🥉', glowClass: 'shadow-amber-500/25' },
+    3: { text: 'VIP 2', bgColor: 'bg-gradient-to-r from-amber-600 to-amber-700 text-white border-amber-500', iconEmoji: '🥈', glowClass: 'shadow-amber-600/30' },
+    4: { text: 'VIP 3', bgColor: 'bg-gradient-to-r from-slate-300 via-slate-400 to-slate-500 text-white border-slate-250', iconEmoji: '🥇', glowClass: 'shadow-slate-400/25' },
+    5: { text: 'VIP 4', bgColor: 'bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-650 text-slate-950 border-yellow-300', iconEmoji: '🔑', glowClass: 'shadow-yellow-550/30' },
+    6: { text: 'VIP 5', bgColor: 'bg-gradient-to-r from-teal-400 to-emerald-600 text-white border-teal-300', iconEmoji: '💼', glowClass: 'shadow-teal-500/25' },
+    7: { text: 'VIP 6', bgColor: 'bg-gradient-to-r from-blue-500 via-indigo-500 to-sky-600 text-white border-blue-300', iconEmoji: '🔹', glowClass: 'shadow-blue-500/30' },
+    8: { text: 'VIP 7', bgColor: 'bg-gradient-to-r from-rose-500 via-pink-600 to-red-650 text-white border-rose-300', iconEmoji: '🎈', glowClass: 'shadow-rose-500/30' },
+    9: { text: 'VIP 8', bgColor: 'bg-gradient-to-r from-emerald-500 via-green-600 to-teal-750 text-white border-emerald-300', iconEmoji: '🟢', glowClass: 'shadow-emerald-500/30' },
+    10: { text: 'VIP 9', bgColor: 'bg-gradient-to-r from-purple-500 via-violet-600 to-indigo-850 text-white border-purple-300', iconEmoji: '🔮', glowClass: 'shadow-purple-500/30' },
+    11: { text: 'VIP 10', bgColor: 'bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-500 text-white border-cyan-200', iconEmoji: '💎', glowClass: 'shadow-cyan-400/40' },
+    12: { text: 'VIP 11', bgColor: 'bg-gradient-to-r from-slate-100 via-slate-300 to-slate-500 text-slate-900 border-white', iconEmoji: '💍', glowClass: 'shadow-slate-300/40' },
+    13: { text: 'VIP 12', bgColor: 'bg-gradient-to-r from-yellow-400 via-orange-500 to-purple-650 text-white border-yellow-200', iconEmoji: '👑', glowClass: 'shadow-orange-500/40' },
+    14: { text: 'VIP 13', bgColor: 'bg-gradient-to-r from-red-500 via-purple-600 to-indigo-900 text-white border-red-300', iconEmoji: '🏛️', glowClass: 'shadow-purple-600/50' },
+    15: { text: 'VIP 14', bgColor: 'bg-gradient-to-r from-amber-400 via-rose-500 to-violet-750 text-white border-amber-200', iconEmoji: '⚜️', glowClass: 'shadow-rose-500/60' },
+    16: { text: 'VIP 15', bgColor: 'bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-600 text-slate-950 border-amber-200', iconEmoji: '🪐', glowClass: 'shadow-amber-400/70' }
   };
   
-  return colors[level] || {
-    text: `VIP ${level}`,
+  return colors[vipLevel] || {
+    text: `VIP ${vipLevel - 1}`,
     bgColor: 'bg-gradient-to-r from-slate-800 to-slate-950 text-white border-slate-700',
     iconEmoji: '🛡️',
     glowClass: 'shadow-black/20'
@@ -178,7 +187,7 @@ export default function ProfileTab({
   const highestActiveLevel = activeInvestments.length > 0
     ? Math.max(...activeInvestments.map(i => i.planLevel))
     : 0;
-  const vipBadge = getVipBadgeDetails(highestActiveLevel);
+  const vipBadge = getVipBadgeDetails(profile.vipLevel || 1);
 
   const infoSectionTrans = {
     en: {
@@ -943,13 +952,13 @@ export default function ProfileTab({
               </div>
             </div>
 
-            {/* Premium Dynamic VIP Level Badge based on highest active investment */}
+            {/* Premium Dynamic VIP Level Badge based on active account level */}
             <div 
               className={`absolute -bottom-1 -right-2 z-20 flex items-center space-x-1.5 px-3 py-1 text-[9.5px] font-black rounded-2xl border shadow-lg ${vipBadge.bgColor} ${vipBadge.glowClass} leading-none transform hover:scale-105 transition-all duration-200 cursor-default select-none`}
-              title={`${vipBadge.text} - Highest Active Investment`}
+              title={`${vipBadge.text} - Active Level`}
             >
               <span className="text-xs">{vipBadge.iconEmoji}</span>
-              <span className="uppercase tracking-widest font-sans">VIP {highestActiveLevel}</span>
+              <span className="uppercase tracking-widest font-sans">{vipBadge.text}</span>
             </div>
           </div>
 
