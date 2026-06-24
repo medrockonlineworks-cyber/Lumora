@@ -521,7 +521,8 @@ function MainAppContent() {
               {activeTab === 'earnings' && (
                 <EarningsTab 
                   investments={investments}
-                  profile={enrichedProfile}
+                  profile={enrichedProfile!}
+                  onRefreshDashboard={fetchDashboardData}
                 />
               )}
 
