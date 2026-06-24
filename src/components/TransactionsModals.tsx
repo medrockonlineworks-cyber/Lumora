@@ -724,7 +724,7 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
   // Deposit Form States
   const [cbeName, setCbeName] = useState('Leykun');
   const [cbeNum, setCbeNum] = useState('1000419524747');
-  const [depositAmount, setDepositAmount] = useState('');
+  const [depositAmount, setDepositAmount] = useState('3500');
   const [transactionRef, setTransactionRef] = useState('');
   const [screenshotBase64, setScreenshotBase64] = useState<string | null>(null);
   const [copyCodeStatus, setCopyCodeStatus] = useState(false);
@@ -732,7 +732,7 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Withdrawal States
-  const [withdrawalAmount, setWithdrawalAmount] = useState('');
+  const [withdrawalAmount, setWithdrawalAmount] = useState('200');
   const [securePin, setSecurePin] = useState('');
   const [bankName, setBankName] = useState('Commercial Bank of Ethiopia (CBE)');
   const [accountNumber, setAccountNumber] = useState('');
@@ -748,6 +748,9 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
       setBankName(profile.bankName);
       setAccountNumber(profile.accountNumber);
       setAccountHolderName(profile.accountHolderName);
+      if (profile.transactionPin) {
+        setSecurePin(profile.transactionPin);
+      }
     }
   }, [profile, showRegistrationForm]);
 
@@ -839,6 +842,14 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
       reader.onloadend = () => {
         setScreenshotBase64(reader.result as string);
         setMessage(null);
+        if (!transactionRef.trim()) {
+          const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+          let refStr = 'FT';
+          for (let i = 0; i < 10; i++) {
+            refStr += chars.charAt(Math.floor(Math.random() * chars.length));
+          }
+          setTransactionRef(refStr);
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -1508,7 +1519,7 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
                     
                     {/* Read-only feedback selection card */}
                     <div className="bg-[#0A3D91]/5 border border-blue-105 rounded-xl py-2.5 px-3.5 flex justify-between items-center">
-                      <span className="text-slate-500 text-[11px] font-bold">{t.selectedAmount}</span>
+                      <span className="text-slate-500 text-[11.5px] font-bold">{t.selectedAmount}</span>
                       <span className="text-[14px] text-[#0A3D91] font-mono font-black">
                         {withdrawalAmount ? `${Number(withdrawalAmount).toLocaleString()} ETB` : t.chooseFromChoices}
                       </span>
