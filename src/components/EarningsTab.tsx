@@ -596,7 +596,7 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
       <div className="absolute bottom-[20%] left-[-10%] w-72 h-72 bg-[#0A3D91]/5 rounded-full blur-[120px] pointer-events-none -z-10"></div>
 
       {/* COMPREHENSIVE VAULT CARD */}
-      <div className="relative rounded-3xl overflow-hidden border border-[#0A3D91]/20 bg-gradient-to-br from-[#0a3d91] via-[#072558] to-[#0a3d91] p-5 shadow-lg text-white transition-all duration-300">
+      <div className="relative rounded-[20px] overflow-hidden border border-white/10 bg-gradient-to-br from-[#0a3d91]/80 via-[#072558]/85 to-[#0a3d91]/80 backdrop-blur-[12px] p-5 shadow-lg text-white transition-all duration-300">
         
         {/* Subtle geometric pattern overlay */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:16px_16px] opacity-40 pointer-events-none"></div>
@@ -707,7 +707,7 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
       </div>
 
       {/* DAILY LEVEL INCOME FULFILLMENT ENGINE */}
-      <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-sm text-left relative overflow-hidden">
+      <div className="p-5 rounded-[20px] bg-white/70 backdrop-blur-[12px] border border-white/10 shadow-sm text-left relative overflow-hidden">
         
         <div className="flex justify-between items-center pb-3.5 border-b border-slate-100">
           <div className="flex items-center space-x-2">
@@ -908,7 +908,7 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
               return (
                 <div 
                   key={p.id}
-                  className="p-4 rounded-2xl bg-white border border-slate-150 pr-4 pl-5 relative overflow-hidden shadow-2xs hover:border-[#0A3D91]/30 hover:shadow-xs transition-all duration-300"
+                  className="p-4 rounded-[20px] bg-white/70 backdrop-blur-[12px] border border-white/10 pr-4 pl-5 relative overflow-hidden shadow-2xs hover:border-[#0A3D91]/30 hover:shadow-xs transition-all duration-300"
                 >
                   {/* Visual Accent bar on the left */}
                   <div className={`absolute top-0 left-0 w-1 h-full ${p.status === 'Active' ? 'bg-[#0A3D91]' : 'bg-amber-400'}`}></div>
@@ -961,7 +961,7 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
       </div>
 
       {/* REAL-TIME MARKET CONDITIONS */}
-      <div className="p-4.5 rounded-3xl bg-white border border-slate-200 shadow-sm text-left space-y-4">
+      <div className="p-4.5 rounded-[20px] bg-white/70 backdrop-blur-[12px] border border-white/10 shadow-sm text-left space-y-4">
         
         {/* Header bar */}
         <div className="flex justify-between items-center">
@@ -1179,7 +1179,7 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
       </div>
 
       {/* LUMORA INVESTMENT TEAM ACTIVITY */}
-      <div className="relative p-5 rounded-3xl bg-white border border-slate-200 shadow-sm text-left overflow-hidden">
+      <div className="relative p-5 rounded-[20px] bg-white/70 backdrop-blur-[12px] border border-white/10 shadow-sm text-left overflow-hidden">
         
         {/* Subtle geometric overlay */}
         <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-amber-400/50 to-transparent pointer-events-none"></div>
@@ -1234,7 +1234,7 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
       </div>
 
       {/* HOW DAILY RETURNS ARE MANAGED */}
-      <div className="p-4 rounded-3xl bg-blue-50/50 border border-[#0A3D91]/15 text-left relative overflow-hidden">
+      <div className="p-4 rounded-[20px] bg-blue-50/40 backdrop-blur-[12px] border border-white/10 text-left relative overflow-hidden">
         <div className="flex items-start space-x-3">
           <Info className="w-4 h-4 shrink-0 mt-0.5 text-[#0A3D91]" />
           <div className="space-y-1">
@@ -1247,7 +1247,7 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
       </div>
 
       {/* CLAIM CENTER (SETTLEMENT SYSTEM) */}
-      <div className="p-5 rounded-3xl bg-white border border-slate-200 text-left relative overflow-hidden shadow-sm">
+      <div className="p-5 rounded-[20px] bg-white/70 backdrop-blur-[12px] border border-white/10 text-left relative overflow-hidden shadow-sm">
         
         <div className="flex items-center space-x-2 pb-3.5 border-b border-slate-100 mb-4">
           <Activity className="w-4.5 h-4.5 text-[#0A3D91]" />
