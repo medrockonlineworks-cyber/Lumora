@@ -252,12 +252,49 @@ const MARKET_SENTIMENTS: MarketSentiment[] = [
 export default function EarningsTab({ investments, profile, onRefreshDashboard }: EarningsTabProps) {
   const { language, t } = useLanguage();
   
-  // Real-time states
   const [payoutCountdown, setPayoutCountdown] = useState<string>('00:00:00');
+  const [settlementProgress, setSettlementProgress] = useState<number>(0);
   const [liveStreamRate, setLiveStreamRate] = useState<number>(0);
+
+  const hasActivePurchasedPlan = React.useMemo(() => {
+    return investments && investments.some(i => i.status === 'active');
+  }, [investments]);
+
+  const portfolioLockInfo = React.useMemo(() => {
+    if (!profile?.userId) return { isLocked: false, remainingDays: 0, lockUntilStr: '' };
+    const savedTime = localStorage.getItem(`lumora_projects_selection_time_${profile.userId}`);
+    if (!savedTime) return { isLocked: false, remainingDays: 0, lockUntilStr: '' };
+    
+    const lockDurationMs = 30 * 24 * 60 * 60 * 1000; // 30 days
+    const unlockTime = Number(savedTime) + lockDurationMs;
+    const isLocked = Date.now() < unlockTime;
+    const remainingMs = unlockTime - Date.now();
+    const remainingDays = Math.ceil(remainingMs / (24 * 60 * 60 * 1000));
+    
+    const lockUntilDate = new Date(unlockTime);
+    const lockUntilStr = lockUntilDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    
+    return { isLocked, remainingDays, lockUntilStr };
+  }, [profile?.userId]);
+
+  // Get project IDs selected on the plans page
+  const plansPageProjectIds = React.useMemo(() => {
+    try {
+      const savedNames = localStorage.getItem(`lumora_selected_projects_${profile?.userId}`);
+      if (savedNames) {
+        const names = JSON.parse(savedNames) as string[];
+        const ids = names.map(name => PROJECT_NAME_TO_ID[name]).filter(Boolean) as string[];
+        if (ids.length > 0) return ids;
+      }
+    } catch (e) {
+      console.error("Error reading plans page projects:", e);
+    }
+    return ['stocks', 'realestate', 'gold']; // Default fallback matching InvestmentsTab
+  }, [profile?.userId]);
+
   const [activeProjects, setActiveProjects] = useState<string[]>(() => {
     try {
-      const savedNames = localStorage.getItem(`lumora_selected_projects_${profile.userId}`);
+      const savedNames = localStorage.getItem(`lumora_selected_projects_${profile?.userId}`);
       if (savedNames) {
         const names = JSON.parse(savedNames) as string[];
         const ids = names.map(name => PROJECT_NAME_TO_ID[name]).filter(Boolean) as string[];
@@ -267,7 +304,15 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
       console.error(e);
     }
     const saved = localStorage.getItem('lumora_selected_projects');
-    return saved ? JSON.parse(saved) : DEFAULT_PROJECTS.slice(0, 3).map(p => p.id);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved) as string[];
+        return parsed;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return ['stocks', 'realestate', 'gold'];
   });
   const [allocations, setAllocations] = useState<Record<string, number>>(() => {
     const saved = localStorage.getItem('lumora_project_allocations');
@@ -338,6 +383,12 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
       
       const format = (n: number) => n.toString().padStart(2, '0');
       setPayoutCountdown(`${format(hours)}:${format(minutes)}:${format(seconds)}`);
+
+      // Calculate progress of current 24 hour cycle
+      const totalMsInDay = 24 * 60 * 60 * 1000;
+      const elapsedMs = totalMsInDay - Math.max(0, Math.min(totalMsInDay, diffMs));
+      const progress = (elapsedMs / totalMsInDay) * 100;
+      setSettlementProgress(progress);
     };
 
     updateCountdown();
@@ -366,7 +417,13 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
   }, [allocations]);
 
   // Project data helper
-  const selectedProjectsData = DEFAULT_PROJECTS.filter(p => activeProjects.includes(p.id));
+  const selectedProjectsData = React.useMemo(() => {
+    if (!hasActivePurchasedPlan) return [];
+    return DEFAULT_PROJECTS
+      .filter(p => plansPageProjectIds.includes(p.id))
+      .filter(p => activeProjects.includes(p.id));
+  }, [hasActivePurchasedPlan, plansPageProjectIds, activeProjects]);
+
   const totalAllocationSum = selectedProjectsData.reduce((sum, p) => sum + (allocations[p.id] || 0), 0);
 
   // Calculate project contributions
@@ -394,13 +451,14 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
 
   // Auto distribute equally helper
   const handleAutoDistribute = () => {
-    if (activeProjects.length === 0) return;
-    const share = Math.floor(100 / activeProjects.length);
+    const allowedActive = activeProjects.filter(id => plansPageProjectIds.includes(id));
+    if (allowedActive.length === 0) return;
+    const share = Math.floor(100 / allowedActive.length);
     const updated: Record<string, number> = {};
     
-    activeProjects.forEach((id, idx) => {
-      if (idx === activeProjects.length - 1) {
-        updated[id] = 100 - (share * (activeProjects.length - 1));
+    allowedActive.forEach((id, idx) => {
+      if (idx === allowedActive.length - 1) {
+        updated[id] = 100 - (share * (allowedActive.length - 1));
       } else {
         updated[id] = share;
       }
@@ -410,6 +468,13 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
 
   // Toggle project selected state
   const toggleProject = (projectId: string) => {
+    if (portfolioLockInfo.isLocked) {
+      setClaimStatus({
+        text: `Portfolio selection is locked for 30 days under Lumora stability standards. Locked until ${portfolioLockInfo.lockUntilStr}.`,
+        isError: true
+      });
+      return;
+    }
     setActiveProjects(prev => {
       let next;
       if (prev.includes(projectId)) {
@@ -418,6 +483,10 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
       } else {
         next = [...prev, projectId];
       }
+      
+      // Filter next to only projects that are actually allowed (selected in plans page)
+      next = next.filter(id => plansPageProjectIds.includes(id));
+      if (next.length === 0) return prev;
       
       // Auto rebalance when toggled
       const share = Math.floor(100 / next.length);
@@ -784,16 +853,26 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
             exit={{ opacity: 0, height: 0 }}
             className="pt-4 border-t border-slate-100 space-y-3"
           >
+            {portfolioLockInfo.isLocked && (
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[10px] text-amber-900 font-extrabold flex items-center space-x-2 shadow-2xs">
+                <Lock className="w-3.5 h-3.5 text-amber-600 animate-pulse shrink-0" />
+                <span>Selected portfolio projects are locked until {portfolioLockInfo.lockUntilStr}. You can still customize allocations below.</span>
+              </div>
+            )}
             <p className="text-[9.5px] text-slate-500 uppercase tracking-wider font-bold font-mono">Select Portfolio Projects & Set Allocation weights:</p>
             <div className="grid grid-cols-1 gap-2.5">
-              {DEFAULT_PROJECTS.map(p => {
+              {DEFAULT_PROJECTS.filter(p => plansPageProjectIds.includes(p.id)).map(p => {
                 const isSelected = activeProjects.includes(p.id);
                 return (
                   <div key={p.id} className={`p-3.5 rounded-2xl border transition-all ${isSelected ? 'bg-slate-50/80 border-amber-300' : 'bg-slate-50/20 border-slate-100 opacity-60'}`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3 cursor-pointer" onClick={() => toggleProject(p.id)}>
-                        <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${isSelected ? 'bg-[#0A3D91] border-[#0A3D91] text-white' : 'border-slate-300'}`}>
-                          {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                        <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${isSelected ? 'bg-[#0A3D91] border-[#0A3D91] text-white' : 'border-slate-300'} ${portfolioLockInfo.isLocked ? 'opacity-85' : ''}`}>
+                          {isSelected ? (
+                            portfolioLockInfo.isLocked ? <Lock className="w-2.5 h-2.5" /> : <Check className="w-3.5 h-3.5 stroke-[3]" />
+                          ) : (
+                            portfolioLockInfo.isLocked ? <Lock className="w-2.5 h-2.5 text-slate-300" /> : null
+                          )}
                         </div>
                         <span className="text-xs font-black text-slate-800">{p.icon} {p.name}</span>
                       </div>
@@ -836,60 +915,70 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
         </div>
 
         <div className="space-y-3">
-          {selectedProjectsData.map((p) => {
-            const alloc = allocations[p.id] || 0;
-            const contribETB = calculatedContributions[p.id] || 0;
-            return (
-              <div 
-                key={p.id}
-                className="p-4 rounded-2xl bg-white border border-slate-150 pr-4 pl-5 relative overflow-hidden shadow-2xs hover:border-[#0A3D91]/30 hover:shadow-xs transition-all duration-300"
-              >
-                {/* Visual Accent bar on the left */}
-                <div className={`absolute top-0 left-0 w-1 h-full ${p.status === 'Active' ? 'bg-[#0A3D91]' : 'bg-amber-400'}`}></div>
+          {selectedProjectsData.length === 0 ? (
+            <div className="text-center py-8 px-4 bg-slate-50 rounded-2xl border border-dashed border-slate-300 space-y-2">
+              <Lock className="w-8 h-8 text-[#0A3D91]/60 mx-auto animate-bounce" />
+              <p className="text-xs font-bold text-[#0A3D91] uppercase tracking-wider">No Active Investment Projects</p>
+              <p className="text-[10px] text-slate-800 font-extrabold max-w-sm mx-auto leading-relaxed">
+                You do not have any active investment plan. Please visit the <strong className="text-[#0A3D91]">Plans</strong> page and purchase a VIP plan to enable custom project allocations.
+              </p>
+            </div>
+          ) : (
+            selectedProjectsData.map((p) => {
+              const alloc = allocations[p.id] || 0;
+              const contribETB = calculatedContributions[p.id] || 0;
+              return (
+                <div 
+                  key={p.id}
+                  className="p-4 rounded-2xl bg-white border border-slate-150 pr-4 pl-5 relative overflow-hidden shadow-2xs hover:border-[#0A3D91]/30 hover:shadow-xs transition-all duration-300"
+                >
+                  {/* Visual Accent bar on the left */}
+                  <div className={`absolute top-0 left-0 w-1 h-full ${p.status === 'Active' ? 'bg-[#0A3D91]' : 'bg-amber-400'}`}></div>
 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <span className="text-xl">{p.icon}</span>
-                    <div>
-                      <div className="flex items-center space-x-2">
-                        <h4 className="font-display font-extrabold text-xs text-slate-800 tracking-tight">
-                          {p.name}
-                        </h4>
-                        <span className="px-1.5 py-0.5 text-[8px] font-bold bg-[#0A3D91]/10 text-[#0A3D91] border border-[#0A3D91]/20 rounded-md">
-                          {alloc}%
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-2 mt-1">
-                        <span className="text-[9px] text-slate-400 font-bold font-mono">Today:</span>
-                        <span className="text-[9px] text-[#0A3D91] font-extrabold font-mono flex items-center">
-                          {p.trend}
-                        </span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <span className="text-xl">{p.icon}</span>
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <h4 className="font-display font-extrabold text-xs text-slate-800 tracking-tight">
+                            {p.name}
+                          </h4>
+                          <span className="px-1.5 py-0.5 text-[8px] font-bold bg-[#0A3D91]/10 text-[#0A3D91] border border-[#0A3D91]/20 rounded-md">
+                            {alloc}%
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <span className="text-[9px] text-slate-400 font-bold font-mono">Today:</span>
+                          <span className="text-[9px] text-[#0A3D91] font-extrabold font-mono flex items-center">
+                            {p.trend}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="flex items-center space-x-3.5">
-                    {/* Glowing Micro Trend Chart */}
-                    <div className="shrink-0">
-                      {renderSparkline(p.isPositive)}
-                    </div>
+                    <div className="flex items-center space-x-3.5">
+                      {/* Glowing Micro Trend Chart */}
+                      <div className="shrink-0">
+                        {renderSparkline(p.isPositive)}
+                      </div>
 
-                    <div className="text-right">
-                      <span className="text-xs font-mono font-black text-[#0A3D91] block">
-                        {contribETB.toFixed(2)} <span className="text-[9px] text-slate-500">ETB</span>
-                      </span>
-                      <span className="inline-flex items-center space-x-1 mt-1">
-                        <span className={`w-1.5 h-1.5 rounded-full ${p.status === 'Active' ? 'bg-emerald-500 animate-ping' : 'bg-amber-500 animate-pulse'}`}></span>
-                        <span className="text-[8px] font-bold text-slate-400 font-mono uppercase">
-                          {p.status}
+                      <div className="text-right">
+                        <span className="text-xs font-mono font-black text-[#0A3D91] block">
+                          {contribETB.toFixed(2)} <span className="text-[9px] text-slate-500">ETB</span>
                         </span>
-                      </span>
+                        <span className="inline-flex items-center space-x-1 mt-1">
+                          <span className={`w-1.5 h-1.5 rounded-full ${p.status === 'Active' ? 'bg-emerald-500 animate-ping' : 'bg-amber-500 animate-pulse'}`}></span>
+                          <span className="text-[8px] font-bold text-slate-400 font-mono uppercase">
+                            {p.status}
+                          </span>
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
       </div>
 
@@ -1190,6 +1279,45 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
         </div>
 
         <div className="space-y-3.5">
+          {/* VISUAL SETTLEMENT COUNTDOWN */}
+          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-150 space-y-3 relative overflow-hidden">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Clock className="w-4 h-4 text-cyan-500 animate-pulse" />
+                <span className="text-[11px] text-slate-500 font-mono font-bold uppercase tracking-wider">Next Settlement Cycle</span>
+              </div>
+              <span className="text-xs font-mono font-black text-cyan-600 bg-cyan-50 px-2 py-0.5 rounded-md shadow-3xs border border-cyan-100 flex items-center space-x-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping mr-1"></span>
+                <span>{payoutCountdown}</span>
+              </span>
+            </div>
+            
+            {/* Soft-glowing cyan progress bar */}
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-[9px] font-mono font-bold text-slate-400">
+                <span>Cycle Progress</span>
+                <span>{settlementProgress.toFixed(1)}%</span>
+              </div>
+              <div className="relative w-full h-2.5 bg-slate-200/60 rounded-full overflow-hidden p-[1px] shadow-inner">
+                {/* Glow layer */}
+                <motion.div 
+                  className="absolute top-0 bottom-0 left-0 bg-cyan-400 rounded-full blur-[1px]"
+                  style={{ width: `${settlementProgress}%` }}
+                  animate={{ opacity: [0.4, 0.7, 0.4] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                />
+                {/* Solid bar */}
+                <div 
+                  className="relative h-full bg-gradient-to-r from-cyan-400 to-cyan-500 rounded-full shadow-[0_0_8px_rgba(6,182,212,0.6)] transition-all duration-1000 ease-out"
+                  style={{ width: `${settlementProgress}%` }}
+                />
+              </div>
+              <p className="text-[9px] text-slate-400 font-sans leading-relaxed">
+                Automated smart settlement occurs daily at midnight. Ensure your allocations are configured.
+              </p>
+            </div>
+          </div>
+
           <div className="bg-slate-50 p-4 rounded-2xl border border-slate-150 space-y-2.5">
             <div className="flex items-baseline justify-between">
               <span className="text-[11px] text-slate-500 font-mono font-medium">Daily Level Income Total:</span>

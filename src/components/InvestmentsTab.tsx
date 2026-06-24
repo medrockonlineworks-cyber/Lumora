@@ -537,6 +537,23 @@ export default function InvestmentsTab({ plans, profile, onBuyPlan }: Investment
   const [tempSelectedProjects, setTempSelectedProjects] = useState<string[]>([]);
   const [projectError, setProjectError] = useState<string>('');
 
+  const portfolioLockInfo = useMemo(() => {
+    if (!profile?.userId) return { isLocked: false, remainingDays: 0, lockUntilStr: '' };
+    const savedTime = localStorage.getItem(`lumora_projects_selection_time_${profile.userId}`);
+    if (!savedTime) return { isLocked: false, remainingDays: 0, lockUntilStr: '' };
+    
+    const lockDurationMs = 30 * 24 * 60 * 60 * 1000; // 30 days
+    const unlockTime = Number(savedTime) + lockDurationMs;
+    const isLocked = Date.now() < unlockTime;
+    const remainingMs = unlockTime - Date.now();
+    const remainingDays = Math.ceil(remainingMs / (24 * 60 * 60 * 1000));
+    
+    const lockUntilDate = new Date(unlockTime);
+    const lockUntilStr = lockUntilDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    
+    return { isLocked, remainingDays, lockUntilStr };
+  }, [profile?.userId]);
+
   // Choose custom durations mapped per plan level
   const [chosenDurations, setChosenDurations] = useState<Record<number, number>>({});
 
@@ -598,6 +615,10 @@ export default function InvestmentsTab({ plans, profile, onBuyPlan }: Investment
     setLoading(false);
 
     if (result.success) {
+      // Lock the project selection for 30 days upon active investment plan purchase
+      if (profile?.userId && !localStorage.getItem(`lumora_projects_selection_time_${profile.userId}`)) {
+        localStorage.setItem(`lumora_projects_selection_time_${profile.userId}`, Date.now().toString());
+      }
       setMessage({ text: t.investmentSuccess, isError: false });
       setTimeout(() => {
         setSelectedPlan(null);
@@ -656,18 +677,25 @@ export default function InvestmentsTab({ plans, profile, onBuyPlan }: Investment
               {activeTrans.selectedPortfolioDesc}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              setTempSelectedProjects(selectedProjects);
-              setProjectError('');
-              setShowProjectsModal(true);
-            }}
-            className="px-4 py-2.5 bg-[#0A3D91] hover:bg-[#072452] text-white font-black text-[11px] rounded-xl transition-all shadow-md shrink-0 uppercase tracking-widest flex items-center justify-center space-x-1.5 cursor-pointer active:scale-95"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>{activeTrans.addProjectBtn}</span>
-          </button>
+          {portfolioLockInfo.isLocked ? (
+            <div className="flex items-center space-x-1.5 px-3 py-2 bg-amber-50 border border-amber-250 text-amber-800 rounded-xl font-bold text-[10px] shrink-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+              <span>Locked for {portfolioLockInfo.remainingDays} Days 🔒</span>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setTempSelectedProjects(selectedProjects);
+                setProjectError('');
+                setShowProjectsModal(true);
+              }}
+              className="px-4 py-2.5 bg-[#0A3D91] hover:bg-[#072452] text-white font-black text-[11px] rounded-xl transition-all shadow-md shrink-0 uppercase tracking-widest flex items-center justify-center space-x-1.5 cursor-pointer active:scale-95"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>{activeTrans.addProjectBtn}</span>
+            </button>
+          )}
         </div>
 
         {selectedProjects.length === 0 ? (
@@ -1242,6 +1270,10 @@ export default function InvestmentsTab({ plans, profile, onBuyPlan }: Investment
                     <div 
                       key={p.id}
                       onClick={() => {
+                        if (portfolioLockInfo.isLocked) {
+                          setProjectError(`Portfolio selection is locked for 30 days. Locked until ${portfolioLockInfo.lockUntilStr}.`);
+                          return;
+                        }
                         setProjectError('');
                         if (isChecked) {
                           setTempSelectedProjects(tempSelectedProjects.filter(name => name !== p.name));
@@ -1300,7 +1332,12 @@ export default function InvestmentsTab({ plans, profile, onBuyPlan }: Investment
                 </button>
                 <button
                   type="button"
+                  disabled={portfolioLockInfo.isLocked}
                   onClick={() => {
+                    if (portfolioLockInfo.isLocked) {
+                      setProjectError(`Portfolio selection is locked for 30 days. Locked until ${portfolioLockInfo.lockUntilStr}.`);
+                      return;
+                    }
                     if (tempSelectedProjects.length === 0) {
                       setProjectError(
                         language === 'am' ? 'እባክዎ ቢያንስ አንድ ንቁ ፕሮጀክት ይምረጡ።' : 
@@ -1314,13 +1351,17 @@ export default function InvestmentsTab({ plans, profile, onBuyPlan }: Investment
                     setSelectedProjects(tempSelectedProjects);
                     try {
                       localStorage.setItem(`lumora_selected_projects_${profile.userId}`, JSON.stringify(tempSelectedProjects));
+                      // Save lock time if not already set
+                      if (!localStorage.getItem(`lumora_projects_selection_time_${profile.userId}`)) {
+                        localStorage.setItem(`lumora_projects_selection_time_${profile.userId}`, Date.now().toString());
+                      }
                     } catch (e) {
                       console.error(e);
                     }
                     setProjectError('');
                     setShowProjectsModal(false);
                   }}
-                  className="px-5 py-2 bg-[#0A3D91] hover:bg-[#072452] text-white rounded-xl text-xs transition-all shadow-md cursor-pointer uppercase tracking-wider font-extrabold"
+                  className={`px-5 py-2 text-white rounded-xl text-xs transition-all shadow-md cursor-pointer uppercase tracking-wider font-extrabold ${portfolioLockInfo.isLocked ? 'bg-slate-400 cursor-not-allowed' : 'bg-[#0A3D91] hover:bg-[#072452]'}`}
                 >
                   {language === 'am' ? 'ፖርትፎሊዮ አስቀምጥ' : language === 'om' ? 'Kura Gara Maalgashii' : language === 'ti' ? 'ፖርትፎሊዮ ኣስቅጥ' : language === 'so' ? 'Kaydi Galka' : 'Save Portfolio'}
                 </button>
