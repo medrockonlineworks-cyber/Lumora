@@ -982,44 +982,54 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
           <div className="absolute left-0 top-0 bottom-0 w-10 bg-gradient-to-r from-slate-50 to-transparent z-10 pointer-events-none"></div>
           <div className="absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-slate-50 to-transparent z-10 pointer-events-none"></div>
           
-          <motion.div 
-            className="flex space-x-12 whitespace-nowrap"
-            animate={{ x: [0, -1200] }}
-            transition={{
-              ease: "linear",
-              duration: 35,
-              repeat: Infinity,
-            }}
-            style={{ display: 'inline-flex' }}
-          >
-            {/* Multiplied copy to allow infinite scroll wrapping */}
-            {[...MARKET_SENTIMENTS, ...MARKET_SENTIMENTS, ...MARKET_SENTIMENTS].map((item, idx) => {
-              const isSelected = activeProjects.includes(item.id);
-              const matchedProj = DEFAULT_PROJECTS.find(p => p.id === item.id);
+          {(() => {
+            const activeSentiments = MARKET_SENTIMENTS.filter(item => activeProjects.includes(item.id));
+            if (activeSentiments.length === 0) {
               return (
-                <div key={`${item.id}-ticker-${idx}`} className="inline-flex items-center space-x-2.5 text-[10px] font-mono">
-                  <span className="text-sm shrink-0">
-                    {matchedProj?.icon || '⚙️'}
-                  </span>
-                  <span className="font-black text-slate-700 tracking-tight">{item.ticker}</span>
-                  <span className={`px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider flex items-center space-x-0.5 ${item.sentiment === 'Bullish' ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-600 border border-rose-500/20'}`}>
-                    <span>{item.sentiment === 'Bullish' ? '▲' : '▼'}</span>
-                    <span>{item.sentiment.toUpperCase()}</span>
-                    <span className="ml-0.5">{item.change}</span>
-                  </span>
-                  {isSelected ? (
-                    <span className="text-[8px] font-bold text-[#0A3D91] font-mono bg-[#0A3D91]/10 px-1.5 py-0.5 rounded border border-[#0A3D91]/15">
-                      ACTIVE PORTFOLIO ({allocations[item.id] || 0}%)
-                    </span>
-                  ) : (
-                    <span className="text-[8px] text-slate-400 font-semibold font-mono">
-                      OFF-PORTFOLIO
-                    </span>
-                  )}
+                <div className="w-full text-center text-slate-400 font-mono text-[9.5px] font-black uppercase py-0.5 tracking-wider">
+                  No active portfolio items to track • purchase plans to begin
                 </div>
               );
-            })}
-          </motion.div>
+            }
+            // Repeat active items to ensure smooth scrolling loop
+            const repeated = [];
+            const multiplier = activeSentiments.length < 3 ? 12 : 6;
+            for (let i = 0; i < multiplier; i++) {
+              repeated.push(...activeSentiments);
+            }
+            return (
+              <motion.div 
+                className="flex space-x-12 whitespace-nowrap animate-scroll"
+                animate={{ x: [0, -600] }}
+                transition={{
+                  ease: "linear",
+                  duration: 20,
+                  repeat: Infinity,
+                }}
+                style={{ display: 'inline-flex' }}
+              >
+                {repeated.map((item, idx) => {
+                  const matchedProj = DEFAULT_PROJECTS.find(p => p.id === item.id);
+                  return (
+                    <div key={`${item.id}-ticker-${idx}`} className="inline-flex items-center space-x-2.5 text-[10px] font-mono">
+                      <span className="text-sm shrink-0">
+                        {matchedProj?.icon || '⚙️'}
+                      </span>
+                      <span className="font-black text-slate-700 tracking-tight">{item.ticker}</span>
+                      <span className={`px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider flex items-center space-x-0.5 ${item.sentiment === 'Bullish' ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-600 border border-rose-500/20'}`}>
+                        <span>{item.sentiment === 'Bullish' ? '▲' : '▼'}</span>
+                        <span>{item.sentiment.toUpperCase()}</span>
+                        <span className="ml-0.5">{item.change}</span>
+                      </span>
+                      <span className="text-[8px] font-bold text-[#0A3D91] font-mono bg-[#0A3D91]/10 px-1.5 py-0.5 rounded border border-[#0A3D91]/15">
+                        ACTIVE PORTFOLIO ({allocations[item.id] || 0}%)
+                      </span>
+                    </div>
+                  );
+                })}
+              </motion.div>
+            );
+          })()}
         </div>
 
         {/* Traditional Market Grid Widgets */}
@@ -1086,93 +1096,101 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
           </div>
 
           <div className="space-y-2">
-            {MARKET_SENTIMENTS.filter(item => {
-              if (selectedSentimentFilter === 'all') return true;
-              return item.sentiment.toLowerCase() === selectedSentimentFilter;
-            }).map((item) => {
-              const isSelected = activeProjects.includes(item.id);
-              const alloc = allocations[item.id] || 0;
-              const contribution = calculatedContributions[item.id] || 0;
-              const isExpanded = expandedSentimentId === item.id;
+            {(() => {
+              const activeSentimentList = MARKET_SENTIMENTS.filter(item => {
+                const isSelected = activeProjects.includes(item.id);
+                if (!isSelected) return false;
+                if (selectedSentimentFilter === 'all') return true;
+                return item.sentiment.toLowerCase() === selectedSentimentFilter;
+              });
 
-              return (
-                <div 
-                  key={item.id} 
-                  className={`rounded-2xl border transition-all duration-200 ${isExpanded ? 'bg-slate-50 border-[#0A3D91]/30 shadow-xs' : 'bg-slate-50/40 border-slate-150 hover:border-slate-250'}`}
-                >
+              if (activeSentimentList.length === 0) {
+                return (
+                  <div className="text-center py-8 px-4 bg-slate-50/50 border border-dashed border-slate-200 rounded-[20px] text-slate-400 font-mono text-[9.5px] font-black uppercase tracking-wider">
+                    {activeProjects.length === 0 
+                      ? 'No active investment projects found' 
+                      : `No active ${selectedSentimentFilter} indicators match your portfolio`
+                    }
+                  </div>
+                );
+              }
+
+              return activeSentimentList.map((item) => {
+                const isSelected = activeProjects.includes(item.id);
+                const alloc = allocations[item.id] || 0;
+                const contribution = calculatedContributions[item.id] || 0;
+                const isExpanded = expandedSentimentId === item.id;
+
+                return (
                   <div 
-                    onClick={() => setExpandedSentimentId(isExpanded ? null : item.id)}
-                    className="p-3.5 flex items-center justify-between cursor-pointer select-none"
+                    key={item.id} 
+                    className={`rounded-2xl border transition-all duration-200 ${isExpanded ? 'bg-slate-50 border-[#0A3D91]/30 shadow-xs' : 'bg-slate-50/40 border-slate-150 hover:border-slate-250'}`}
                   >
-                    <div className="flex items-center space-x-3">
-                      <span className="text-lg">
-                        {DEFAULT_PROJECTS.find(p => p.id === item.id)?.icon || '⚙️'}
-                      </span>
-                      <div>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-xs font-extrabold text-slate-800">{item.name}</span>
-                          <span className="text-[9px] font-mono font-bold text-[#0A3D91]">{item.ticker}</span>
+                    <div 
+                      onClick={() => setExpandedSentimentId(isExpanded ? null : item.id)}
+                      className="p-3.5 flex items-center justify-between cursor-pointer select-none"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <span className="text-lg">
+                          {DEFAULT_PROJECTS.find(p => p.id === item.id)?.icon || '⚙️'}
+                        </span>
+                        <div>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-xs font-extrabold text-slate-800">{item.name}</span>
+                            <span className="text-[9px] font-mono font-bold text-[#0A3D91]">{item.ticker}</span>
+                          </div>
+                          <p className="text-[9px] text-slate-500 font-mono mt-0.5 font-semibold">
+                            Sentiment score: <strong className={item.sentiment === 'Bullish' ? 'text-emerald-600' : 'text-rose-600'}>{item.score}%</strong>
+                          </p>
                         </div>
-                        <p className="text-[9px] text-slate-500 font-mono mt-0.5 font-semibold">
-                          Sentiment score: <strong className={item.sentiment === 'Bullish' ? 'text-emerald-600' : 'text-rose-600'}>{item.score}%</strong>
-                        </p>
+                      </div>
+
+                      <div className="flex items-center space-x-3">
+                        <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${item.sentiment === 'Bullish' ? 'bg-emerald-500/15 text-emerald-600 border border-emerald-500/20' : 'bg-rose-500/15 text-rose-600 border border-rose-500/20'}`}>
+                          {item.sentiment}
+                        </span>
+                        <ChevronRight className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-90 text-[#0A3D91]' : ''}`} />
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-3">
-                      <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${item.sentiment === 'Bullish' ? 'bg-emerald-500/15 text-emerald-600 border border-emerald-500/20' : 'bg-rose-500/15 text-rose-600 border border-rose-500/20'}`}>
-                        {item.sentiment}
-                      </span>
-                      <ChevronRight className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-90 text-[#0A3D91]' : ''}`} />
-                    </div>
-                  </div>
-
-                  <AnimatePresence>
-                    {isExpanded && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="px-3.5 pb-3.5 pt-0.5 border-t border-slate-100 space-y-3.5 text-[10px]">
-                          {/* Reason */}
-                          <div className="space-y-1">
-                            <span className="text-[8.5px] font-black uppercase text-slate-400 tracking-wider font-mono block">Market Catalyst Analysis:</span>
-                            <p className="text-slate-600 font-medium font-sans leading-relaxed">
-                              {item.reason}
-                            </p>
-                          </div>
-
-                          {/* Live connection/Portfolio influence box */}
-                          <div className={`p-3 rounded-xl border flex items-start space-x-2.5 ${isSelected ? 'bg-amber-500/5 border-amber-300/30 text-slate-750' : 'bg-slate-100 border-slate-200 text-slate-500'}`}>
-                            <Info className={`w-4 h-4 shrink-0 mt-0.5 ${isSelected ? 'text-amber-500' : 'text-slate-400'}`} />
+                    <AnimatePresence>
+                      {isExpanded && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="px-3.5 pb-3.5 pt-0.5 border-t border-slate-100 space-y-3.5 text-[10px]">
+                            {/* Reason */}
                             <div className="space-y-1">
-                              <span className="text-[8.5px] font-black uppercase tracking-wider font-mono block">
-                                {isSelected ? 'ACTIVE PORTFOLIO IMPACT' : 'OFF-PORTFOLIO IMPACT'}
-                              </span>
-                              <p className="font-medium font-sans leading-relaxed">
-                                {isSelected ? (
-                                  <>
-                                    This {item.sentiment.toLowerCase()} market signal directly influences your <strong className="text-slate-800">{alloc}% active allocation</strong>. 
-                                    Your portfolio is capturing <strong className="text-[#0A3D91]">{contribution.toFixed(2)} ETB</strong> daily from this project based on system calculations. {item.influence}
-                                  </>
-                                ) : (
-                                  <>
-                                    This {item.sentiment.toLowerCase()} market signal is not currently affecting your earnings because you have <strong className="text-slate-400">0% allocated</strong>. 
-                                    To participate in these market opportunities, select this project and increase its weight in the "Daily Level Income Fulfillment" sliders above.
-                                  </>
-                                )}
+                              <span className="text-[8.5px] font-black uppercase text-slate-400 tracking-wider font-mono block">Market Catalyst Analysis:</span>
+                              <p className="text-slate-600 font-medium font-sans leading-relaxed">
+                                {item.reason}
                               </p>
                             </div>
+
+                            {/* Live connection/Portfolio influence box */}
+                            <div className={`p-3 rounded-xl border flex items-start space-x-2.5 bg-amber-500/5 border-amber-300/30 text-slate-750`}>
+                              <Info className="w-4 h-4 shrink-0 mt-0.5 text-amber-500" />
+                              <div className="space-y-1">
+                                <span className="text-[8.5px] font-black uppercase tracking-wider font-mono block">
+                                  ACTIVE PORTFOLIO IMPACT
+                                </span>
+                                <p className="font-medium font-sans leading-relaxed">
+                                  This {item.sentiment.toLowerCase()} market signal directly influences your <strong className="text-slate-800">{alloc}% active allocation</strong>. 
+                                  Your portfolio is capturing <strong className="text-[#0A3D91]">{contribution.toFixed(2)} ETB</strong> daily from this project based on system calculations. {item.influence}
+                                </p>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              );
-            })}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              });
+            })()}
           </div>
         </div>
 
