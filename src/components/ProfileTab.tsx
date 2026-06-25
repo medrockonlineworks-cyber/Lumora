@@ -2396,35 +2396,26 @@ export default function ProfileTab({
 
         {showInvitationNetwork && (
           <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl mt-2 space-y-4 font-sans text-left animate-in fade-in duration-200">
-            {/* Bento Stats row */}
-            <div className="grid grid-cols-2 gap-3 text-center">
-              <div className="p-3.5 bg-white border border-slate-200 rounded-2xl shadow-3xs">
-                <span className="text-slate-500 text-[8.5px] uppercase tracking-wider font-extrabold block">
-                  {t.teamSize}
-                </span>
-                <span className="font-display font-black text-sm text-[#0A3D91] mt-0.5 block">
-                  {profile.teamSize || 0}
-                  {language === 'am' ? ' አጋሮች' : ' Partners'}
-                </span>
-              </div>
-              <div className="p-3.5 bg-emerald-50/40 border border-emerald-150 rounded-2xl shadow-3xs">
-                <span className="text-emerald-800 text-[8.5px] uppercase tracking-wider font-extrabold block">
-                  {t.totalReferralRewards}
-                </span>
-                <span className="font-display font-black text-sm text-emerald-700 mt-0.5 block font-mono">
-                  {referrals.reduce((sum, r) => sum + (r.rewardEarned || 0), 0).toLocaleString()} ETB
-                </span>
-              </div>
-            </div>
-
             {/* Premium Invitation Code Box */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-[#0A3D91] via-[#124ca6] to-[#06245c] rounded-2xl p-4 border border-amber-400 shadow-sm text-center font-sans">
+            <div 
+              onClick={handleCopyCode}
+              className="relative overflow-hidden bg-gradient-to-br from-[#0A3D91] via-[#124ca6] to-[#06245c] rounded-2xl p-4 border border-amber-400 shadow-sm text-center font-sans cursor-pointer active:scale-[0.99] transition-all group"
+            >
               <span className="text-[8.5px] text-white/70 block uppercase font-mono font-black tracking-widest mb-1">
-                {language === 'am' ? 'የግብዣ መለያ ቁጥርዎ' : 'Your Invitation ID'}
+                {language === 'am' ? 'የግብዣ መለያ ቁጥርዎ (ለመገልበጥ ይጫኑ)' : 'Your Invitation ID (Click to Copy)'}
               </span>
-              <h2 className="text-xl font-black italic tracking-widest text-white uppercase font-sans drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
-                {profile.referralCode}
-              </h2>
+              <div className="flex items-center justify-center space-x-2">
+                <h2 className="text-xl font-black italic tracking-widest text-white uppercase font-sans drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
+                  {profile.referralCode}
+                </h2>
+                <div className={`p-1 rounded-md transition-all duration-150 flex items-center justify-center ${copyStatus ? 'bg-emerald-500 text-white' : 'bg-white/10 text-white/80 group-hover:bg-white/20'}`}>
+                  {copyStatus ? (
+                    <span className="text-[7.5px] font-black px-1.5 uppercase font-sans tracking-wider">{language === 'am' ? 'ተገልብጧል' : 'Copied'}</span>
+                  ) : (
+                    <Copy className="w-3.5 h-3.5" />
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Invite URL */}
@@ -2484,51 +2475,6 @@ export default function ProfileTab({
                 <QrCode className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
                 <span>{language === 'am' ? 'ኪውአር' : 'QR Code'}</span>
               </button>
-            </div>
-
-            {/* Referral list */}
-            <div className="pt-2 border-t border-slate-200 space-y-2">
-              <div 
-                onClick={() => setShowReferralList(!showReferralList)}
-                className="flex items-center justify-between cursor-pointer select-none hover:bg-slate-200/50 p-1.5 rounded-lg transition-all"
-              >
-                <span className="text-[9.5px] font-sans font-black uppercase tracking-wider text-sky-700">
-                  {language === 'am' ? 'የተጋበዙ አጋሮች መከታተያ' : 'Referrals & Bonus Tracking'}
-                </span>
-                <div className="flex items-center space-x-1">
-                  <span className="text-[8.5px] font-sans font-black bg-sky-100 text-sky-700 px-1.5 py-0.5 rounded-md">
-                    {referrals.length}
-                  </span>
-                  {showReferralList ? <ChevronDown className="w-3 h-3 text-slate-500" /> : <ChevronRight className="w-3 h-3 text-slate-500" />}
-                </div>
-              </div>
-
-              {showReferralList && (
-                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                  {referrals.length === 0 ? (
-                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-wide text-center py-2">
-                      {language === 'am' ? 'እስካሁን የተቀላቀለ አጋር የለም' : 'No active team members detected'}
-                    </p>
-                  ) : (
-                    referrals.map((ref) => (
-                      <div key={ref.id} className="p-2.5 bg-white border border-slate-200 rounded-xl flex items-center justify-between font-sans shadow-3xs">
-                        <div>
-                          <div className="flex items-center space-x-1.5">
-                            <p className="text-[10px] font-black text-slate-900 uppercase">{ref.referredName}</p>
-                            <span className="text-[7px] font-mono font-black px-1.5 bg-amber-500/10 text-amber-700 border border-amber-500/15 rounded">
-                              VIP {ref.referredVipLevel || 1}
-                            </span>
-                          </div>
-                          <p className="text-[8.5px] font-semibold text-slate-500 font-mono mt-0.5">{ref.referredPhone}</p>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-[10.5px] font-black text-emerald-600 font-mono">+{ref.rewardEarned?.toLocaleString() || 0} ETB</span>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
             </div>
           </div>
         )}
