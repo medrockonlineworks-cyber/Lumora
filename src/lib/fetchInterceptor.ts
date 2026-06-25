@@ -2918,7 +2918,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
               "1. **Deposit Pool**: Tracks your direct deposits, used primarily to purchase VIP plans.\n" +
               "2. **Income Pool**: Tracks your active passive earnings, compound yields, and referral bonuses. Daily earnings are credited directly to your Income Pool every 24 hours.\n\nWithdrawals can be made from either pool, subject to transaction rules.";
     } else if (txt.includes('loan') || txt.includes('sovereign')) {
-      reply = "Members reaching **VIP Level 3** or higher with a fully verified **National ID** are eligible to apply for low-interest Sovereign Loans up to 200,000 ETB directly from the profile workspace.";
+      reply = "Members reaching **VIP Level 3** or higher with a fully verified **National ID** are eligible to apply for institutional Sovereign Loans up to 200,000 ETB at a **7.8% Flat monthly interest rate** directly from the profile workspace.";
     } else if (txt.includes('refer') || txt.includes('invite') || txt.includes('bonus') || txt.includes('commission') || txt.includes('requirement') || txt.includes('qualif') || txt.includes('join') || txt.includes('rule')) {
       reply = "Earn lucrative rewards by building your team and leveling up!\n\n" +
               "• **Referral Bonus**: Get a **10% direct VIP level incentive** on deposit amounts from invited users.\n" +

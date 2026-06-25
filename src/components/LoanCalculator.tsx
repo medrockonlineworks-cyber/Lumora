@@ -15,7 +15,7 @@ export default function LoanCalculator({ onApplySettings, isEligible }: LoanCalc
   const MIN_AMOUNT = 30000;
   const MAX_AMOUNT = 1000000;
   const STEP = 10000;
-  const FLAT_MONTH_RATE = 0.015; // 1.5%
+  const FLAT_MONTH_RATE = 0.078; // 7.8%
 
   const totalInterest = calcAmount * FLAT_MONTH_RATE * calcTenure;
   const totalRepayment = calcAmount + totalInterest;
@@ -72,7 +72,7 @@ export default function LoanCalculator({ onApplySettings, isEligible }: LoanCalc
         </div>
         <div className="flex items-center space-x-1 text-[8.5px] font-bold font-mono text-[#0A3D91] bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
           <Percent className="w-2.5 h-2.5 text-[#0A3D91] animate-pulse" />
-          <span>1.5% FLAT / MONTH</span>
+          <span>7.8% FLAT / MONTH</span>
         </div>
       </div>
 

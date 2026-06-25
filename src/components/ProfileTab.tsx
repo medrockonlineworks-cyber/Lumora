@@ -41,7 +41,7 @@ interface ProfileTabProps {
 const getRepaymentSchedule = (amount: number, tenureMonths: number = 6, startDateStr: string) => {
   const result = [];
   const baseDate = new Date(startDateStr);
-  const flatMonthlyRate = 0.015; // 1.5% flat interest per month
+  const flatMonthlyRate = 0.078; // 7.8% flat interest per month
   
   const monthlyPrincipal = amount / tenureMonths;
   const monthlyInterest = amount * flatMonthlyRate;
@@ -1194,7 +1194,7 @@ export default function ProfileTab({
                  'Interest:'}
               </span>
               <strong>
-                1.5%{' '}
+                7.8%{' '}
                 {language === 'am' ? 'ቋሚ' :
                  language === 'om' ? 'Flat' :
                  language === 'ti' ? 'ቀዋሚ' :
@@ -2561,7 +2561,7 @@ export default function ProfileTab({
             <div className="p-3 bg-white border border-slate-200 rounded-xl space-y-1.5 text-slate-800">
               <div className="flex justify-between items-center text-[10px]">
                 <span className="font-bold text-slate-500">Interest Rating:</span>
-                <span className="font-black text-indigo-700">1.5% Flat</span>
+                <span className="font-black text-indigo-700">7.8% Flat</span>
               </div>
               <p className="text-[10px] text-slate-600 font-medium leading-relaxed font-bold">
                 {language === 'am' ? 'በLUMORA ሊኩይዲቲ አካውንቶች የተደገፈ ተቋማዊ ካፒታል። ክፍያዎች በ24 ሰዓታት ውስጥ በቀጥታ ወደ CBE አካውንትዎ ይላካሉ።' :

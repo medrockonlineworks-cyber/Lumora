@@ -716,8 +716,17 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
             </div>
             
             <div className="flex items-center space-x-1 bg-[#072558]/80 px-2 py-0.5 rounded border border-blue-400/20 text-[8px]">
-              <Clock className="w-3 h-3 text-blue-250 shrink-0" />
-              <span>Settlement: <strong className="text-amber-300">{payoutCountdown}</strong></span>
+              {userVipLevel <= 0 ? (
+                <>
+                  <Lock className="w-3 h-3 text-amber-500 shrink-0" />
+                  <span>Settlement: <strong className="text-slate-350 uppercase">{language === 'am' ? 'ተቆልፏል' : 'Locked'}</strong></span>
+                </>
+              ) : (
+                <>
+                  <Clock className="w-3 h-3 text-blue-250 shrink-0" />
+                  <span>Settlement: <strong className="text-amber-300">{payoutCountdown}</strong></span>
+                </>
+              )}
             </div>
           </div>
         </div>
