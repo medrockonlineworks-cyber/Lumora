@@ -2859,9 +2859,15 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     } else if (txt.includes('card') || txt.includes('mastercard') || txt.includes('visa')) {
       reply = "Lumora offers an instant Virtual Debit Mastercard with an institutional rate of 1 USD = 170 ETB. Activation and refund logs are fully automated. To secure and complete online transactions, no SMS OTP is needed—simply authorize charges using your main account login password.";
     } else if (txt.includes('interest') || txt.includes('earn') || txt.includes('profit')) {
-      reply = "Accrued interest on all Lumora VIP levels yields from 3.5% up to 11.5% daily. All earnings are state-protected, guaranteed, and directly available for withdrawal.";
+      reply = "Accrued interest on all Lumora VIP levels yields from 3.5% up to 11.5% daily. All earnings are state-protected, guaranteed, and directly available for withdrawal. Please note newly registered users start at VIP Level 0 (Unactivated) and must activate a plan to begin earning.";
     } else if (txt.includes('security') || txt.includes('safe') || txt.includes('biometric') || txt.includes('selfie') || txt.includes('verification')) {
       reply = "Lumora uses cutting-edge biometric facial verification and National ID check auditing to authenticate loans and withdrawals, while deposits can be made instantly and are processed directly.";
+    } else if (txt.includes('loan') || txt.includes('sovereign')) {
+      reply = "Members holding an active VIP Level 3 plan or higher with a fully Verified National ID (KYC-cleared) are eligible to apply for Sovereign Loans at a flat monthly interest rate of 7.8% directly from the Profile tab.";
+    } else if (txt.includes('unactivated') || txt.includes('vip 0') || txt.includes('level 0')) {
+      reply = "Newly registered users start at VIP Level 0 with an Unactivated status. No passive dynamic yields are earned, the earnings ledger is locked/unactivated, and the countdown timer is locked until you activate an investment plan.";
+    } else if (txt.includes('license') || txt.includes('regulation') || txt.includes('company') || txt.includes('tin')) {
+      reply = "Lumora is registered under FDRE ministry standards: TIN: 0024896464, Principal Registration Number: AACATB/1/0264213/2018, Business License Number: AACATB/14/667/50303357/2018, Issued: 06/10/2018, Authorized Capital: ETB 15,000,000, Bank: Commercial Bank of Ethiopia (CBE).";
     }
 
     const botMsg: ChatMessage = {
@@ -2906,6 +2912,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       reply = "Lumora Virtual MasterCard features:\n\n• **Exchange Rate**: Fixed at **1 USD = 170 ETB**.\n• **Card Fee**: $3 USD issuance fee.\n• **Recharge Fee**: $1 USD transaction fee per funding recharge.\n• **Strict No-OTP Audits**: No phone OTP required! Users authorize online charges securely in real-time using their main account login password.";
     } else if (txt.includes('plan') || txt.includes('vip') || txt.includes('interest') || txt.includes('rate') || txt.includes('return')) {
       reply = "Lumora offers 15 premium VIP Levels for investment:\n\n" +
+              "• **VIP Level 0**: Newly registered users start as VIP 0 (Unactivated). No passive dynamic yields are earned, the earnings ledger is locked/unactivated, and the countdown timer is locked until an active investment plan is activated.\n" +
               "• **Starter Level**: Invest 3,500 ETB, earn **3.40% daily** (total ~9,450 ETB, 50 days)\n" +
               "• **VIP 1**: Invest 5,000 ETB, earn **3.50% daily** (total ~13,750 ETB, 50 days)\n" +
               "• **VIP 2**: Invest 10,000 ETB, earn **3.75% daily** (total ~28,750 ETB, 50 days)\n" +
@@ -2927,10 +2934,12 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
               "  - **VIP 5**: Requires a membership active for **5 months** and **25 verified invited users**.\n" +
               "  - **VIP 6 and above**: Requirements scale up as level increases! For example, VIP 6 requires **5 months** and **30 verified invited users**.\n" +
               "  - **Formula for Level 5+**: `25 + (Level - 5) * 5` verified invites are required.";
-    } else if (txt.includes('license') || txt.includes('regulation') || txt.includes('safe') || txt.includes('legit')) {
-      reply = "Lumora is registered and fully certified under FDRE Trade, Industry & Investment ministry standards:\n\n• **TIN**: 0024896464\n• **Principal Registration Number**: AACATB/1/0264213/2018\n• **Business License Number**: AACATB/14/667/50303357/2018\n• **Date of Issuance**: 06/10/2018\n• **Authorized Capital**: ETB 15,000,000\n• Incorporates secure 3D-facial biometrics and CBE online ledger verification.";
+    } else if (txt.includes('license') || txt.includes('regulation') || txt.includes('safe') || txt.includes('legit') || txt.includes('company') || txt.includes('tin')) {
+      reply = "Lumora is registered and fully certified under FDRE Trade, Industry & Investment ministry standards:\n\n• **TIN**: 0024896464\n• **Principal Registration Number**: AACATB/1/0264213/2018\n• **Business License Number**: AACATB/14/667/50303357/2018\n• **Date of Issuance**: 06/10/2018\n• **Authorized Capital**: ETB 15,000,000\n• **Platform Authorized Bank**: Commercial Bank of Ethiopia (CBE)\n• Incorporates secure 3D-facial biometrics and CBE online ledger verification.";
     } else if (txt.includes('how to invest') || txt.includes('how can i invest') || txt.includes('investing')) {
       reply = "How to Invest in Lumora:\n\n1. Go to the **PLANS** or **HOME** tab.\n2. Select a VIP level plan matching your capital.\n3. Make sure to choose **at least 1 and up to 5 projects** (e.g. Cryptocurrency, Gold, Real Estate) to allocate your capital (this is a mandatory step).\n4. Click 'Confirm VIP Activation'. If your Deposit Balance is insufficient, you can pay via local CBE transfer and submit your transaction receipt.";
+    } else if (txt.includes('unactivated') || txt.includes('vip 0') || txt.includes('level 0')) {
+      reply = "Newly registered users start at VIP Level 0 with an Unactivated status. They do not earn any passive dynamic yields, the earnings ledger shows as locked/unactivated, and the countdown timer displays a 'Locked' status until an investment plan is activated.";
     }
 
     return respondJSON(200, { text: reply });
