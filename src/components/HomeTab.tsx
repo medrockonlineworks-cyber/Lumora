@@ -284,13 +284,13 @@ export default function HomeTab({
           </div>
 
           {/* Dashboard Grid mini metrics */}
-          <div className="grid grid-cols-2 gap-x-4 gap-y-3.5 mt-4 pt-5 border-t border-white/10 text-slate-100">
+          <div className="grid grid-cols-3 gap-x-3 gap-y-3.5 mt-4 pt-5 border-t border-white/10 text-slate-100">
             <div>
               <p className="text-[9px] font-bold text-blue-200/80 uppercase tracking-widest font-mono">
                 {t.activeInvestments || 'Capital Allocation'}
               </p>
               <p className="text-sm font-extrabold text-white mt-1 font-mono">
-                {(activeInvestmentsValue ?? 0).toLocaleString()} <span className="text-[9px] text-blue-200 font-medium">ETB</span>
+                {(activeInvestmentsValue ?? 0).toLocaleString()} <span className="text-[9px] text-blue-200 font-medium font-sans">ETB</span>
               </p>
             </div>
             <div>
@@ -307,21 +307,7 @@ export default function HomeTab({
                 {t.totalEarnings || 'Yields Disbursed'}
               </p>
               <p className="text-sm font-extrabold text-white mt-1 font-mono">
-                {(profile?.totalEarnings || todayEarnings || 0).toLocaleString()} <span className="text-[9px] text-blue-200 font-medium">ETB</span>
-              </p>
-            </div>
-            <div>
-              <p className="text-[9px] font-bold text-blue-200/80 uppercase tracking-widest font-mono">
-                {t.teamSize || 'Partner Network'}
-              </p>
-              <p className="text-sm font-extrabold text-white mt-1 font-mono">
-                {profile.teamSize || 0} <span className="text-[9px] text-blue-200 font-medium lowercase">
-                {language === 'am' ? 'አባላት' :
-                 language === 'om' ? 'miseensota' :
-                 language === 'ti' ? 'ኣባላት' :
-                 language === 'so' ? 'xubnaha' :
-                 'peers'}
-              </span>
+                {(profile?.totalEarnings || todayEarnings || 0).toLocaleString()} <span className="text-[9px] text-blue-200 font-medium font-sans">ETB</span>
               </p>
             </div>
           </div>
