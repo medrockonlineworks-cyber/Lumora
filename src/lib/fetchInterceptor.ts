@@ -2851,23 +2851,50 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     db.chatHistory[userId].push(userMsg);
 
     const txt = message.toLowerCase();
-    let reply = "Hello! I am Lumora's AI Biometrics & Finance Audit Assistant. How can I facilitate your institutional CBE clearance or VIP investment unlocks today?";
-    if (txt.includes('deposit') || txt.includes('payment') || txt.includes('cbe')) {
-      reply = "To submit a CBE bank deposit: Unlock your active tab 'Investments', choose a VIP level tier starting at 3,500 ETB, transfer to our CBE coordinates, and submit the bank receipt photo. You do not need to verify your National ID first! Audit processes usually complete in under 2 hours.";
-    } else if (txt.includes('withdraw') || txt.includes('cashout') || txt.includes('pin')) {
-      reply = "Your cashout withdrawals are dispatched to the Commercial Bank of Ethiopia (CBE) hourly. To submit, ensure your bank destination is designated, and enter your secure 4-digit payment PIN to authorize.";
-    } else if (txt.includes('card') || txt.includes('mastercard') || txt.includes('visa')) {
-      reply = "Lumora offers an instant Virtual Debit Mastercard with an institutional rate of 1 USD = 170 ETB. Activation and refund logs are fully automated. To secure and complete online transactions, no SMS OTP is needed—simply authorize charges using your main account login password.";
-    } else if (txt.includes('interest') || txt.includes('earn') || txt.includes('profit')) {
-      reply = "Accrued interest on all Lumora VIP levels yields from 3.5% up to 11.5% daily. All earnings are state-protected, guaranteed, and directly available for withdrawal. Please note newly registered users start at VIP Level 0 (Unactivated) and must activate a plan to begin earning.";
-    } else if (txt.includes('security') || txt.includes('safe') || txt.includes('biometric') || txt.includes('selfie') || txt.includes('verification')) {
-      reply = "Lumora uses cutting-edge biometric facial verification and National ID check auditing to authenticate loans and withdrawals, while deposits can be made instantly and are processed directly.";
-    } else if (txt.includes('loan') || txt.includes('sovereign')) {
-      reply = "Members holding an active VIP Level 3 plan or higher with a fully Verified National ID (KYC-cleared) are eligible to apply for Sovereign Loans at a flat monthly interest rate of 7.8% directly from the Profile tab.";
-    } else if (txt.includes('unactivated') || txt.includes('vip 0') || txt.includes('level 0')) {
-      reply = "Newly registered users start at VIP Level 0 with an Unactivated status. No passive dynamic yields are earned, the earnings ledger is locked/unactivated, and the countdown timer is locked until you activate an investment plan.";
-    } else if (txt.includes('license') || txt.includes('regulation') || txt.includes('company') || txt.includes('tin')) {
-      reply = "Lumora is registered under FDRE ministry standards: TIN: 0024896464, Principal Registration Number: AACATB/1/0264213/2018, Business License Number: AACATB/14/667/50303357/2018, Issued: 06/10/2018, Authorized Capital: ETB 15,000,000, Bank: Commercial Bank of Ethiopia (CBE).";
+    let reply = "Hello! I am Lumora's AI Biometrics & Finance Audit Assistant. How can I help you with our VIP investment plans, CBE deposits, ID verification, or withdrawals today?";
+    if (txt.includes('deposit') || txt.includes('payment') || txt.includes('cbe') || txt.includes('transfer')) {
+      reply = "To submit a CBE bank deposit:\n\n• **KYC BYPASS ENABLED**: You can construct and submit deposit proof instantly without needing to verify your ID first!\n\n1. Go to the Home tab and click **DEPOSIT**, or select a VIP Plan first.\n2. Transfer the desired amount to our official CBE Account:\n   • **Bank**: Commercial Bank of Ethiopia (CBE)\n   • **Account Name**: Leykun\n   • **Account Number**: `1000419524747`\n3. Click 'I have paid', upload your transaction/receipt screenshot, and submit.\n4. Verification usually takes under 2 hours (average is 15-45 minutes).";
+    } else if (txt.includes('withdraw') || txt.includes('cashout') || txt.includes('pin') || txt.includes('minimum withdrawal')) {
+      reply = "Lumora Withdrawal Rules:\n\n• **Minimum Withdrawal**: 200 ETB\n• **Fee**: 10% fee for Income Pool withdrawals (5% Tax + 5% Handling), 5% handling fee for Deposit Pool withdrawals.\n• **Payout Speed**: Requests are processed and dispatched within 0 to 42 hours.\n• Ensure you have configured your CBE account details and typed your secure 4-digit PIN in your Profile tab.";
+    } else if (txt.includes('card') || txt.includes('mastercard') || txt.includes('visa') || txt.includes('dollar') || txt.includes('rates')) {
+      reply = "Lumora offers an instant Virtual Debit Mastercard with an institutional rate of 1 USD = 170 ETB. Issuance fee is $3 USD and funding fee is $1 USD. Activation and refund logs are fully automated. To secure and complete online transactions, no SMS OTP is needed—simply authorize charges using your main account login password.";
+    } else if (txt.includes('interest') || txt.includes('earn') || txt.includes('profit') || txt.includes('yield')) {
+      reply = "Accrued interest on all Lumora VIP levels yields from 3.40% (Starter Level) up to 11.5% daily compounding yields. All earnings are state-protected, guaranteed, and directly available for withdrawal. Please note newly registered users start at VIP Level 0 (Unactivated) and must activate an investment plan to unlock daily yields and countdown settlement.";
+    } else if (txt.includes('verify') || txt.includes('verification') || txt.includes('id ') || txt.includes('kyc') || txt.includes('audit')) {
+      reply = "To complete your Lumora National ID (KYC) Verification:\n\n" +
+              "1. Navigate to your **Profile** tab.\n" +
+              "2. Scroll to the **Sovereign Loan Unlock Tracker** (National ID Auditing & Compliance) section.\n" +
+              "3. Click to upload high-quality photos of your **National ID card (both front and back)**.\n" +
+              "4. Once submitted, our 15-minute prompt-clear security system will automatically audit and verify your identity.\n\n" +
+              "**Rewards & Benefits**:\n" +
+              "• Get an immediate **175 ETB registration bonus** credited straight to your Wallet Balance.\n" +
+              "• Unlock eligibility to request **Sovereign Loans** (up to 200,000 ETB at a 7.8% Flat monthly rate) for VIP Level 3+ users.\n" +
+              "• Ensure compliance for high-value dynamic cashout withdrawals.";
+    } else if (txt.includes('loan') || txt.includes('sovereign') || txt.includes('borrow')) {
+      reply = "Members holding an active VIP Level 3 plan or higher with a fully Verified National ID (KYC-cleared) are eligible to apply for Sovereign Loans of up to 200,000 ETB at a **7.8% Flat monthly interest rate** directly from the Profile tab.";
+    } else if (txt.includes('unactivated') || txt.includes('vip 0') || txt.includes('level 0') || txt.includes('locked')) {
+      reply = "Newly registered users start at VIP Level 0 with an Unactivated status. They do not earn any passive dynamic yields, the earnings ledger shows as locked/unactivated, and the countdown timer displays a 'Locked' status until an active investment plan is activated.";
+    } else if (txt.includes('license') || txt.includes('regulation') || txt.includes('safe') || txt.includes('legit') || txt.includes('company') || txt.includes('tin')) {
+      reply = "Lumora is registered and fully certified under FDRE Trade, Industry & Investment ministry standards:\n\n• **TIN**: 0024896464\n• **Principal Registration Number**: AACATB/1/0264213/2018\n• **Business License Number**: AACATB/14/667/50303357/2018\n• **Date of Issuance**: 06/10/2018\n• **Authorized Capital**: ETB 15,000,000\n• **Platform Authorized Bank**: Commercial Bank of Ethiopia (CBE)\n• Incorporates secure 3D-facial biometrics and CBE online ledger verification.";
+    } else if (txt.includes('plan') || txt.includes('vip') || txt.includes('rate') || txt.includes('return')) {
+      reply = "Lumora offers 15 premium VIP Levels for investment:\n\n" +
+              "• **VIP Level 0**: Newly registered users start as VIP 0 (Unactivated). No passive dynamic yields are earned, the earnings ledger is locked/unactivated, and the countdown timer is locked until an active investment plan is activated.\n" +
+              "• **Starter Level**: Invest 3,500 ETB, earn **3.40% daily** (total ~9,450 ETB, 50 days)\n" +
+              "• **VIP 1**: Invest 5,000 ETB, earn **3.50% daily** (total ~13,750 ETB, 50 days)\n" +
+              "• **VIP 2**: Invest 10,000 ETB, earn **3.75% daily** (total ~28,750 ETB, 50 days)\n" +
+              "• **VIP 3**: Invest 25,000 ETB, earn **4.00% daily** (total ~75,000 ETB, 50 days)\n" +
+              "• **VIP 4**: Invest 50,000 ETB, earn **4.30% daily** (total ~157,500 ETB, 50 days)\n" +
+              "• **VIP 5**: Invest 100,000 ETB, earn **4.60% daily** (total ~422,000 ETB, 70 days)\n" +
+              "• Refer to the **PLANS** tab for higher levels (VIP 6 to VIP 15) returning up to 10.00% daily returns.";
+    } else if (txt.includes('refer') || txt.includes('invite') || txt.includes('bonus') || txt.includes('commission') || txt.includes('join') || txt.includes('rule')) {
+      reply = "Earn lucrative rewards by building your team and leveling up!\n\n" +
+              "• **Referral Bonus**: Get a **10% direct VIP level incentive** on deposit amounts from invited users.\n" +
+              "• **VIP Level Join Requirements**:\n" +
+              "  - **VIP 1 to VIP 4**: Only require verifying your National ID card to join.\n" +
+              "  - **VIP 5**: Requires a membership active for **5 months** and **25 verified invited users**.\n" +
+              "  - **Formula for Level 5+**: `25 + (Level - 5) * 5` verified invites are required.";
+    } else if (txt.includes('support') || txt.includes('contact') || txt.includes('representative') || txt.includes('telegram') || txt.includes('email') || txt.includes('live')) {
+      reply = "You can instantly reach our official Lumora Live Support and Support Channel through these direct channels:\n\n• **Official Telegram Support**: [@Lumora_Official_Support](https://t.me/Lumora_Official_Support) (Instant response, available 24/7)\n• **Official Support Email**: [lumorainvestmentofficial@gmail.com](mailto:lumorainvestmentofficial@gmail.com)\n\nFor immediate assistance regarding deposits, custom plan overrides, or general compliance questions, please contact our Telegram handler above!";
     }
 
     const botMsg: ChatMessage = {
@@ -2902,15 +2929,25 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     const { message } = body;
     const txt = (message || "").toLowerCase();
     
-    let reply = "Hello! I am your Lumora AI Assistant. How can I help you with our VIP investment plans, CBE deposits, or withdrawals today?";
+    let reply = "Hello! I am your Lumora AI Assistant. How can I help you with our VIP investment plans, CBE deposits, ID verification, or withdrawals today?";
     
     if (txt.includes('deposit') || txt.includes('payment') || txt.includes('cbe') || txt.includes('transfer')) {
-      reply = "To deposit funds into Lumora:\n\n• **KYC BYPASS ENABLED**: You can construct and submit deposit proof instantly without needing to verify your ID first!\n\n1. Go to the Home tab and click **DEPOSIT**, or select a VIP Plan first.\n2. Transfer the desired amount to our official CBE Account:\n   • **Bank**: Commercial Bank of Ethiopia (CBE)\n   • **Account Name**: Leykun\n   • **Account Number**: `1000419524747`\n3. Click 'I have paid', upload your transaction/receipt screenshot, and submit.\n4. Verification usually takes 0 to 42 hours (average is under 2 hours).";
-    } else if (txt.includes('withdraw') || txt.includes('cashout') || txt.includes('minimum withdrawal')) {
+      reply = "To deposit funds into Lumora:\n\n• **KYC BYPASS ENABLED**: You can construct and submit deposit proof instantly without needing to verify your ID first!\n\n1. Go to the Home tab and click **DEPOSIT**, or select a VIP Plan first.\n2. Transfer the desired amount to our official CBE Account:\n   • **Bank**: Commercial Bank of Ethiopia (CBE)\n   • **Account Name**: Leykun\n   • **Account Number**: `1000419524747`\n3. Click 'I have paid', upload your transaction/receipt screenshot, and submit.\n4. Verification usually takes under 2 hours (average is 15-45 minutes).";
+    } else if (txt.includes('withdraw') || txt.includes('cashout') || txt.includes('minimum withdrawal') || txt.includes('pin')) {
       reply = "Lumora Withdrawal Rules:\n\n• **Minimum Withdrawal**: 200 ETB\n• **Fee**: 10% fee for Income Pool withdrawals (5% Tax + 5% Handling), 5% handling fee for Deposit Pool withdrawals.\n• **Payout Speed**: Requests are processed and dispatched within 0 to 42 hours.\n• Ensure you have configured your CBE account details and typed your secure 4-digit PIN in your Profile tab.";
-    } else if (txt.includes('card') || txt.includes('mastercard') || txt.includes('dollar') || txt.includes('rates')) {
+    } else if (txt.includes('card') || txt.includes('mastercard') || txt.includes('dollar') || txt.includes('rates') || txt.includes('visa')) {
       reply = "Lumora Virtual MasterCard features:\n\n• **Exchange Rate**: Fixed at **1 USD = 170 ETB**.\n• **Card Fee**: $3 USD issuance fee.\n• **Recharge Fee**: $1 USD transaction fee per funding recharge.\n• **Strict No-OTP Audits**: No phone OTP required! Users authorize online charges securely in real-time using their main account login password.";
-    } else if (txt.includes('plan') || txt.includes('vip') || txt.includes('interest') || txt.includes('rate') || txt.includes('return')) {
+    } else if (txt.includes('verify') || txt.includes('verification') || txt.includes('id ') || txt.includes('kyc') || txt.includes('audit')) {
+      reply = "To complete your Lumora National ID (KYC) Verification:\n\n" +
+              "1. Navigate to your **Profile** tab.\n" +
+              "2. Scroll to the **Sovereign Loan Unlock Tracker** (National ID Auditing & Compliance) section.\n" +
+              "3. Click to upload high-quality photos of your **National ID card (both front and back)**.\n" +
+              "4. Once submitted, our 15-minute prompt-clear security system will automatically audit and verify your identity.\n\n" +
+              "**Rewards & Benefits**:\n" +
+              "• Get an immediate **175 ETB registration bonus** credited straight to your Wallet Balance.\n" +
+              "• Unlock eligibility to request **Sovereign Loans** (up to 200,000 ETB at a 7.8% Flat monthly rate) for VIP Level 3+ users.\n" +
+              "• Ensure compliance for high-value dynamic cashout withdrawals.";
+    } else if (txt.includes('plan') || txt.includes('vip') || txt.includes('interest') || txt.includes('rate') || txt.includes('return') || txt.includes('yield') || txt.includes('profit')) {
       reply = "Lumora offers 15 premium VIP Levels for investment:\n\n" +
               "• **VIP Level 0**: Newly registered users start as VIP 0 (Unactivated). No passive dynamic yields are earned, the earnings ledger is locked/unactivated, and the countdown timer is locked until an active investment plan is activated.\n" +
               "• **Starter Level**: Invest 3,500 ETB, earn **3.40% daily** (total ~9,450 ETB, 50 days)\n" +
@@ -2924,7 +2961,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       reply = "Lumora operates two distinct balance pools:\n\n" +
               "1. **Deposit Pool**: Tracks your direct deposits, used primarily to purchase VIP plans.\n" +
               "2. **Income Pool**: Tracks your active passive earnings, compound yields, and referral bonuses. Daily earnings are credited directly to your Income Pool every 24 hours.\n\nWithdrawals can be made from either pool, subject to transaction rules.";
-    } else if (txt.includes('loan') || txt.includes('sovereign')) {
+    } else if (txt.includes('loan') || txt.includes('sovereign') || txt.includes('borrow')) {
       reply = "Members reaching **VIP Level 3** or higher with a fully verified **National ID** are eligible to apply for institutional Sovereign Loans up to 200,000 ETB at a **7.8% Flat monthly interest rate** directly from the profile workspace.";
     } else if (txt.includes('refer') || txt.includes('invite') || txt.includes('bonus') || txt.includes('commission') || txt.includes('requirement') || txt.includes('qualif') || txt.includes('join') || txt.includes('rule')) {
       reply = "Earn lucrative rewards by building your team and leveling up!\n\n" +
@@ -2938,8 +2975,10 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       reply = "Lumora is registered and fully certified under FDRE Trade, Industry & Investment ministry standards:\n\n• **TIN**: 0024896464\n• **Principal Registration Number**: AACATB/1/0264213/2018\n• **Business License Number**: AACATB/14/667/50303357/2018\n• **Date of Issuance**: 06/10/2018\n• **Authorized Capital**: ETB 15,000,000\n• **Platform Authorized Bank**: Commercial Bank of Ethiopia (CBE)\n• Incorporates secure 3D-facial biometrics and CBE online ledger verification.";
     } else if (txt.includes('how to invest') || txt.includes('how can i invest') || txt.includes('investing')) {
       reply = "How to Invest in Lumora:\n\n1. Go to the **PLANS** or **HOME** tab.\n2. Select a VIP level plan matching your capital.\n3. Make sure to choose **at least 1 and up to 5 projects** (e.g. Cryptocurrency, Gold, Real Estate) to allocate your capital (this is a mandatory step).\n4. Click 'Confirm VIP Activation'. If your Deposit Balance is insufficient, you can pay via local CBE transfer and submit your transaction receipt.";
-    } else if (txt.includes('unactivated') || txt.includes('vip 0') || txt.includes('level 0')) {
+    } else if (txt.includes('unactivated') || txt.includes('vip 0') || txt.includes('level 0') || txt.includes('locked')) {
       reply = "Newly registered users start at VIP Level 0 with an Unactivated status. They do not earn any passive dynamic yields, the earnings ledger shows as locked/unactivated, and the countdown timer displays a 'Locked' status until an investment plan is activated.";
+    } else if (txt.includes('support') || txt.includes('contact') || txt.includes('representative') || txt.includes('telegram') || txt.includes('email') || txt.includes('live')) {
+      reply = "You can instantly reach our official Lumora Live Support and Support Channel through these direct channels:\n\n• **Official Telegram Support**: [@Lumora_Official_Support](https://t.me/Lumora_Official_Support) (Instant response, available 24/7)\n• **Official Support Email**: [lumorainvestmentofficial@gmail.com](mailto:lumorainvestmentofficial@gmail.com)\n\nFor immediate assistance regarding deposits, custom plan overrides, or general compliance questions, please contact our Telegram handler above!";
     }
 
     return respondJSON(200, { text: reply });
