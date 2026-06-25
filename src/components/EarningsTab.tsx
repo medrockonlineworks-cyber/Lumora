@@ -89,6 +89,7 @@ const PROJECT_ID_TO_NAME: Record<string, string> = {
 };
 
 const getDailyLevelIncome = (vipLevel: number) => {
+  if (vipLevel <= 0) return 0;
   switch (vipLevel) {
     case 1: return 119;      // Starter level
     case 2: return 175;      // VIP 1
@@ -106,12 +107,13 @@ const getDailyLevelIncome = (vipLevel: number) => {
     case 14: return 4250000; // VIP 13
     case 15: return 6900000; // VIP 14
     case 16: return 10000000;// VIP 15
-    default: return 119;      // Default/Starter
+    default: return 0;
   }
 };
 
 const getLevelName = (vipLevel: number) => {
-  if (vipLevel <= 1) return 'Starter Level';
+  if (vipLevel <= 0) return 'Unactivated';
+  if (vipLevel === 1) return 'Starter Level';
   return `VIP Level ${vipLevel - 1}`;
 };
 
@@ -354,7 +356,7 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
 
   // Active investments & incomes
   const activeInvestments = investments.filter(i => i.status === 'active');
-  const userVipLevel = profile?.vipLevel || 1;
+  const userVipLevel = profile?.vipLevel ?? 0;
   const levelIncomeTotal = getDailyLevelIncome(userVipLevel);
 
   // Ticking Countdown to nearest payout or fallback to midnight
@@ -722,7 +724,41 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
       </div>
 
       {/* DAILY LEVEL INCOME FULFILLMENT ENGINE */}
-      <div className="p-5 rounded-[20px] bg-white/70 backdrop-blur-[12px] border border-white/10 shadow-sm text-left relative overflow-hidden">
+      {userVipLevel <= 0 ? (
+        <div id="earning-locked-container" className="p-8 rounded-[24px] bg-white/70 backdrop-blur-[12px] border border-white/10 shadow-sm text-center relative overflow-hidden space-y-5 py-12">
+          <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent"></div>
+          
+          <div className="mx-auto w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-300/25 flex items-center justify-center shadow-inner">
+            <Lock className="w-8 h-8 text-amber-500 animate-pulse" />
+          </div>
+          
+          <div className="space-y-2 max-w-md mx-auto">
+            <h3 className="text-base font-black uppercase tracking-wider text-slate-900 font-sans">
+              {language === 'am' ? 'የገቢ ማስገኛ ፕሮቶኮል አልነቃም' :
+               language === 'om' ? 'Pirotokooliin Galii Hin Kakane' :
+               language === 'ti' ? 'ኣሰራርሓ እቶት ኣይነፈረን' :
+               language === 'so' ? 'Hab-maamuuska Dakhligu Ma Hawlgelin' :
+               'Earning Protocol Unactivated'}
+            </h3>
+            <p className="text-[11.5px] text-slate-500 font-medium leading-relaxed font-sans">
+              {language === 'am' ? 'የዕለታዊ ደረጃ ገቢዎን ለማንቃት እና ዕለታዊ ትርፍ ማግኘት ለመጀመር እባክዎ በዕቅዶች (PLANS) ገጽ ላይ የመጀመሪያውን ጀማሪ ደረጃ ዕቅድ ያግብሩ።' :
+               language === 'om' ? 'Galii sadarkaa guyyaa guyyaatti argachuu jalqabuuf, maaloo jalqaba sadarkaa ka\'umsaa (PLANS) irratti kaffaltii tokko kaffalaa.' :
+               language === 'ti' ? 'ዕለታዊ እቶት ንምጅማር በጃኹም ኣብ ውጥን (PLANS) ገጽ መጀመርታ ጀማሪ ደረጃ ውጥን ኣንቅሩ።' :
+               language === 'so' ? 'Si aad u bilowdo dakhliga maalin kasta, fadlan marka hore hawlgeli qorshaha heerka bilowga ah ee qaybta PLANS.' :
+               'To activate your daily level income tracking and start receiving your dynamic asset portfolio yields, please visit the PLANS section and subscribe to your first active investment plan.'}
+            </p>
+          </div>
+
+          <div className="pt-3 max-w-xs mx-auto">
+            <div className="inline-flex items-center space-x-2 px-3 py-1.5 bg-slate-100 rounded-full border border-slate-200/60 text-[9px] font-black text-slate-500 uppercase tracking-widest font-mono">
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-ping"></span>
+              <span>Level 0 / Inactive Status</span>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="p-5 rounded-[20px] bg-white/70 backdrop-blur-[12px] border border-white/10 shadow-sm text-left relative overflow-hidden">
         
         <div className="flex justify-between items-center pb-3.5 border-b border-slate-100">
           <div className="flex items-center space-x-2">
@@ -1309,6 +1345,8 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
           </button>
         </div>
       </div>
+        </>
+      )}
 
       {/* CELEBRATION SUCCESS MODAL */}
       <AnimatePresence>

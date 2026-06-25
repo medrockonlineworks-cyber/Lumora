@@ -69,12 +69,16 @@ const getRepaymentSchedule = (amount: number, tenureMonths: number = 6, startDat
   return result;
 };
 
-const getVipBadgeDetails = (vipLevel: number) => {
+const getVipBadgeDetails = (vipLevel: number, language: string = 'en') => {
   if (vipLevel <= 0) {
     return {
-      text: 'Basic',
-      bgColor: 'bg-slate-100 border-slate-200 text-slate-600',
-      iconEmoji: '✨',
+      text: language === 'am' ? 'ያልነቃ ደረጃ' : 
+            language === 'om' ? 'Unactivated' : 
+            language === 'ti' ? 'ዘይነፈረ ደረጃ' : 
+            language === 'so' ? 'Heer aan la hawlgelin' : 
+            'Unactivated',
+      bgColor: 'bg-slate-500 border-slate-400 text-white',
+      iconEmoji: '🔒',
       glowClass: ''
     };
   }
@@ -187,7 +191,7 @@ export default function ProfileTab({
   const highestActiveLevel = activeInvestments.length > 0
     ? Math.max(...activeInvestments.map(i => i.planLevel))
     : 0;
-  const vipBadge = getVipBadgeDetails(profile.vipLevel || 1);
+  const vipBadge = getVipBadgeDetails(profile.vipLevel ?? 0, language);
 
   const infoSectionTrans = {
     en: {

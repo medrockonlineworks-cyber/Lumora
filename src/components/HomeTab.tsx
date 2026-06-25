@@ -217,14 +217,14 @@ export default function HomeTab({
               <Coins className="w-4 h-4 text-amber-400" />
               <span>{t.walletBalance || 'Core Portfolio'}</span>
             </span>
-            <span className="px-3 py-1 text-[9px] font-black rounded-full bg-gradient-to-r from-amber-400 to-amber-300 text-[#0b3d91] flex items-center space-x-1.5 uppercase shadow-md font-sans">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#0b3d91] animate-ping"></span>
+            <span className={`px-3 py-1 text-[9px] font-black rounded-full flex items-center space-x-1.5 uppercase shadow-md font-sans ${profile.vipLevel === 0 ? 'bg-slate-500 text-white' : 'bg-gradient-to-r from-amber-400 to-amber-300 text-[#0b3d91]'}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${profile.vipLevel === 0 ? 'bg-slate-300' : 'bg-[#0b3d91] animate-ping'}`}></span>
               <span>
-                {language === 'am' ? (profile.vipLevel === 1 ? "ጀማሪ ደረጃ" : `ቪአይፒ ደረጃ ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0}`) :
-                 language === 'om' ? (profile.vipLevel === 1 ? "Starter Level" : `Sadarkaa VIP ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0}`) :
-                 language === 'ti' ? (profile.vipLevel === 1 ? "ጀማሪ ደረጃ" : `ቪአይፒ ደረጃ ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0}`) :
-                 language === 'so' ? (profile.vipLevel === 1 ? "Heerka Starter" : `Darajada VIP ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0}`) :
-                 (profile.vipLevel === 1 ? "Starter Level" : `VIP Grade ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0}`)}
+                {language === 'am' ? (profile.vipLevel === 0 ? "ያልነቃ" : profile.vipLevel === 1 ? "ጀማሪ ደረጃ" : `ቪአይፒ ደረጃ ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0}`) :
+                 language === 'om' ? (profile.vipLevel === 0 ? "Unactivated" : profile.vipLevel === 1 ? "Starter Level" : `Sadarkaa VIP ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0}`) :
+                 language === 'ti' ? (profile.vipLevel === 0 ? "ያልነቃ" : profile.vipLevel === 1 ? "ጀማሪ ደረጃ" : `ቪአይፒ ደረጃ ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0}`) :
+                 language === 'so' ? (profile.vipLevel === 0 ? "Aan la hawlgelin" : profile.vipLevel === 1 ? "Heerka Starter" : `Darajada VIP ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0}`) :
+                 (profile.vipLevel === 0 ? "Unactivated" : profile.vipLevel === 1 ? "Starter Level" : `VIP Grade ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0}`)}
               </span>
             </span>
           </div>
