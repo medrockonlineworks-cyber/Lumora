@@ -783,7 +783,10 @@ export default function HomeTab({
             {t.noData || 'No transaction logs registered.'}
           </div>
         ) : (() => {
-          const visibleTx = showAllTx ? recentTransactions : recentTransactions.slice(0, 5);
+          const sortedTransactions = [...recentTransactions].sort((a, b) => {
+            return new Date(b.date).getTime() - new Date(a.date).getTime();
+          });
+          const visibleTx = showAllTx ? sortedTransactions : sortedTransactions.slice(0, 5);
           const grouped: { dateKey: string; items: typeof recentTransactions }[] = [];
           
           visibleTx.forEach((tx) => {
