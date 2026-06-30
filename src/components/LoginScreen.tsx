@@ -354,6 +354,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   {showPassword ? <EyeOff className="w-4 h-4 text-slate-500 animate-pulse" /> : <Eye className="w-4 h-4 text-slate-500" />}
                 </button>
               </div>
+            </div>
                  <div className="flex justify-between items-center text-[11px] pt-1 select-none font-extrabold">
               <label className="flex items-center space-x-1.5 text-slate-800 hover:text-[#0A3D91] cursor-pointer">
                 <input
@@ -382,7 +383,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
               >
                 Create Account
               </button>
-            </div>          </div>
+            </div>
 
             <button
               type="submit"
