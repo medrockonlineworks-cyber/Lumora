@@ -390,6 +390,62 @@ let firestoreClientDb: any = null;
 let firestoreClientDisabled = typeof window !== "undefined" && localStorage.getItem("lumora_firestore_client_disabled") === "true";
 let activeClientUnsubscribers: (() => void)[] = [];
 
+// Global error and unhandled rejection trap to catch and completely silence Firestore quota limits/resource exhausted errors
+if (typeof window !== "undefined") {
+  const isQuotaErrorMsg = (text: string) => {
+    const msg = String(text || "").toLowerCase();
+    return msg.includes("quota") || 
+           msg.includes("resource-exhausted") || 
+           msg.includes("limit") || 
+           msg.includes("exhausted") ||
+           msg.includes("resource_exhausted") ||
+           msg.includes("billing");
+  };
+
+  const triggerQuotaResiliency = () => {
+    if (!firestoreClientDisabled) {
+      firestoreClientDisabled = true;
+      const dbToTerminate = firestoreClientDb;
+      firestoreClientDb = null;
+      try {
+        localStorage.setItem("lumora_firestore_client_disabled", "true");
+      } catch (e) {}
+      console.warn("[Client Global Trap] Quota/Resource-Exhausted detected in window. Gracefully locking local offline mode.");
+      unsubscribeAllClientListeners();
+      if (dbToTerminate) {
+        try {
+          terminate(dbToTerminate)
+            .then(() => console.log("[Client Global Trap] Terminated firestore client db connection."))
+            .catch(() => {});
+        } catch (_) {}
+      }
+      // Notify the app tabs
+      window.dispatchEvent(new CustomEvent("lumora-firestore-disabled"));
+    }
+  };
+
+  window.addEventListener('error', (event) => {
+    const errorMsg = event.message || (event.error && (event.error.message || event.error.code || String(event.error))) || "";
+    if (isQuotaErrorMsg(errorMsg)) {
+      console.warn("[Client Global Trap] Handled and silenced global error:", errorMsg);
+      triggerQuotaResiliency();
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }, true);
+
+  window.addEventListener('unhandledrejection', (event) => {
+    const reason = event.reason;
+    const errorMsg = reason ? (reason.message || reason.code || String(reason)) : "";
+    if (isQuotaErrorMsg(errorMsg)) {
+      console.warn("[Client Global Trap] Handled and silenced unhandled rejection:", errorMsg);
+      triggerQuotaResiliency();
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }, true);
+}
+
 function unsubscribeAllClientListeners() {
   console.log("[Client Firestore] Unsubscribing all client-side real-time Firestore listeners due to quota limit.");
   activeClientUnsubscribers.forEach(unsub => {

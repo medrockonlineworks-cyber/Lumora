@@ -446,6 +446,7 @@ export default function ProfileTab({
 
   const [selectedLedgerType, setSelectedLedgerType] = useState<'deposits' | 'withdrawals'>('deposits');
   const [ledgerStatusFilter, setLedgerStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [maximizedLedger, setMaximizedLedger] = useState<'deposits' | 'withdrawals' | null>(null);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -1914,7 +1915,7 @@ export default function ProfileTab({
             <div className="grid grid-cols-2 gap-2 p-1 bg-slate-200/60 rounded-xl">
               <button
                 type="button"
-                onClick={() => setSelectedLedgerType('deposits')}
+                onClick={() => { setSelectedLedgerType('deposits'); setMaximizedLedger('deposits'); }}
                 className={`py-2 rounded-lg font-black text-[10px] uppercase tracking-wider transition-all cursor-pointer text-center ${
                   selectedLedgerType === 'deposits'
                     ? 'bg-[#0A3D91] text-white shadow-xs'
@@ -1925,7 +1926,7 @@ export default function ProfileTab({
               </button>
               <button
                 type="button"
-                onClick={() => setSelectedLedgerType('withdrawals')}
+                onClick={() => { setSelectedLedgerType('withdrawals'); setMaximizedLedger('withdrawals'); }}
                 className={`py-2 rounded-lg font-black text-[10px] uppercase tracking-wider transition-all cursor-pointer text-center ${
                   selectedLedgerType === 'withdrawals'
                     ? 'bg-[#0A3D91] text-white shadow-xs'
@@ -1972,7 +1973,9 @@ export default function ProfileTab({
             <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1 scrollbar-none">
               {selectedLedgerType === 'deposits' ? (
                 (() => {
-                  const items = deposits.filter((d) => ledgerStatusFilter === 'all' || d.status === ledgerStatusFilter);
+                  const items = [...deposits]
+                    .filter((d) => ledgerStatusFilter === 'all' || d.status === ledgerStatusFilter)
+                    .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
                   if (items.length === 0) {
                     return (
                       <div className="p-6 rounded-2xl bg-white border border-slate-100 flex flex-col items-center justify-center text-center">
@@ -2029,7 +2032,9 @@ export default function ProfileTab({
                 })()
               ) : (
                 (() => {
-                  const items = withdrawals.filter((w) => ledgerStatusFilter === 'all' || w.status === ledgerStatusFilter);
+                  const items = [...withdrawals]
+                    .filter((w) => ledgerStatusFilter === 'all' || w.status === ledgerStatusFilter)
+                    .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
                   if (items.length === 0) {
                     return (
                       <div className="p-6 rounded-2xl bg-white border border-slate-100 flex flex-col items-center justify-center text-center">
@@ -3327,6 +3332,188 @@ export default function ProfileTab({
             )}
           </div>
         </div>
+      )}
+
+      {maximizedLedger && (
+        (() => {
+          const maxItems = (maximizedLedger === 'deposits')
+            ? [...deposits].filter((d) => ledgerStatusFilter === 'all' || d.status === ledgerStatusFilter).sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
+            : [...withdrawals].filter((w) => ledgerStatusFilter === 'all' || w.status === ledgerStatusFilter).sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+
+          const maxApprovedTotal = (maximizedLedger === 'deposits' ? deposits : withdrawals)
+            .filter(i => i.status === 'approved')
+            .reduce((acc, curr) => acc + (curr.amount ?? 0), 0);
+
+          const maxPendingTotal = (maximizedLedger === 'deposits' ? deposits : withdrawals)
+            .filter(i => i.status === 'pending')
+            .reduce((acc, curr) => acc + (curr.amount ?? 0), 0);
+
+          return (
+            <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex flex-col justify-end sm:justify-center p-0 sm:p-4 md:p-6 z-[9999] animate-in fade-in duration-300">
+              <div className="w-full max-w-lg mx-auto bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] p-6 space-y-6 shadow-2xl relative border border-slate-100 flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom duration-300">
+                
+                {/* Header section with Close Button */}
+                <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+                  <div className="flex items-center space-x-3 text-left">
+                    <div className={`p-2.5 rounded-2xl ${maximizedLedger === 'deposits' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-[#0A3D91]'}`}>
+                      {maximizedLedger === 'deposits' ? <Coins className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
+                    </div>
+                    <div>
+                      <h3 className="font-display font-black text-sm text-slate-900 uppercase tracking-wider leading-none">
+                        {maximizedLedger === 'deposits' ? (language === 'am' ? 'ሙሉ የተቀማጭ መዝገብ' : 'Deposit Ledger') : (language === 'am' ? 'ሙሉ የወጪ መዝገብ' : 'Withdrawal Ledger')}
+                      </h3>
+                      <p className="text-[10px] text-slate-450 font-bold uppercase tracking-widest font-mono mt-1">
+                        {maximizedLedger === 'deposits' ? deposits.length : withdrawals.length} {language === 'am' ? 'ጠቅላላ መዝገቦች' : 'Total Entries'}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <button
+                    type="button"
+                    onClick={() => setMaximizedLedger(null)}
+                    className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-950 transition-colors cursor-pointer"
+                    title="Close Window"
+                  >
+                    <X className="w-5 h-5 stroke-[2.5]" />
+                  </button>
+                </div>
+
+                {/* Performance/Value Analytics Header Widgets */}
+                <div className="grid grid-cols-2 gap-3.5">
+                  <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-2xl text-left">
+                    <span className="text-[8px] text-emerald-800 font-extrabold uppercase tracking-widest font-sans block">
+                      {language === 'am' ? 'የተፈቀደ ጠቅላላ' : 'Total Approved'}
+                    </span>
+                    <span className="text-sm font-black text-emerald-900 font-mono mt-0.5 block">
+                      {maxApprovedTotal.toLocaleString()} ETB
+                    </span>
+                  </div>
+                  <div className="p-3 bg-amber-50 border border-amber-100 rounded-2xl text-left">
+                    <span className="text-[8px] text-amber-800 font-extrabold uppercase tracking-widest font-sans block">
+                      {language === 'am' ? 'በሂደት ላይ ያለ ጠቅላላ' : 'Total Pending'}
+                    </span>
+                    <span className="text-sm font-black text-amber-900 font-mono mt-0.5 block">
+                      {maxPendingTotal.toLocaleString()} ETB
+                    </span>
+                  </div>
+                </div>
+
+                {/* Quick Filter Selection inside maximized panel */}
+                <div className="flex flex-wrap gap-1.5 justify-start">
+                  {['all', 'pending', 'approved', 'rejected'].map((status) => {
+                    const isActive = ledgerStatusFilter === status;
+                    const count = status === 'all' 
+                      ? (maximizedLedger === 'deposits' ? deposits.length : withdrawals.length)
+                      : (maximizedLedger === 'deposits' 
+                          ? deposits.filter(d => d.status === status).length 
+                          : withdrawals.filter(w => w.status === status).length);
+
+                    return (
+                      <button
+                        key={status}
+                        type="button"
+                        onClick={() => setLedgerStatusFilter(status as any)}
+                        className={`px-3 py-1.5 rounded-xl text-[9.5px] font-black uppercase tracking-wider border transition-all cursor-pointer flex items-center space-x-2 ${
+                          isActive
+                            ? status === 'pending' ? 'bg-amber-100 text-amber-800 border-amber-300 shadow-3xs'
+                            : status === 'approved' ? 'bg-emerald-100 text-emerald-800 border-emerald-300 shadow-3xs'
+                            : status === 'rejected' ? 'bg-rose-100 text-rose-800 border-rose-300 shadow-3xs'
+                            : 'bg-slate-900 text-white border-slate-900 shadow-3xs'
+                            : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200'
+                        }`}
+                      >
+                        <span>{status}</span>
+                        <span className="bg-slate-950/10 px-1 py-0.5 rounded text-[8.5px] font-black">{count}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Scrollable list content - filling the rest of the available height */}
+                <div className="flex-1 overflow-y-auto pr-1 space-y-3 scrollbar-none max-h-[50vh]">
+                  {maxItems.length === 0 ? (
+                    <div className="py-12 px-6 rounded-3xl bg-slate-50 border border-slate-100 flex flex-col items-center justify-center text-center">
+                      <div className="p-3 bg-slate-100 text-slate-400 rounded-full mb-3">
+                        {maximizedLedger === 'deposits' ? <Coins className="w-8 h-8 stroke-[1.5]" /> : <ArrowUpRight className="w-8 h-8 stroke-[1.5]" />}
+                      </div>
+                      <h4 className="text-[11px] text-slate-950 font-black uppercase tracking-widest leading-none">
+                        {language === 'am' ? 'ምንም አይነት መዛግብት አልተገኙም' : 'No entries found'}
+                      </h4>
+                      <p className="text-[10px] text-slate-500 mt-1.5 max-w-xs font-medium">
+                        {language === 'am' ? 'ከተመረጠው የሁኔታ ማጣሪያ ጋር የሚዛመዱ መዝገቦች በዚህ መለያ ውስጥ የሉም።' : 'There are no ledger entries matching this status type under your profile session.'}
+                      </p>
+                    </div>
+                  ) : (
+                    maxItems.map((item) => {
+                      const isApproved = item.status === 'approved';
+                      const isRejected = item.status === 'rejected';
+                      return (
+                        <div
+                          key={item.id}
+                          className="p-4 rounded-2xl bg-white border border-slate-150 flex justify-between items-center shadow-2xs hover:border-slate-300 transition-all duration-200 relative overflow-hidden"
+                        >
+                          {/* Authentic Lumora visual stamps on the maximized layout */}
+                          {isApproved && (
+                            <div className="absolute right-[24%] top-[-2px] opacity-100 pointer-events-none z-0 transform scale-90 origin-top-right select-none">
+                              <LumoraStamp text="APPROVED" variant="green" size="xs" tilted={true} highContrast={true} />
+                            </div>
+                          )}
+                          {isRejected && (
+                            <div className="absolute right-[24%] top-[-2px] opacity-100 pointer-events-none z-0 transform scale-90 origin-top-right select-none">
+                              <LumoraStamp text="REJECTED" variant="rose" size="xs" tilted={true} highContrast={true} />
+                            </div>
+                          )}
+
+                          <div className="relative z-10 text-left space-y-1">
+                            <h5 className="text-[13px] font-display font-black text-slate-950 leading-none">
+                              {(item.amount ?? 0).toLocaleString()} ETB
+                            </h5>
+                            <p className="text-[8.5px] text-slate-500 uppercase font-mono font-black tracking-wide">
+                              Time: {new Date(item.submittedAt).toLocaleString()}
+                            </p>
+                            {maximizedLedger === 'deposits' && (item as any).bankReference && (
+                              <div className="inline-flex items-center space-x-1 mt-1 px-2 py-0.5 bg-blue-50 border border-blue-100 rounded-lg text-[8px] text-[#0180FE] font-mono font-black select-all">
+                                <span>Ref:</span>
+                                <span className="uppercase">{(item as any).bankReference}</span>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="text-right relative z-10 font-sans flex flex-col items-end space-y-1.5">
+                            <span className={`text-[8.5px] font-black px-2.5 py-1 rounded-full border uppercase tracking-widest ${
+                              isApproved ? 'bg-emerald-50 text-emerald-800 border-emerald-250' :
+                              isRejected ? 'bg-rose-50 text-rose-800 border-rose-250' :
+                              'bg-amber-50 text-amber-800 border-amber-250 animate-pulse animate-duration-2000'
+                            }`}>
+                              {item.status}
+                            </span>
+                            {isRejected && item.rejectionReason && (
+                              <p className="text-[8px] text-rose-800 bg-rose-50/50 p-1 rounded border border-rose-100 max-w-[140px] leading-snug font-semibold text-right">
+                                {item.rejectionReason}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+
+                {/* Quick exit bar on bottom of sheets */}
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setMaximizedLedger(null)}
+                    className="w-full py-3 bg-slate-900 hover:bg-slate-950 text-white rounded-2xl text-[10.5px] font-black uppercase tracking-widest transition-all cursor-pointer shadow-sm"
+                  >
+                    {language === 'am' ? 'ዝጋ' : 'Close Ledger'}
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          );
+        })()
       )}
 
     </div>
