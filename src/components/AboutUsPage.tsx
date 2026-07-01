@@ -286,58 +286,7 @@ export default function AboutUsPage({ onBack }: AboutUsPageProps) {
         </p>
       </div>
 
-      {/* Official Regulatory Licensing and Trade Registry numbers */}
-      <div className="p-5 bg-gradient-to-tr from-blue-50 to-blue-100/30 border border-blue-100 rounded-3xl space-y-3.5 shadow-sm relative overflow-hidden" id="about-us-regulatory-block">
-        {/* Transparent background stamp underlay */}
-        <div className="absolute right-[-15px] bottom-[-10px] sm:right-[10px] sm:bottom-[10px] opacity-[0.45] pointer-events-none z-0 transform scale-75 sm:scale-90 origin-bottom-right">
-          <LumoraStamp text="LICENSED" variant="blue" size="md" tilted={true} />
-        </div>
 
-        <div className="flex items-center space-x-2 relative z-10">
-          <Award className="w-5 h-5 text-[#0A3D91]" />
-          <h4 className="font-display font-black text-xs text-blue-950 uppercase tracking-wider">
-            {language === 'am' ? 'ባለሥልጣን የንግድ ፈቃድ ምምዝገቢያ' : 'Official Regulatory Licensing'}
-          </h4>
-        </div>
-        
-        <div className="space-y-2 text-[10.5px] text-slate-800 font-sans font-semibold relative z-10">
-          <div className="flex justify-between items-center pb-2 border-b border-blue-100/60">
-            <span className="text-slate-500 font-medium">
-              {language === 'am' ? 'የግብር ከፋይ መለያ ቁጥር (TIN)' : 'TIN'}
-            </span>
-            <span className="font-mono text-[#0A3D91] font-bold">0024896464</span>
-          </div>
-          <div className="flex justify-between items-center pb-2 border-b border-blue-100/60">
-            <span className="text-slate-500 font-medium">
-              {language === 'am' ? 'ዋና የንግድ ምዝገባ ቁጥር' : 'Principal Registration No.'}
-            </span>
-            <span className="font-mono text-[#0A3D91] font-bold text-right pl-2 selection:bg-blue-200">AACATB/1/0264213/2018</span>
-          </div>
-          <div className="flex justify-between items-center pb-2 border-b border-blue-100/60">
-            <span className="text-slate-500 font-medium whitespace-nowrap">
-              {language === 'am' ? 'የንግድ ሥራ ፈቃድ ቁጥር' : 'Business License No.'}
-            </span>
-            <span className="font-mono text-[#0A3D91] font-bold text-right pl-2">AACATB/14/667/50303357/2018</span>
-          </div>
-          <div className="flex justify-between items-center pb-2 border-b border-blue-100/60">
-            <span className="text-slate-500 font-medium">
-              {language === 'am' ? 'የተሰጠበት ቀን' : 'Date of Issuance'}
-            </span>
-            <span className="font-mono text-[#0A3D91] font-bold">06/10/2018</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-slate-500 font-medium">
-              {language === 'am' ? 'የተፈቀደ የካፒታል መጠን' : 'Authorized Capital'}
-            </span>
-            <span className="text-slate-900 font-bold">ETB 15,000,000</span>
-          </div>
-        </div>
-        <p className="text-[9.5px] text-[#0A3D91]/75 leading-relaxed font-sans font-medium italic pt-1 relative z-10">
-          {language === 'am' 
-            ? '※ Lumora በፌዴራል ዲሞክራሲያዊ ሪፐብሊክ የኢትዮጵያ ንግድና ኢንቨስትመንት ባለሥልጣን የተመዘገበና ሙሉ በሙሉ በሕግ የተረጋገጠ የፋይናንስ የንብረት አያያዝ ድርጅት ነው።'
-            : '※ Lumora Financial is fully incorporated as a private asset brokerage partner under the Federal Democratic Republic of Ethiopia Trade, Industry & Investment ministry standards.'}
-        </p>
-      </div>
 
       {/* Dynamic Company License Viewer */}
       {settings?.companyLicenseUrl && (

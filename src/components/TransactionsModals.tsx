@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import html2canvas from 'html2canvas';
 import { 
   X, CreditCard, Copy, Info, Camera, ShieldAlert, CheckCircle, 
-  ChevronRight, Building, Key, Coins, Check 
+  ChevronRight, Building, Key, Coins, Check, Clock 
 } from 'lucide-react';
 import { useLanguage } from '../locale';
 import { Profile } from '../types';
@@ -1521,6 +1521,19 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
                     >
                       {t.change}
                     </button>
+                  </div>
+                </div>
+
+                {/* Withdrawal active hours notice */}
+                <div className="p-3.5 bg-gradient-to-tr from-amber-50 to-orange-50/40 border border-amber-200 rounded-2xl flex items-start space-x-2.5 text-left">
+                  <Clock className="w-4 h-4 text-amber-700 shrink-0 mt-0.5 animate-pulse" />
+                  <div className="space-y-0.5">
+                    <span className="text-[10px] uppercase font-mono font-black text-amber-800 tracking-wider">
+                      Official Cashout Period
+                    </span>
+                    <p className="text-[10.5px] text-slate-700 leading-snug font-bold">
+                      {t.withdrawalTimeLimit}
+                    </p>
                   </div>
                 </div>
 

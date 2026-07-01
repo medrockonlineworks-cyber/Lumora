@@ -297,6 +297,8 @@ export interface Translations {
   suggestedTriggers: string;
   thinking: string;
   streamNotice: string;
+  withdrawalTimeLimit: string;
+  withdrawalTimeError: string;
   howToWithdrawTitle: string;
   howToWithdrawGuide1: string;
   howToWithdrawGuide2: string;
@@ -504,6 +506,8 @@ export const translations: Record<LanguageCode, Translations> = {
     suggestedTriggers: 'Suggested triggers',
     thinking: 'LUMORA Agent is thinking...',
     streamNotice: 'Listening & transcribing stream... speak clearly in English/Amharic',
+    withdrawalTimeLimit: 'Official Withdrawal Hours: Morning 3:00 to 12:00 Local Time (9:00 AM to 6:00 PM East Africa Time)',
+    withdrawalTimeError: 'Withdrawals are restricted to official local hours: morning 3:00 to 12:00 local time (9:00 AM to 6:00 PM standard East Africa Time). Please request during official hours.',
     howToWithdrawTitle: 'How to Withdraw Your Earnings',
     howToWithdrawGuide1: 'Verify Registered Account: Make sure your active bank details are selected in the green container. To change them, click the blue "Change ➔" link.',
     howToWithdrawGuide2: 'Enter Cashout Amount: Minimum withdrawal is 200 ETB. Ensure your request does not exceed your available balance.',
@@ -681,6 +685,8 @@ export const translations: Record<LanguageCode, Translations> = {
     suggestedTriggers: 'የተጠቆሙ ጥያቄዎች',
     thinking: 'የLUMORA ረዳት እያሰበ ነው...',
     streamNotice: 'ድምፅዎን እያዳመጥን እና እየጻፍን ነው... በእንግሊዝኛ/በአማርኛ በግልፅ ይናገሩ',
+    withdrawalTimeLimit: 'ኦፊሴላዊ የገንዘብ ማውጫ ሰዓታት፡ ከጠዋቱ 3:00 እስከ ምሽቱ 12:00 የሀገር ውስጥ ሰዓት (9:00 AM - 6:00 PM)',
+    withdrawalTimeError: 'የገንዘብ ማውጫ ከተፈቀደው የጊዜ ሰሌዳ ውጭ ተገድቧል፡ ከጠዋቱ 3:00 እስከ ምሽቱ 12:00 የሀገር ውስጥ ሰዓት (9:00 AM - 6:00 PM) ብቻ ነው የሚፈቀደው። እባክዎ በተፈቀደው ሰዓት ይጠይቁ።',
     howToWithdrawTitle: 'ገቢዎን እንዴት እንደሚያወጡ',
     howToWithdrawGuide1: 'የተመዘገበ አካውንት ያረጋግጡ፡ ትክክለኛው የባንክ መረጃ በባንኩ አረንጓዴ ሳጥን ውስጥ መመረጡን ያረጋግጡ። ለመቀየር ሰማያዊውን "ቀይር ➔" ሊንክ ይጫኑ።',
     howToWithdrawGuide2: 'የደህንነት ፒን (PIN) ያስገቡ፡ አካውንትዎን ሲያዘጋጁ የፈጠሩትን ሚስጥራዊ ባለ 4-አሃዝ የክፍያ ፒን ያስገቡ።',
@@ -858,6 +864,8 @@ export const translations: Record<LanguageCode, Translations> = {
     suggestedTriggers: 'Gaaffiwwan Dhiyatan',
     thinking: 'Kalkaaliyaan LUMORA yaadaa jira...',
     streamNotice: 'Dhaggeeffachaa fi barreessaa jirra... Afaan Ingiliffaa/Amaariffaan qulqulleessee dubbadhu',
+    withdrawalTimeLimit: 'Sa’aatii Maallaqa Baasuu Rasmicha: Ganama sa’aatii 3:00 hanga galgala sa’aatii 12:00 (9:00 AM - 6:00 PM)',
+    withdrawalTimeError: 'Yeroon maallaqa baasuu rasmichaan ala dhorkameera: Ganama sa’aatii 3:00 hanga galgala sa’aatii 12:00 (9:00 AM - 6:00 PM) qofatti hojjeta. Maaloo yeroo rasmichaatti gaafadhaa.',
     howToWithdrawTitle: 'Akkaataa Dakhlii Keessan Itti Baastan',
     howToWithdrawGuide1: 'Lakk Kofii Mirkaneessi: Odeeffannoon baankii keessan saanduqa margaa keessatti filatamee jiraachuu isaa mirkaneessi. Jijjiiruuf "Jijjiiri ➔" kan jedhu tuqi.',
     howToWithdrawGuide2: 'Hangaa Maallaqaa Galchi: Gadi aanaan maallaqa baasuu 200 ETB dha. Hangii gaafattan dandeettii herrega keessanii ol ta\'uu hin qabu.',
@@ -1035,6 +1043,8 @@ export const translations: Record<LanguageCode, Translations> = {
     suggestedTriggers: 'ዝተጠቆሙ ሕቶታት',
     thinking: 'LUMORA ረዳኢ ይሓስብ ኣሎ...',
     streamNotice: 'ድምጺ ንምስማዕ ምቹው ሃዋሁ ይፍጠሩ...',
+    withdrawalTimeLimit: 'ወግዓዊ ሰዓታት ገንዘብ ምውጻእ፡ ካብ ንጉሆ 3:00 ክሳብ ምሸት 12:00 ናይ ውሽጢ ዓዲ ሰዓት (9:00 AM - 6:00 PM)',
+    withdrawalTimeError: 'ምውጻእ ገንዘብ ካብ ፍቑድ ሰዓታት ወጻኢ ተገዲቡ እዩ፡ ካብ ንጉሆ 3:00 ክሳብ ምሸት 12:00 ናይ ውሽጢ ዓዲ ሰዓት (9:00 AM - 6:00 PM) ጥራሕ እዩ ዝፍቀድ። በጃኹም ኣብ ውሽጢ ዝተፈቐደ ሰዓታት ሕተቱ።',
     howToWithdrawTitle: 'ገንዘብኩም ብኸመይ ከምእተውጽኡ',
     howToWithdrawGuide1: 'ዝተመዝገበ ኣካውንት ኣረጋግጽ፡ ትኽክለኛ ናይ ባንኪ ሓበሬታ ኣብቲ ቀጠልያ ሳጹን ውሽጢ ምምራጹ ኣረጋግጽ። ንምቕያር ሰማያዊ "ቀይር ➔" ሊንክ ጠውቕ።',
     howToWithdrawGuide2: 'ዝውጽእ መጠን ገንዘብ ምረጽ፡ ዝተሓተ መጠን ገንዘብ ምውጻእ 200 ETB እዩ። መጠን ዝሓተትክምዎ ካብ ዘለኩም ዝርዝር ክበልጽ የብሉን።',
@@ -1207,6 +1217,8 @@ export const translations: Record<LanguageCode, Translations> = {
     suggestedTriggers: 'Su’aalo soo jeedin ah',
     thinking: 'AI Agent ayaa fekeraya...',
     streamNotice: 'Dhegeysanaya...',
+    withdrawalTimeLimit: 'Saacadaha rasmiga ah ee la kala baxo: 3:00 subaxnimo ilaa 12:00 habeenimo waqtiga deegaanka (9:00 AM - 6:00 PM)',
+    withdrawalTimeError: 'Kala bixista lacagta waxaa lagu xaddiday saacadaha rasmiga ah: 3:00 subaxnimo ilaa 12:00 habeenimo waqtiga deegaanka (9:00 AM - 6:00 PM). Fadlan codso inta lagu jiro saacadaha rasmiga ah.',
     howToWithdrawTitle: 'Sida Loo Kala Baxo Dakhligaaga',
     howToWithdrawGuide1: 'Xaqiiji Koontada Diiwansan: Hubi in faahfaahinta koontadaada bangiga ee saxda ah lagu muujiyay sanduuqa cagaaran. Haddii aad rabto inaad beddesho, taabo xiriiriyaha buluugga ah ee "Beddel ➔".',
     howToWithdrawGuide2: 'Geli Cadadka Lacagta: Cadadka ugu yar ee la kala baxo waa 200 ETB. Hubi in codsigaagu uusan ka badnayn hantida koontadaada ku jirta.',
