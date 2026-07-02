@@ -241,16 +241,49 @@ interface WithdrawalCelebrationOverlayProps {
   bankName: string;
   accountNumber: string;
   accountHolderName: string;
+  investments?: any[];
   onClose: () => void;
 }
 
-function WithdrawalCelebrationOverlay({ amount, walletType, bankName, accountNumber, accountHolderName, onClose }: WithdrawalCelebrationOverlayProps) {
+function WithdrawalCelebrationOverlay({ amount, walletType, bankName, accountNumber, accountHolderName, investments, onClose }: WithdrawalCelebrationOverlayProps) {
   const numericAmount = parseFloat(amount) || 0;
   const isIncome = walletType === 'income';
   const feeRate = isIncome ? 0.10 : 0.05;
   const feeName = isIncome ? '10% (5% Tax + 5% Fee)' : '5% (Handling Fee)';
   const feeAmount = numericAmount * feeRate;
   const payoutAmount = numericAmount - feeAmount;
+
+  const activeLevelsText = React.useMemo(() => {
+    const activeInvs = (investments || []).filter(i => i && i.status === 'active');
+    if (activeInvs.length === 0) {
+      return 'starter level';
+    }
+    
+    // Sort by planLevel, handling undefined gracefully
+    const sortedInvs = [...activeInvs].sort((a, b) => {
+      const levelA = a.planLevel !== undefined ? a.planLevel : 1;
+      const levelB = b.planLevel !== undefined ? b.planLevel : 1;
+      return levelA - levelB;
+    });
+
+    const names = sortedInvs.map(inv => {
+      const level = inv.planLevel !== undefined ? inv.planLevel : 1;
+      if (level === 1) return 'starter level';
+      return `VIP ${level - 1}`;
+    });
+    
+    // De-duplicate
+    const uniqueNames = Array.from(new Set(names));
+    
+    if (uniqueNames.length === 1) {
+      return uniqueNames[0];
+    } else if (uniqueNames.length === 2) {
+      return `${uniqueNames[0]} and ${uniqueNames[1]}`;
+    } else {
+      const last = uniqueNames.pop();
+      return `${uniqueNames.join(', ')} and ${last}`;
+    }
+  }, [investments]);
 
   const { dateStr, timeStr } = React.useMemo(() => {
     return {
@@ -286,18 +319,18 @@ function WithdrawalCelebrationOverlay({ amount, walletType, bankName, accountNum
     try {
       const canvas = document.createElement('canvas');
       canvas.width = 600;
-      canvas.height = 780;
+      canvas.height = 840;
       const ctx = canvas.getContext('2d');
       if (!ctx) return '';
 
       // Background
       ctx.fillStyle = '#070d19';
-      ctx.fillRect(0, 0, 600, 780);
+      ctx.fillRect(0, 0, 600, 840);
 
       // Outer border
       ctx.strokeStyle = '#1e293b';
       ctx.lineWidth = 6;
-      ctx.strokeRect(10, 10, 580, 760);
+      ctx.strokeRect(10, 10, 580, 820);
 
       // Decorative header bar
       ctx.fillStyle = '#1e1b4b';
@@ -354,6 +387,7 @@ function WithdrawalCelebrationOverlay({ amount, walletType, bankName, accountNum
 
       const fields = [
         { label: 'Source Wallet Pool:', value: isInc ? 'Income Portfolio' : 'Deposit Portfolio' },
+        { label: 'Activated Levels:', value: activeLevelsText.toUpperCase() },
         { label: 'Requested Gross Amount:', value: `${amountNum.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB` },
         { label: 'Tax & Processing Fee:', value: `-${fAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB (${fName})`, color: '#f87171' },
         { label: 'Destination Bank Name:', value: (bName || 'Commercial Bank of Ethiopia (CBE)').toUpperCase() },
@@ -391,7 +425,7 @@ function WithdrawalCelebrationOverlay({ amount, walletType, bankName, accountNum
         ctx.lineTo(560, y + 15);
         ctx.stroke();
 
-        y += 48;
+        y += 44;
       });
 
       // Final Approved Payout box
@@ -421,13 +455,13 @@ function WithdrawalCelebrationOverlay({ amount, walletType, bankName, accountNum
       ctx.textAlign = 'center';
       ctx.fillStyle = '#64748b';
       ctx.font = 'italic 12px Arial, sans-serif';
-      ctx.fillText('This is a verified digital settlement payout voucher.', 300, 710);
-      ctx.fillText('Commercial Bank of Ethiopia (CBE) Settlement clearing protocol applied.', 300, 728);
+      ctx.fillText('This is a verified digital settlement payout voucher.', 300, 770);
+      ctx.fillText('Commercial Bank of Ethiopia (CBE) Settlement clearing protocol applied.', 300, 788);
       
       // Timestamp
       ctx.fillStyle = '#475569';
       ctx.font = '10px Courier New, monospace';
-      ctx.fillText(`SYSTEM ID: ${Math.random().toString(36).substr(2, 9).toUpperCase()}  |  DATE: ${new Date().toLocaleString()}`, 300, 752);
+      ctx.fillText(`SYSTEM ID: ${Math.random().toString(36).substr(2, 9).toUpperCase()}  |  DATE: ${new Date().toLocaleString()}`, 300, 812);
 
       return canvas.toDataURL('image/png');
     } catch (err) {
@@ -587,6 +621,13 @@ function WithdrawalCelebrationOverlay({ amount, walletType, bankName, accountNum
               </span>
             </div>
 
+            <div className="flex justify-between items-center border-b border-slate-800 pb-1.5 text-[10px] text-slate-300">
+              <span className="font-bold">Activated Levels:</span>
+              <span className="font-black text-amber-400 capitalize bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
+                {activeLevelsText}
+              </span>
+            </div>
+
             <div className="flex justify-between items-center text-[10px] text-slate-300">
               <span className="font-bold">Requested Amount:</span>
               <span className="font-mono font-black text-white">{numericAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</span>
@@ -728,11 +769,12 @@ function WithdrawalCelebrationOverlay({ amount, walletType, bankName, accountNum
 interface TransactionsModalsProps {
   type: 'deposit' | 'withdrawal';
   profile: Profile;
+  investments?: any[];
   onClose: () => void;
   onRefreshDashboard: () => void;
 }
 
-export default function TransactionsModals({ type, profile, onClose, onRefreshDashboard }: TransactionsModalsProps) {
+export default function TransactionsModals({ type, profile, investments, onClose, onRefreshDashboard }: TransactionsModalsProps) {
   const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ text: string; isError: boolean } | null>(null);
@@ -1024,6 +1066,7 @@ export default function TransactionsModals({ type, profile, onClose, onRefreshDa
             bankName={bankName}
             accountNumber={accountNumber}
             accountHolderName={accountHolderName}
+            investments={investments}
             onClose={onClose}
           />
         )}

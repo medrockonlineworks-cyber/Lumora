@@ -581,6 +581,7 @@ function MainAppContent() {
         <TransactionsModals
           type={transactionGate}
           profile={enrichedProfile}
+          investments={investments}
           onClose={() => setTransactionGate(null)}
           onRefreshDashboard={fetchDashboardData}
         />
