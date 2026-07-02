@@ -273,16 +273,29 @@ function WithdrawalCelebrationOverlay({ amount, walletType, bankName, accountNum
       return `VIP ${level - 1}`;
     });
     
-    // De-duplicate
-    const uniqueNames = Array.from(new Set(names));
+    // Count occurrences of each level name
+    const countMap: Record<string, number> = {};
+    for (const name of names) {
+      countMap[name] = (countMap[name] || 0) + 1;
+    }
+
+    // De-duplicate and format with counts
+    const uniqueNamesOrdered = Array.from(new Set(names));
+    const formattedNames = uniqueNamesOrdered.map(name => {
+      const count = countMap[name];
+      if (count > 1) {
+        return `${count}(${name})`;
+      }
+      return name;
+    });
     
-    if (uniqueNames.length === 1) {
-      return uniqueNames[0];
-    } else if (uniqueNames.length === 2) {
-      return `${uniqueNames[0]} and ${uniqueNames[1]}`;
+    if (formattedNames.length === 1) {
+      return formattedNames[0];
+    } else if (formattedNames.length === 2) {
+      return `${formattedNames[0]} and ${formattedNames[1]}`;
     } else {
-      const last = uniqueNames.pop();
-      return `${uniqueNames.join(', ')} and ${last}`;
+      const last = formattedNames.pop();
+      return `${formattedNames.join(', ')} and ${last}`;
     }
   }, [investments]);
 
