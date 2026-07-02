@@ -242,10 +242,11 @@ interface WithdrawalCelebrationOverlayProps {
   accountNumber: string;
   accountHolderName: string;
   investments?: any[];
+  profile?: Profile;
   onClose: () => void;
 }
 
-function WithdrawalCelebrationOverlay({ amount, walletType, bankName, accountNumber, accountHolderName, investments, onClose }: WithdrawalCelebrationOverlayProps) {
+function WithdrawalCelebrationOverlay({ amount, walletType, bankName, accountNumber, accountHolderName, investments, profile, onClose }: WithdrawalCelebrationOverlayProps) {
   const numericAmount = parseFloat(amount) || 0;
   const isIncome = walletType === 'income';
   const feeRate = isIncome ? 0.10 : 0.05;
@@ -319,18 +320,18 @@ function WithdrawalCelebrationOverlay({ amount, walletType, bankName, accountNum
     try {
       const canvas = document.createElement('canvas');
       canvas.width = 600;
-      canvas.height = 840;
+      canvas.height = 940;
       const ctx = canvas.getContext('2d');
       if (!ctx) return '';
 
       // Background
       ctx.fillStyle = '#070d19';
-      ctx.fillRect(0, 0, 600, 840);
+      ctx.fillRect(0, 0, 600, 940);
 
       // Outer border
       ctx.strokeStyle = '#1e293b';
       ctx.lineWidth = 6;
-      ctx.strokeRect(10, 10, 580, 820);
+      ctx.strokeRect(10, 10, 580, 920);
 
       // Decorative header bar
       ctx.fillStyle = '#1e1b4b';
@@ -388,6 +389,7 @@ function WithdrawalCelebrationOverlay({ amount, walletType, bankName, accountNum
       const fields = [
         { label: 'Source Wallet Pool:', value: isInc ? 'Income Portfolio' : 'Deposit Portfolio' },
         { label: 'Activated Levels:', value: activeLevelsText.toUpperCase() },
+        { label: 'Total Earning Balance:', value: `${(profile?.totalEarnings ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB` },
         { label: 'Requested Gross Amount:', value: `${amountNum.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB` },
         { label: 'Tax & Processing Fee:', value: `-${fAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB (${fName})`, color: '#f87171' },
         { label: 'Destination Bank Name:', value: (bName || 'Commercial Bank of Ethiopia (CBE)').toUpperCase() },
@@ -455,13 +457,13 @@ function WithdrawalCelebrationOverlay({ amount, walletType, bankName, accountNum
       ctx.textAlign = 'center';
       ctx.fillStyle = '#64748b';
       ctx.font = 'italic 12px Arial, sans-serif';
-      ctx.fillText('This is a verified digital settlement payout voucher.', 300, 770);
-      ctx.fillText('Commercial Bank of Ethiopia (CBE) Settlement clearing protocol applied.', 300, 788);
+      ctx.fillText('This is a verified digital settlement payout voucher.', 300, y + 95);
+      ctx.fillText('Commercial Bank of Ethiopia (CBE) Settlement clearing protocol applied.', 300, y + 113);
       
       // Timestamp
       ctx.fillStyle = '#475569';
       ctx.font = '10px Courier New, monospace';
-      ctx.fillText(`SYSTEM ID: ${Math.random().toString(36).substr(2, 9).toUpperCase()}  |  DATE: ${new Date().toLocaleString()}`, 300, 812);
+      ctx.fillText(`SYSTEM ID: ${Math.random().toString(36).substr(2, 9).toUpperCase()}  |  DATE: ${new Date().toLocaleString()}`, 300, y + 135);
 
       return canvas.toDataURL('image/png');
     } catch (err) {
@@ -625,6 +627,13 @@ function WithdrawalCelebrationOverlay({ amount, walletType, bankName, accountNum
               <span className="font-bold">Activated Levels:</span>
               <span className="font-black text-amber-400 capitalize bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
                 {activeLevelsText}
+              </span>
+            </div>
+
+            <div className="flex justify-between items-center border-b border-slate-800 pb-1.5 text-[10px] text-slate-300">
+              <span className="font-bold">Total Earning Balance:</span>
+              <span className="font-mono font-black text-amber-400">
+                {(profile?.totalEarnings ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
               </span>
             </div>
 
@@ -1067,6 +1076,7 @@ export default function TransactionsModals({ type, profile, investments, onClose
             accountNumber={accountNumber}
             accountHolderName={accountHolderName}
             investments={investments}
+            profile={profile}
             onClose={onClose}
           />
         )}

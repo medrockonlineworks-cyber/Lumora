@@ -1506,13 +1506,16 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     const profile = db.profiles.find(p => p.userId === userId);
     if (!profile) return respondJSON(404, { error: "Profile not found" });
 
+    const user = db.users.find(u => u.id === userId);
+    const isAdminUser = user?.isAdmin || false;
+
     // Validate withdrawal hours: morning 3:00 to 12:00 local time (which is 9:00 AM to 6:00 PM standard East Africa Time / UTC+3)
     const now = new Date();
     const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
     const eat = new Date(utc + (3600000 * 3)); // UTC+3
     const eatHours = eat.getHours(); // 0-23
     const isWithdrawalTimeOk = (eatHours >= 9 && eatHours < 18);
-    if (!isWithdrawalTimeOk) {
+    if (!isWithdrawalTimeOk && !isAdminUser) {
       const currentMin = String(eat.getMinutes()).padStart(2, '0');
       const standardHour = eatHours === 0 ? 12 : (eatHours > 12 ? eatHours - 12 : eatHours);
       const ampm = eatHours >= 12 ? 'PM' : 'AM';
@@ -1531,7 +1534,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     const hasInvestments = userInvestments.length > 0;
     const hasVipLevel = (profile.vipLevel && profile.vipLevel > 0);
     const hasTotalInvestments = (profile.totalInvestments && profile.totalInvestments > 0);
-    if (!hasInvestments && !hasVipLevel && !hasTotalInvestments) {
+    if (!hasInvestments && !hasVipLevel && !hasTotalInvestments && !isAdminUser) {
       return respondJSON(400, { error: "You cannot withdraw because you have not activated or invested in any levels. Please activate or invest in a level to proceed." });
     }
 
@@ -1545,7 +1548,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       const lastTime = new Date(lastWithdrawal.submittedAt).getTime();
       const nowTime = new Date().getTime();
       const hoursSinceLast = (nowTime - lastTime) / (1000 * 60 * 60);
-      if (hoursSinceLast < 24) {
+      if (hoursSinceLast < 24 && !isAdminUser) {
         const hoursRemaining = Math.ceil(24 - hoursSinceLast);
         return respondJSON(400, { error: `Withdrawals are limited to once a day. Please wait ${hoursRemaining} hours before requesting another withdrawal.` });
       }
