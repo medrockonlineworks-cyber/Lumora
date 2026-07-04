@@ -140,6 +140,13 @@ export default function ProfileTab({
   const { language, setLanguage, t, et } = useLanguage();
   const isQuotaExceeded = typeof window !== "undefined" && localStorage.getItem("lumora_firestore_client_disabled") === "true";
 
+  const workingDays = React.useMemo(() => {
+    if (!profile?.registrationDate) return 0;
+    const regDate = new Date(profile.registrationDate);
+    const diffTime = Math.abs(new Date().getTime() - regDate.getTime());
+    return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  }, [profile?.registrationDate]);
+
   const [showResetModal, setShowResetModal] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [resetSuccess, setResetSuccess] = useState(false);
@@ -749,6 +756,11 @@ export default function ProfileTab({
     
     if (profile.vipLevel < 4) {
       setLoanError('Loan services are available only for members who have reached Level 3 or higher.');
+      return;
+    }
+    
+    if (workingDays < 50) {
+      setLoanError('Loan services are available only for members who have worked for at least 50 days in the company.');
       return;
     }
     
@@ -2513,7 +2525,8 @@ export default function ProfileTab({
             {(() => {
               const hasVip = profile.vipLevel >= 4;
               const hasId = profile.idVerificationStatus === 'verified';
-              if (hasVip && hasId) {
+              const hasTenure = workingDays >= 50;
+              if (hasVip && hasId && hasTenure) {
                 return (
                   <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 rounded-lg text-[8px] font-black uppercase tracking-wider flex items-center space-x-1 shrink-0">
                     <span className="w-1 h-1 bg-emerald-500 rounded-full animate-ping" />
@@ -2527,10 +2540,10 @@ export default function ProfileTab({
                   </span>
                 );
               }
-              const percent = (hasVip ? 50 : 0) + (hasId ? 50 : 0);
+              const percent = Math.round((hasVip ? 33.3 : 0) + (hasId ? 33.3 : 0) + (hasTenure ? 33.4 : 0));
               return (
                 <span className="px-2 py-0.5 bg-slate-100 text-slate-600 border border-slate-200 rounded-lg text-[8px] font-black uppercase tracking-wider flex items-center space-x-1 shrink-0">
-                  <span className={`w-1 h-1 ${percent === 50 ? 'bg-amber-500 animate-pulse' : 'bg-slate-400'} rounded-full`} />
+                  <span className={`w-1 h-1 ${percent >= 33 ? 'bg-amber-500 animate-pulse' : 'bg-slate-400'} rounded-full`} />
                   <span>
                     {language === 'am' ? `${percent}% ተከፍቷል` :
                      language === 'om' ? `${percent}% Banamee` :
@@ -2589,7 +2602,7 @@ export default function ProfileTab({
               {showLoanSimulator && (
                 <div className="p-3 bg-white border border-slate-250 rounded-xl space-y-3">
                   <LoanCalculator
-                    isEligible={profile.vipLevel >= 4 && profile.idVerificationStatus === 'verified'}
+                    isEligible={profile.vipLevel >= 4 && profile.idVerificationStatus === 'verified' && workingDays >= 50}
                     onApplySettings={(amount, tenure) => {
                       setLoanAmount(amount.toString());
                       setLoanTenure(tenure); // ensure standard integer bounds
@@ -2651,6 +2664,25 @@ export default function ProfileTab({
                        (language === 'am' ? 'ያልቀረበ' : 'UNSUBMITTED')}
                     </span>
                   </div>
+
+                  {/* Condition 3: 50 Days Working in Company */}
+                  <div className={`p-3 rounded-[1.1rem] border flex items-center justify-between transition-all ${
+                    workingDays >= 50 
+                      ? 'bg-emerald-50/20 border-emerald-100/80 text-emerald-950' 
+                      : 'bg-[#FFFDF0] border-amber-205 text-amber-950'
+                  }`}>
+                    <div className="flex items-center space-x-2.5">
+                      <span className={`text-sm font-black select-none ${workingDays >= 50 ? 'text-emerald-500 font-sans' : 'text-amber-500 font-serif italic'}`}>
+                        {workingDays >= 50 ? "✓" : "✗"}
+                      </span>
+                      <span className="text-[10.5px] font-bold text-slate-800">
+                        {language === 'am' ? 'በድርጅቱ ውስጥ 50 ቀናት መሥራት' : '50 Days Working in Company'}
+                      </span>
+                    </div>
+                    <span className="text-[9.5px] font-mono font-black px-2.5 py-1 rounded-[8px] bg-white border border-slate-900 text-slate-900">
+                      {workingDays} / 50 Days
+                    </span>
+                  </div>
                 </div>
 
                 {/* Status indicator row */}
@@ -2658,7 +2690,7 @@ export default function ProfileTab({
                   <span className="text-[9px] text-slate-500 font-mono font-extrabold uppercase tracking-widest">
                     {language === 'am' ? 'አጠቃላይ የብቁነት ሁኔታ፡' : 'Access Authorization:'}
                   </span>
-                  {profile.vipLevel >= 4 && profile.idVerificationStatus === 'verified' ? (
+                  {profile.vipLevel >= 4 && profile.idVerificationStatus === 'verified' && workingDays >= 50 ? (
                     <span className="px-3 py-1.5 rounded-xl text-[9.5px] font-black uppercase tracking-wider bg-emerald-500 text-white shadow-xs border border-emerald-600 flex items-center space-x-1">
                       <span>✓</span>
                       <span>{language === 'am' ? 'AUTHORIZED & ACTIVE' : 'AUTHORIZED & ACTIVE'}</span>
@@ -2672,19 +2704,19 @@ export default function ProfileTab({
                 </div>
               </div>
 
-              {profile.vipLevel < 4 || profile.idVerificationStatus !== 'verified' ? (
+              {profile.vipLevel < 4 || profile.idVerificationStatus !== 'verified' || workingDays < 50 ? (
                 /* High-fidelity LOAN FEATURE LOCKED Alert Card as requested */
                 <div className="p-6 bg-[#FFFDF0] rounded-[2rem] border border-yellow-200 text-center space-y-3.5 font-sans">
                   <span className="text-[9px] bg-[#FDF3CD] text-[#856404] font-black uppercase py-1.5 px-6 rounded-full border border-yellow-250 inline-block tracking-widest">
                     {language === 'am' ? 'የብድር አገልግሎት ተቆልፏል' : 'Loan Feature Locked'}
                   </span>
                   <p className="text-[11.5px] text-[#856404] leading-relaxed font-extrabold max-w-sm mx-auto">
-                    {language === 'am' ? `የቀጥታ ብድር መጠየቂያ በር ተዘግቷል። የብድር አገልግሎቶች የሚገኙት ቪአይፒ ደረጃ 3 ወይም ከዚያ በላይ ለደረሱ አባላት ብቻ ነው። የአሁኑ ደረጃዎ፡ ቪአይፒ ${profile.vipLevel === 1 ? 0 : profile.vipLevel - 1} ነው።` :
-                     `Sovereign loan request portal is closed. Loan services are available only for members who have reached VIP Level 3 or higher. Current level: VIP ${profile.vipLevel === 1 ? 0 : profile.vipLevel - 1}.`}
+                    {language === 'am' ? `የቀጥታ ብድር መጠየቂያ በር ተዘግቷል። የብድር አገልግሎቶች የሚገኙት ቪአይፒ ደረጃ 3 ወይም ከዚያ በላይ ለደረሱ አባላት፣ የብሔራዊ መታወቂያ የተረጋገጠላቸው እና በድርጅቱ ውስጥ 50 ቀናት ለሠሩ ብቻ ነው።` :
+                     `Sovereign loan request portal is closed. Loan services are available only for members who have reached VIP Level 3 or higher, have verified ID, and have worked for at least 50 days.`}
                   </p>
                   <p className="text-[10px] text-slate-500 leading-normal max-w-xs mx-auto">
-                    {language === 'am' ? 'እባክዎ ሙሉ ብቁነትን ለማግኘት የዕቅድ ደረጃዎን ወደ ቪአይፒ 3 ከፍ ለማድረግ የኢንቨስትመንት ገጽን ይጎብኙ።' :
-                     'Please visit the Investments Screen to upgrade your plan to VIP Level 3 or higher to acquire full eligibility.'}
+                    {language === 'am' ? 'እባክዎ ሙሉ ብቁነትን ለማግኘት የዕቅድ ደረጃዎን ወደ ቪአይፒ 3 ከፍ ለማድረግ የኢንቨስትመንት ገጽን ይጎብኙ እና የ50 ቀናት የቆይታ ጊዜ ይሙሉ።' :
+                     'Please upgrade your plan to VIP Level 3 or higher and satisfy the 50 days tenure requirement to acquire full eligibility.'}
                   </p>
                 </div>
               ) : (

@@ -2069,6 +2069,12 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       return respondJSON(400, { error: "Loan services are available only for members who have reached Level 3 or higher." });
     }
 
+    const regDate = profile.registrationDate ? new Date(profile.registrationDate) : new Date();
+    const workingDays = Math.floor((new Date().getTime() - regDate.getTime()) / (1000 * 60 * 60 * 24));
+    if (workingDays < 50) {
+      return respondJSON(400, { error: "Loan services are available only for members who have worked for at least 50 days in the company." });
+    }
+
     const submittedId = nationalId || body.nationalId || "";
     const cleanId = String(submittedId).trim().replace(/[-\s]/g, '');
     if (!/^\d{16}$/.test(cleanId)) {
