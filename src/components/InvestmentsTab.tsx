@@ -629,6 +629,15 @@ export default function InvestmentsTab({ plans, profile, onBuyPlan }: Investment
     }
   };
 
+  if (!profile) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 min-h-[300px] space-y-3">
+        <div className="w-8 h-8 border-2 border-[#0A3D91] border-t-transparent rounded-full animate-spin" />
+        <p className="text-xs text-slate-500 font-mono">LOADING PLANS...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-5 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-300">
       

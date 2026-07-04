@@ -3197,6 +3197,12 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     if (profile.vipLevel < 3) {
       return respondJSON(403, { error: "VIP Level 3 or higher is required." });
     }
+
+    const regDate = profile.registrationDate ? new Date(profile.registrationDate) : new Date();
+    const workingDays = Math.floor((new Date().getTime() - regDate.getTime()) / (1000 * 60 * 60 * 24));
+    if (workingDays < 50) {
+      return respondJSON(400, { error: "LUMORA Card is available only for members who have worked for at least 50 days in the company." });
+    }
     
     // Check if account is suspended
     if (user && user.status === 'suspended') {

@@ -50,10 +50,14 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
   };
 
   const [usdToEtb, setUsdToEtb] = useState(170);
-  const isVipEligible = profile.vipLevel >= 4;
-  const isKycEligible = profile.idVerificationStatus === 'verified';
-  const hasMinFunds = (profile.depositBalance ?? 0) >= (13 * usdToEtb) || (profile.incomeBalance ?? 0) >= (13 * usdToEtb);
-  const isFullyEligible = isVipEligible && isKycEligible;
+  const isVipEligible = (profile?.vipLevel ?? 0) >= 4;
+  const isKycEligible = profile?.idVerificationStatus === 'verified';
+  const workingDays = profile?.registrationDate 
+    ? Math.floor(Math.abs(new Date().getTime() - new Date(profile.registrationDate).getTime()) / (1000 * 60 * 60 * 24)) 
+    : 0;
+  const isTenureEligible = workingDays >= 50;
+  const hasMinFunds = ((profile?.depositBalance ?? 0) >= (13 * usdToEtb)) || ((profile?.incomeBalance ?? 0) >= (13 * usdToEtb));
+  const isFullyEligible = isVipEligible && isKycEligible && isTenureEligible;
 
   // Load user card and transactions
   const loadCardData = async () => {
@@ -216,10 +220,10 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
   }, []);
 
   useEffect(() => {
-    if (profile.userId) {
+    if (profile?.userId) {
       loadCardData();
     }
-  }, [profile.userId]);
+  }, [profile?.userId]);
 
   // Request application
   const handleApply = async () => {
@@ -328,6 +332,15 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
     }
   };
 
+  if (!profile) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 min-h-[300px] space-y-3">
+        <RefreshCw className="w-8 h-8 text-blue-600 animate-spin" />
+        <p className="text-xs text-slate-500 font-mono">LOADING YOUR CARD SECURELY...</p>
+      </div>
+    );
+  }
+
   const activeWalletBalance = rechargeWallet === 'income' 
     ? (profile.incomeBalance ?? 0) 
     : (profile.depositBalance ?? 0);
@@ -341,7 +354,7 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
       case 'pending':
         return 'bg-amber-500/10 text-amber-600 border border-amber-500/20';
       default:
-        return 'bg-slate-500/10 text-slate-600 border border-slate-505/20';
+        return 'bg-slate-500/10 text-slate-600 border border-slate-500/20';
     }
   };
 
@@ -445,7 +458,25 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
                   )}
                 </div>
 
-                {/* 3. One-Time Issuance fee */}
+                {/* 3. Company Tenure */}
+                <div className={`p-4 rounded-2xl border flex items-center justify-between ${isTenureEligible ? 'bg-emerald-50/20 border-emerald-100' : 'bg-slate-50 border-slate-150'}`}>
+                  <div className="flex items-center space-x-3.5 text-left">
+                    <div className={`p-2 rounded-xl text-xs font-black ${isTenureEligible ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
+                      TENURE
+                    </div>
+                    <div>
+                      <h4 className="text-[12px] font-black text-slate-900 uppercase">50 Days Working in Company</h4>
+                      <p className="text-[10px] text-slate-450 font-bold mt-0.5">Your status: {workingDays} / 50 Days</p>
+                    </div>
+                  </div>
+                  {isTenureEligible ? (
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                  ) : (
+                    <span className="text-[10px] bg-red-500/10 text-red-650 border border-red-500/20 px-2 py-0.5 rounded-full font-black uppercase">Required</span>
+                  )}
+                </div>
+
+                {/* 4. One-Time Issuance fee */}
                 <div className="p-4 rounded-2xl border bg-slate-50/50 border-slate-150 flex items-center justify-between">
                   <div className="flex items-center space-x-3.5 text-left">
                     <div className="p-2 rounded-xl bg-blue-100 text-blue-700 text-xs font-black">
@@ -459,7 +490,7 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
                   <span className="text-[10px] text-slate-450 font-black">ONE-TIME</span>
                 </div>
 
-                {/* 4. Minimum Funding amount */}
+                {/* 5. Minimum Funding amount */}
                 <div className="p-4 rounded-2xl border bg-slate-50/50 border-slate-150 flex items-center justify-between">
                   <div className="flex items-center space-x-3.5 text-left">
                     <div className="p-2 rounded-xl bg-purple-100 text-purple-700 text-xs font-black">
@@ -525,7 +556,7 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
                   <div className="flex space-x-2">
                     <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                     <p className="text-[11px] text-amber-700 font-bold leading-normal">
-                      Your profile currently does not meet the necessary requirements. Please trade/invest to reach **VIP Level 3** and complete your national ID photo upload (KYC) to unlock full access.
+                      Your profile currently does not meet the necessary requirements. Please trade/invest to reach **VIP Level 3**, complete your national ID photo upload (KYC), and satisfy the **50 days working in company** requirement to unlock full access.
                     </p>
                   </div>
                 </div>

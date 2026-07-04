@@ -264,7 +264,7 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
 
   const portfolioLockInfo = React.useMemo(() => {
     if (!profile?.userId) return { isLocked: false, remainingDays: 0, lockUntilStr: '' };
-    const savedTime = localStorage.getItem(`lumora_projects_selection_time_${profile.userId}`);
+    const savedTime = localStorage.getItem(`lumora_projects_selection_time_${profile?.userId}`);
     if (!savedTime) return { isLocked: false, remainingDays: 0, lockUntilStr: '' };
     
     const lockDurationMs = 30 * 24 * 60 * 60 * 1000; // 30 days
@@ -542,6 +542,7 @@ export default function EarningsTab({ investments, profile, onRefreshDashboard }
 
   // Handle claiming profit
   const handleClaimProfit = async () => {
+    if (!profile?.userId) return;
     setClaimLoading(true);
     setClaimStatus(null);
     try {
