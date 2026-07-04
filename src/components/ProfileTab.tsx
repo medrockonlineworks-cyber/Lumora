@@ -2669,7 +2669,7 @@ export default function ProfileTab({
                   <div className={`p-3 rounded-[1.1rem] border flex items-center justify-between transition-all ${
                     workingDays >= 50 
                       ? 'bg-emerald-50/20 border-emerald-100/80 text-emerald-950' 
-                      : 'bg-[#FFFDF0] border-amber-205 text-amber-950'
+                      : 'bg-[#FFFDF0] border-amber-200 text-amber-950'
                   }`}>
                     <div className="flex items-center space-x-2.5">
                       <span className={`text-sm font-black select-none ${workingDays >= 50 ? 'text-emerald-500 font-sans' : 'text-amber-500 font-serif italic'}`}>
