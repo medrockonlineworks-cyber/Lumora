@@ -1511,12 +1511,12 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
 
     // Validate withdrawal hours: morning 3:00 to 12:00 local time (which is 9:00 AM to 6:00 PM standard East Africa Time / UTC+3)
     const now = new Date();
-    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-    const eat = new Date(utc + (3600000 * 3)); // UTC+3
-    const eatHours = eat.getHours(); // 0-23
-    const isWithdrawalTimeOk = (eatHours >= 9 && eatHours < 18);
+    const eat = new Date(now.getTime() + (3 * 3600000)); // Shift UTC to East Africa Time (UTC+3)
+    const eatHours = eat.getUTCHours(); // 0-23
+    const eatMinutes = eat.getUTCMinutes();
+    const isWithdrawalTimeOk = (eatHours >= 3 && eatHours < 18);
     if (!isWithdrawalTimeOk && !isAdminUser) {
-      const currentMin = String(eat.getMinutes()).padStart(2, '0');
+      const currentMin = String(eatMinutes).padStart(2, '0');
       const standardHour = eatHours === 0 ? 12 : (eatHours > 12 ? eatHours - 12 : eatHours);
       const ampm = eatHours >= 12 ? 'PM' : 'AM';
       const ethHour = eatHours >= 6 ? eatHours - 6 : eatHours + 18;
@@ -1538,20 +1538,38 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       return respondJSON(400, { error: "You cannot withdraw because you have not activated or invested in any levels. Please activate or invest in a level to proceed." });
     }
 
-    // Check if user has requested a withdrawal in the last 24 hours
-    const userWithdrawals = db.withdrawals || [];
-    const lastWithdrawal = userWithdrawals
-      .filter(w => w.userId === userId)
-      .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())[0];
+    // Check if user has requested a withdrawal on the current East Africa Time (EAT) calendar day
+    const getEATDateString = (dateInput: Date | string | number): string => {
+      const d = new Date(dateInput);
+      const eatMs = d.getTime() + (3 * 60 * 60 * 1000);
+      const eatDate = new Date(eatMs);
+      const year = eatDate.getUTCFullYear();
+      const month = String(eatDate.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(eatDate.getUTCDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
 
-    if (lastWithdrawal) {
-      const lastTime = new Date(lastWithdrawal.submittedAt).getTime();
-      const nowTime = new Date().getTime();
-      const hoursSinceLast = (nowTime - lastTime) / (1000 * 60 * 60);
-      if (hoursSinceLast < 24 && !isAdminUser) {
-        const hoursRemaining = Math.ceil(24 - hoursSinceLast);
-        return respondJSON(400, { error: `Withdrawals are limited to once a day. Please wait ${hoursRemaining} hours before requesting another withdrawal.` });
-      }
+    const getNextEATMidnight = (nowDate: Date): Date => {
+      const eatMs = nowDate.getTime() + (3 * 60 * 60 * 1000);
+      const eatDate = new Date(eatMs);
+      const year = eatDate.getUTCFullYear();
+      const month = String(eatDate.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(eatDate.getUTCDate()).padStart(2, '0');
+      return new Date(`${year}-${month}-${day}T21:00:00Z`);
+    };
+
+    const userWithdrawals = db.withdrawals || [];
+    const withdrawalsToday = userWithdrawals.filter(w => {
+      return w.userId === userId && getEATDateString(w.submittedAt) === getEATDateString(now);
+    });
+
+    if (withdrawalsToday.length > 0 && !isAdminUser) {
+      const nextMidnight = getNextEATMidnight(now);
+      const diffMs = nextMidnight.getTime() - now.getTime();
+      const hoursRemaining = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60)));
+      return respondJSON(400, { 
+        error: `Withdrawals are limited to once a day. The daily limit will reset at 0:00. Please wait ${hoursRemaining} hour${hoursRemaining > 1 ? 's' : ''} before requesting another withdrawal.` 
+      });
     }
 
     if (profile.transactionPin && profile.transactionPin !== finalPin) {
