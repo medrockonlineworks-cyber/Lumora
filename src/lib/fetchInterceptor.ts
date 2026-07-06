@@ -1514,7 +1514,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     const eat = new Date(now.getTime() + (3 * 3600000)); // Shift UTC to East Africa Time (UTC+3)
     const eatHours = eat.getUTCHours(); // 0-23
     const eatMinutes = eat.getUTCMinutes();
-    const isWithdrawalTimeOk = (eatHours >= 3 && eatHours < 18);
+    const isWithdrawalTimeOk = (eatHours >= 9 && eatHours < 18);
     if (!isWithdrawalTimeOk && !isAdminUser) {
       const currentMin = String(eatMinutes).padStart(2, '0');
       const standardHour = eatHours === 0 ? 12 : (eatHours > 12 ? eatHours - 12 : eatHours);
