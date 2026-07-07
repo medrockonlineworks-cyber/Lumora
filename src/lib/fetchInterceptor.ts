@@ -523,8 +523,7 @@ function getFirestoreClientDb() {
       appId: firebaseConfig.appId
     }) : getApp();
     firestoreClientDb = initializeFirestore(app, {
-      experimentalForceLongPolling: true,
-      experimentalAutoDetectLongPolling: true
+      experimentalForceLongPolling: true
     }, firebaseConfig.firestoreDatabaseId);
     console.log(`[Firebase Client Diagnostic] Connected successfully to Firebase Project ID: "${firebaseConfig.projectId}" and Database ID: "${firebaseConfig.firestoreDatabaseId}"`);
     return firestoreClientDb;

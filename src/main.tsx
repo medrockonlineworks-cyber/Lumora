@@ -17,6 +17,28 @@ window.addEventListener('beforeinstallprompt', (e) => {
 
 const isIframe = typeof window !== 'undefined' && window.self !== window.top;
 
+// If we are inside an iframe (like the AI Studio development preview), unregister any active
+// service worker to ensure the browser loads the latest built files directly from the network.
+if ('serviceWorker' in navigator && isIframe) {
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    let unregisteredAny = false;
+    for (const registration of registrations) {
+      registration.unregister().then((success) => {
+        if (success) {
+          console.log('Lumora: Unregistered active ServiceWorker from iframe to prevent cached assets in AI Studio preview.');
+          unregisteredAny = true;
+        }
+      });
+    }
+    // If we unregistered any service worker, trigger a single reload after a tiny delay to load fresh assets.
+    setTimeout(() => {
+      if (unregisteredAny) {
+        window.location.reload();
+      }
+    }, 300);
+  });
+}
+
 if ('serviceWorker' in navigator && isProdEnv && !isIframe) {
   window.addEventListener('load', () => {
     try {
