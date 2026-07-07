@@ -1843,12 +1843,12 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     const user = db.users.find(u => u.id === userId);
     const isAdminUser = user?.isAdmin || false;
 
-    // Validate withdrawal hours: morning 3:00 to 12:00 local time (which is 9:00 AM to 6:00 PM standard East Africa Time / UTC+3)
+    // Validate withdrawal hours: Every day from 3:00 AM to 12:00 PM (Noon), Local Time
     const now = new Date();
     const eat = new Date(now.getTime() + (3 * 3600000)); // Shift UTC to East Africa Time (UTC+3)
     const eatHours = eat.getUTCHours(); // 0-23
     const eatMinutes = eat.getUTCMinutes();
-    const isWithdrawalTimeOk = (eatHours >= 9 && eatHours < 18);
+    const isWithdrawalTimeOk = (eatHours >= 3 && eatHours < 12);
     if (!isWithdrawalTimeOk && !isAdminUser) {
       const currentMin = String(eatMinutes).padStart(2, '0');
       const standardHour = eatHours === 0 ? 12 : (eatHours > 12 ? eatHours - 12 : eatHours);
@@ -1859,7 +1859,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       const currentTimeStr = `${standardHour}:${currentMin} ${ampm} (${formattedEthHour}:${currentMin} ${ethPeriod} Local Time)`;
       
       return respondJSON(400, { 
-        error: `Withdrawals are restricted to official local hours: morning 3:00 to 12:00 local time (9:00 AM to 6:00 PM standard East Africa Time). Current system time is ${currentTimeStr}. Please request during official hours.` 
+        error: `Withdrawals are restricted to official local hours: Every day from 3:00 AM to 12:00 PM (Noon), Local Time. Current system time is ${currentTimeStr}. Please request during official hours.` 
       });
     }
 
@@ -3292,7 +3292,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     if (txt.includes('deposit') || txt.includes('payment') || txt.includes('cbe') || txt.includes('transfer')) {
       reply = "To submit a CBE bank deposit:\n\n• **KYC BYPASS ENABLED**: You can construct and submit deposit proof instantly without needing to verify your ID first!\n\n1. Go to the Home tab and click **DEPOSIT**, or select a VIP Plan first.\n2. Transfer the desired amount to our official CBE Account:\n   • **Bank**: Commercial Bank of Ethiopia (CBE)\n   • **Account Name**: Leykun\n   • **Account Number**: `1000419524747`\n3. Click 'I have paid', upload your transaction/receipt screenshot, and submit.\n4. Verification usually takes under 2 hours (average is 15-45 minutes).";
     } else if (txt.includes('withdraw') || txt.includes('cashout') || txt.includes('pin') || txt.includes('minimum withdrawal')) {
-      reply = "Lumora Withdrawal Rules:\n\n• **Official Hours**: Active from **morning 3:00 to 12:00 local time** (9:00 AM to 6:00 PM standard East Africa Time).\n• **Minimum Withdrawal**: 200 ETB\n• **Fee**: 10% fee for Income Pool withdrawals (5% Tax + 5% Handling), 5% handling fee for Deposit Pool withdrawals.\n• **Payout Speed**: Requests are processed and dispatched within 0 to 42 hours.\n• Ensure you have configured your CBE account details and typed your secure 4-digit PIN in your Profile tab.";
+      reply = "Lumora Withdrawal Rules:\n\n• **Official Hours**: Active **Every day from 3:00 AM to 12:00 PM (Noon), Local Time** (9:00 to 6:00 Local Ethiopian Time).\n• **Minimum Withdrawal**: 200 ETB\n• **Fee**: 10% fee for Income Pool withdrawals (5% Tax + 5% Handling), 5% handling fee for Deposit Pool withdrawals.\n• **Payout Speed**: Requests are processed and dispatched within 0 to 42 hours.\n• Ensure you have configured your CBE account details and typed your secure 4-digit PIN in your Profile tab.";
     } else if (txt.includes('card') || txt.includes('mastercard') || txt.includes('visa') || txt.includes('dollar') || txt.includes('rates')) {
       reply = "Lumora offers an instant Virtual Debit Mastercard with an institutional rate of 1 USD = 170 ETB. Issuance fee is $3 USD and funding fee is $1 USD. Activation and refund logs are fully automated. To secure and complete online transactions, no SMS OTP is needed—simply authorize charges using your main account login password.";
     } else if (txt.includes('interest') || txt.includes('earn') || txt.includes('profit') || txt.includes('yield')) {
@@ -3371,7 +3371,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     if (txt.includes('deposit') || txt.includes('payment') || txt.includes('cbe') || txt.includes('transfer')) {
       reply = "To deposit funds into Lumora:\n\n• **KYC BYPASS ENABLED**: You can construct and submit deposit proof instantly without needing to verify your ID first!\n\n1. Go to the Home tab and click **DEPOSIT**, or select a VIP Plan first.\n2. Transfer the desired amount to our official CBE Account:\n   • **Bank**: Commercial Bank of Ethiopia (CBE)\n   • **Account Name**: Leykun\n   • **Account Number**: `1000419524747`\n3. Click 'I have paid', upload your transaction/receipt screenshot, and submit.\n4. Verification usually takes under 2 hours (average is 15-45 minutes).";
     } else if (txt.includes('withdraw') || txt.includes('cashout') || txt.includes('minimum withdrawal') || txt.includes('pin')) {
-      reply = "Lumora Withdrawal Rules:\n\n• **Official Hours**: Active from **morning 3:00 to 12:00 local time** (9:00 AM to 6:00 PM standard East Africa Time).\n• **Minimum Withdrawal**: 200 ETB\n• **Fee**: 10% fee for Income Pool withdrawals (5% Tax + 5% Handling), 5% handling fee for Deposit Pool withdrawals.\n• **Payout Speed**: Requests are processed and dispatched within 0 to 42 hours.\n• Ensure you have configured your CBE account details and typed your secure 4-digit PIN in your Profile tab.";
+      reply = "Lumora Withdrawal Rules:\n\n• **Official Hours**: Active **Every day from 3:00 AM to 12:00 PM (Noon), Local Time** (9:00 to 6:00 Local Ethiopian Time).\n• **Minimum Withdrawal**: 200 ETB\n• **Fee**: 10% fee for Income Pool withdrawals (5% Tax + 5% Handling), 5% handling fee for Deposit Pool withdrawals.\n• **Payout Speed**: Requests are processed and dispatched within 0 to 42 hours.\n• Ensure you have configured your CBE account details and typed your secure 4-digit PIN in your Profile tab.";
     } else if (txt.includes('card') || txt.includes('mastercard') || txt.includes('dollar') || txt.includes('rates') || txt.includes('visa')) {
       reply = "Lumora Virtual MasterCard features:\n\n• **Exchange Rate**: Fixed at **1 USD = 170 ETB**.\n• **Card Fee**: $3 USD issuance fee.\n• **Recharge Fee**: $1 USD transaction fee per funding recharge.\n• **Strict No-OTP Audits**: No phone OTP required! Users authorize online charges securely in real-time using their main account login password.";
     } else if (txt.includes('verify') || txt.includes('verification') || txt.includes('id ') || txt.includes('kyc') || txt.includes('audit')) {
