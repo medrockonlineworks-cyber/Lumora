@@ -3528,6 +3528,46 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
 
 // Global window interceptor initialization
 let fallbackToLocalDB = false;
+let healthCheckPromise: Promise<boolean> | null = null;
+
+function ensureHealthChecked(): Promise<boolean> {
+  if (typeof window === "undefined") return Promise.resolve(false);
+  if (healthCheckPromise) return healthCheckPromise;
+
+  healthCheckPromise = fetch("/api/health")
+    .then(async (res) => {
+      if (res.ok) {
+        const hData = await res.json();
+        if (hData && hData.firestoreSyncDisabled) {
+          console.warn("[Client Firestore] Server reported Firestore is disabled (likely due to cross-project IAM restrictions). Activating Client-Side Direct Firestore Sync fallback.");
+          fallbackToLocalDB = true;
+          firestoreClientDisabled = false;
+          try {
+            localStorage.removeItem("lumora_firestore_client_disabled");
+          } catch (e) {}
+          setupClientFirebaseSync();
+          return true;
+        } else {
+          // Reactivate client sync if it was previously disabled but now restored by admin
+          if (firestoreClientDisabled && (!hData || !hData.firestoreSyncDisabled)) {
+            firestoreClientDisabled = false;
+            try {
+              localStorage.removeItem("lumora_firestore_client_disabled");
+            } catch (e) {}
+            setupClientFirebaseSync();
+          }
+          return false;
+        }
+      }
+      return false;
+    })
+    .catch(err => {
+      console.warn("[Client Firestore] Health check fetch exception:", err);
+      return false;
+    });
+
+  return healthCheckPromise;
+}
 
 // Auto-activate offline/static fallback if not in the official development cloud sandbox or localhost.
 // This ensures that custom domains deployed on stateless hosting like Vercel will process state in a highly responsive client-side model,
@@ -3542,35 +3582,8 @@ if (typeof window !== "undefined") {
   fallbackToLocalDB = false;
   console.log("[Client Firestore] Running in real Express full-stack mode with primary Firebase Firestore backend.");
 
-  // Check backend health/quota status first to avoid firing redundant listener threads when quota exists
-  fetch("/api/health")
-    .then(async (res) => {
-      if (res.ok) {
-        const hData = await res.json();
-        if (hData && hData.firestoreSyncDisabled) {
-          console.warn("[Client Firestore] Server reported Firestore is disabled/quota limited. Disabling client-side sync.");
-          firestoreClientDisabled = true;
-          try {
-            localStorage.setItem("lumora_firestore_client_disabled", "true");
-          } catch (e) {}
-          unsubscribeAllClientListeners();
-        } else {
-          // Reactivate client sync if it was previously disabled but now restored by admin
-          if (firestoreClientDisabled && (!hData || !hData.firestoreSyncDisabled)) {
-            firestoreClientDisabled = false;
-            try {
-              localStorage.removeItem("lumora_firestore_client_disabled");
-            } catch (e) {}
-            setTimeout(() => {
-              setupClientFirebaseSync();
-            }, 50);
-          }
-        }
-      }
-    })
-    .catch(err => {
-      console.warn("[Client Firestore] Health check fetch exception:", err);
-    });
+  // Trigger health check immediately on page load
+  ensureHealthChecked();
 
   // Trigger real-time client-side Firestore listener subscriptions to receive remote updates (e.g., from Admin actions)
   setTimeout(() => {
@@ -3587,6 +3600,11 @@ if (typeof window !== "undefined") {
       : (input instanceof Request ? input.url : String(input));
     
     if (url.startsWith('/api/') || url.includes('/api/')) {
+      // Do not block health check on itself to prevent infinite loop
+      if (!url.endsWith('/api/health') && !url.includes('/api/health')) {
+        await ensureHealthChecked();
+      }
+
       if (fallbackToLocalDB) {
         return handleLocalAPI(url, init);
       }
