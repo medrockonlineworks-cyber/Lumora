@@ -698,11 +698,19 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
 
   const filteredDeposits = deposits.filter(d => {
     const correspondingUser = users.find(u => u.id === d.userId);
-    const matchesSearch = d.userName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const sTerm = searchTerm.toLowerCase().trim();
+    const sDigits = searchTerm.replace(/\D/g, '');
+    const userBankNumClean = (correspondingUser?.profile?.accountNumber || '').replace(/\D/g, '');
+    
+    const matchesSearch = d.userName?.toLowerCase().includes(sTerm) || 
                           d.userPhone?.includes(searchTerm) || 
                           d.id?.includes(searchTerm) ||
-                          (correspondingUser?.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (correspondingUser?.profile?.email || '').toLowerCase().includes(searchTerm.toLowerCase());
+                          (correspondingUser?.email || '').toLowerCase().includes(sTerm) ||
+                          (correspondingUser?.profile?.email || '').toLowerCase().includes(sTerm) ||
+                          (correspondingUser?.profile?.bankName || '').toLowerCase().includes(sTerm) ||
+                          (correspondingUser?.profile?.accountNumber || '').includes(searchTerm) ||
+                          (sDigits !== '' && userBankNumClean.includes(sDigits)) ||
+                          (correspondingUser?.profile?.accountHolderName || '').toLowerCase().includes(sTerm);
     if (!matchesSearch) return false;
     if (depositFilter === 'all') return true;
     return d.status === depositFilter;
@@ -710,11 +718,24 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
 
   const filteredWithdrawals = withdrawals.filter(w => {
     const correspondingUser = users.find(u => u.id === w.userId);
-    const matchesSearch = w.userName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const sTerm = searchTerm.toLowerCase().trim();
+    const sDigits = searchTerm.replace(/\D/g, '');
+    const witBankNumClean = (w.accountNumber || '').replace(/\D/g, '');
+    const userBankNumClean = (correspondingUser?.profile?.accountNumber || '').replace(/\D/g, '');
+    
+    const matchesSearch = w.userName?.toLowerCase().includes(sTerm) || 
                           w.userPhone?.includes(searchTerm) || 
                           w.id?.includes(searchTerm) ||
-                          (correspondingUser?.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (correspondingUser?.profile?.email || '').toLowerCase().includes(searchTerm.toLowerCase());
+                          (correspondingUser?.email || '').toLowerCase().includes(sTerm) ||
+                          (correspondingUser?.profile?.email || '').toLowerCase().includes(sTerm) ||
+                          (w.bankName || '').toLowerCase().includes(sTerm) ||
+                          (w.accountNumber || '').includes(searchTerm) ||
+                          (sDigits !== '' && witBankNumClean.includes(sDigits)) ||
+                          (w.accountHolderName || '').toLowerCase().includes(sTerm) ||
+                          (correspondingUser?.profile?.bankName || '').toLowerCase().includes(sTerm) ||
+                          (correspondingUser?.profile?.accountNumber || '').includes(searchTerm) ||
+                          (sDigits !== '' && userBankNumClean.includes(sDigits)) ||
+                          (correspondingUser?.profile?.accountHolderName || '').toLowerCase().includes(sTerm);
     if (!matchesSearch) return false;
     if (withdrawalFilter === 'all') return true;
     return w.status === withdrawalFilter;
@@ -722,11 +743,19 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
 
   const filteredLoans = loans.filter(l => {
     const correspondingUser = users.find(u => u.id === l.userId);
-    const matchesSearch = l.userName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const sTerm = searchTerm.toLowerCase().trim();
+    const sDigits = searchTerm.replace(/\D/g, '');
+    const userBankNumClean = (correspondingUser?.profile?.accountNumber || '').replace(/\D/g, '');
+    
+    const matchesSearch = l.userName?.toLowerCase().includes(sTerm) || 
                           l.userPhone?.includes(searchTerm) || 
                           l.id?.includes(searchTerm) ||
-                          (correspondingUser?.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (correspondingUser?.profile?.email || '').toLowerCase().includes(searchTerm.toLowerCase());
+                          (correspondingUser?.email || '').toLowerCase().includes(sTerm) ||
+                          (correspondingUser?.profile?.email || '').toLowerCase().includes(sTerm) ||
+                          (correspondingUser?.profile?.bankName || '').toLowerCase().includes(sTerm) ||
+                          (correspondingUser?.profile?.accountNumber || '').includes(searchTerm) ||
+                          (sDigits !== '' && userBankNumClean.includes(sDigits)) ||
+                          (correspondingUser?.profile?.accountHolderName || '').toLowerCase().includes(sTerm);
     if (!matchesSearch) return false;
     if (loanFilter === 'all') return true;
     return l.status === loanFilter;
@@ -734,11 +763,19 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
 
   const filteredIdUsers = users.filter(u => {
     const profStatus = u.profile?.idVerificationStatus || 'unsubmitted';
-    const matchesSearch = (u.fullName || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const sTerm = searchTerm.toLowerCase().trim();
+    const sDigits = searchTerm.replace(/\D/g, '');
+    const userBankNumClean = (u.profile?.accountNumber || '').replace(/\D/g, '');
+    
+    const matchesSearch = (u.fullName || '').toLowerCase().includes(sTerm) || 
                           u.phone?.includes(searchTerm) ||
                           u.id?.includes(searchTerm) ||
-                          (u.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (u.profile?.email || '').toLowerCase().includes(searchTerm.toLowerCase());
+                          (u.email || '').toLowerCase().includes(sTerm) ||
+                          (u.profile?.email || '').toLowerCase().includes(sTerm) ||
+                          (u.profile?.bankName || '').toLowerCase().includes(sTerm) ||
+                          (u.profile?.accountNumber || '').includes(searchTerm) ||
+                          (sDigits !== '' && userBankNumClean.includes(sDigits)) ||
+                          (u.profile?.accountHolderName || '').toLowerCase().includes(sTerm);
     if (!matchesSearch) return false;
     
     if (idFilter === 'all') {
@@ -748,11 +785,19 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   });
 
   const filteredUserList = users.filter(u => {
-    const matchesSearch = (u.fullName || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const sTerm = searchTerm.toLowerCase().trim();
+    const sDigits = searchTerm.replace(/\D/g, '');
+    const userBankNumClean = (u.profile?.accountNumber || '').replace(/\D/g, '');
+    
+    const matchesSearch = (u.fullName || '').toLowerCase().includes(sTerm) || 
                           u.phone?.includes(searchTerm) || 
                           u.id?.includes(searchTerm) ||
-                          (u.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (u.profile?.email || '').toLowerCase().includes(searchTerm.toLowerCase());
+                          (u.email || '').toLowerCase().includes(sTerm) ||
+                          (u.profile?.email || '').toLowerCase().includes(sTerm) ||
+                          (u.profile?.bankName || '').toLowerCase().includes(sTerm) ||
+                          (u.profile?.accountNumber || '').includes(searchTerm) ||
+                          (sDigits !== '' && userBankNumClean.includes(sDigits)) ||
+                          (u.profile?.accountHolderName || '').toLowerCase().includes(sTerm);
     if (!matchesSearch) return false;
     if (userStatusFilter === 'all') return true;
     return u.status === userStatusFilter;
