@@ -163,8 +163,20 @@ function MainAppContent() {
       return;
     }
     try {
-      // 1. Fetch dashboard stats
-      const resDash = await fetch(`/api/dashboard/${userId}`);
+      // Generate or retrieve persistent browser device ID
+      let deviceId = localStorage.getItem('lumora_device_id');
+      if (!deviceId) {
+        deviceId = 'DEV-' + Math.random().toString(36).substring(2, 12).toUpperCase();
+        localStorage.setItem('lumora_device_id', deviceId);
+      }
+      const screenWidth = typeof window !== 'undefined' ? window.innerWidth : 0;
+      const screenHeight = typeof window !== 'undefined' ? window.innerHeight : 0;
+      const screenInfo = `${screenWidth}x${screenHeight}`;
+      const langCode = localStorage.getItem('lumora_language') || 'en';
+
+      // 1. Fetch dashboard stats with device tracking details
+      const url = `/api/dashboard/${userId}?deviceId=${encodeURIComponent(deviceId)}&lang=${encodeURIComponent(langCode)}&screen=${encodeURIComponent(screenInfo)}`;
+      const resDash = await fetch(url);
       if (resDash.ok) {
         setIsOffline(false);
         const data = await resDash.json();

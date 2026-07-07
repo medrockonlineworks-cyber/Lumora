@@ -2376,6 +2376,32 @@ async function startServer() {
     const userObj = db.users.find(u => u.id === userId);
     const isAdmin = userObj ? userObj.isAdmin : false;
 
+    // Track active status and sync device ID & metadata
+    const deviceId = req.query.deviceId ? String(req.query.deviceId) : undefined;
+    if (deviceId) {
+      const userAgent = req.headers['user-agent'] || 'Unknown Agent';
+      const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown IP').toString();
+      const timestamp = new Date().toISOString();
+      const meta = JSON.stringify({
+        userAgent,
+        ip,
+        lang: req.query.lang || 'en',
+        screen: req.query.screen || 'unknown'
+      });
+
+      profile.lastActiveDeviceId = deviceId;
+      profile.lastActiveTimestamp = timestamp;
+      profile.syncMetadata = meta;
+
+      if (userObj) {
+        userObj.lastActiveDeviceId = deviceId;
+        userObj.lastActiveTimestamp = timestamp;
+        userObj.syncMetadata = meta;
+      }
+
+      saveDB(db);
+    }
+
     const activeList = db.investments.filter(i => i.userId === userId && i.status === "active");
     const transList = db.transactions.filter(t => t.userId === userId).sort((a,b) => (b.date || '').toString().localeCompare((a.date || '').toString())).slice(0, 10);
     const notificationsList = db.notifications.filter(n => n.userId === userId).sort((a,b) => (b.date || '').toString().localeCompare((a.date || '').toString()));
@@ -3940,6 +3966,152 @@ Instruct the user precisely on which page, component, or element to use to accom
       res.json({ success: true, message: "Firestore Sync re-enabled. Attempting to connect..." });
     } catch (e: any) {
       res.status(500).json({ error: e.message || String(e) });
+    }
+  });
+
+  // ADMIN ACTION: Fetch user synchronization diagnostic information
+  app.get("/api/admin/sync-diagnostics", async (req, res) => {
+    try {
+      const fDb = getFirestoreDb();
+      let firestoreUsers: any[] = [];
+      let firestoreProfiles: any[] = [];
+      let firestoreStatus = "active";
+
+      if (!fDb || firestoreSyncDisabled) {
+        firestoreStatus = "disabled_or_quota_exceeded";
+      } else {
+        try {
+          const userSnaps = await fDb.collection("users").get();
+          userSnaps.forEach(doc => {
+            firestoreUsers.push({ id: doc.id, ...doc.data() });
+          });
+          const profileSnaps = await fDb.collection("profiles").get();
+          profileSnaps.forEach(doc => {
+            firestoreProfiles.push({ id: doc.id, ...doc.data() });
+          });
+        } catch (fsErr: any) {
+          console.error("[Diagnostics] Firestore fetch error:", fsErr);
+          firestoreStatus = "error: " + (fsErr.message || String(fsErr));
+        }
+      }
+
+      // Map local users
+      const diagnostics = db.users.map(u => {
+        const p = db.profiles.find(profile => profile.userId === u.id);
+        const fUser = firestoreUsers.find(fu => fu.id === u.id);
+        const fProfile = firestoreProfiles.find(fp => fp.userId === u.id);
+
+        let syncStatus: "synced" | "local_only" | "missing_profile" | "mismatch" | "firestore_only" = "synced";
+        if (firestoreStatus !== "active") {
+          syncStatus = "local_only";
+        } else if (!fUser) {
+          syncStatus = "local_only";
+        } else if (!p) {
+          syncStatus = "missing_profile";
+        }
+
+        const diagObj: {
+          id: string;
+          fullName: string;
+          phone: string;
+          email?: string;
+          status: string;
+          isAdmin: boolean;
+          registrationDate: string;
+          lastActiveDeviceId: string;
+          lastActiveTimestamp: string;
+          syncMetadata: string;
+          inLocalDb: boolean;
+          inFirestore: boolean;
+          profileInLocalDb: boolean;
+          profileInFirestore: boolean;
+          syncStatus: "synced" | "local_only" | "missing_profile" | "firestore_only" | "mismatch";
+          role: string;
+        } = {
+          id: u.id,
+          fullName: u.fullName,
+          phone: u.phone,
+          email: u.email,
+          status: u.status,
+          isAdmin: u.isAdmin,
+          registrationDate: u.registrationDate,
+          lastActiveDeviceId: u.lastActiveDeviceId || p?.lastActiveDeviceId || "N/A",
+          lastActiveTimestamp: u.lastActiveTimestamp || p?.lastActiveTimestamp || "N/A",
+          syncMetadata: u.syncMetadata || p?.syncMetadata || "",
+          inLocalDb: true,
+          inFirestore: !!fUser,
+          profileInLocalDb: !!p,
+          profileInFirestore: !!fProfile,
+          syncStatus,
+          role: u.isAdmin ? "Admin" : "User"
+        };
+
+        return diagObj;
+      });
+
+      // Include users that exist in Firestore but NOT locally
+      firestoreUsers.forEach(fu => {
+        const localExists = db.users.some(u => u.id === fu.id);
+        if (!localExists) {
+          const fProfile = firestoreProfiles.find(fp => fp.userId === fu.id);
+          diagnostics.push({
+            id: fu.id,
+            fullName: fu.fullName || "Unknown",
+            phone: fu.phone || "N/A",
+            email: fu.email || "N/A",
+            status: fu.status || "active",
+            isAdmin: fu.isAdmin || false,
+            registrationDate: fu.registrationDate || "N/A",
+            lastActiveDeviceId: fu.lastActiveDeviceId || fProfile?.lastActiveDeviceId || "N/A",
+            lastActiveTimestamp: fu.lastActiveTimestamp || fProfile?.lastActiveTimestamp || "N/A",
+            syncMetadata: fu.syncMetadata || fProfile?.syncMetadata || "",
+            inLocalDb: false,
+            inFirestore: true,
+            profileInLocalDb: false,
+            profileInFirestore: !!fProfile,
+            syncStatus: "firestore_only",
+            role: fu.isAdmin ? "Admin" : "User"
+          });
+        }
+      });
+
+      res.json({
+        firestoreStatus,
+        firestoreSyncDisabled,
+        totalLocalUsers: db.users.length,
+        totalFirestoreUsers: firestoreUsers.length,
+        diagnostics
+      });
+    } catch (err: any) {
+      console.error("[Diagnostics Exception]", err);
+      res.status(500).json({ error: "Diagnostics failed: " + (err.message || String(err)) });
+    }
+  });
+
+  // ADMIN ACTION: Force sync specific user from local DB to Firestore
+  app.post("/api/admin/force-sync-user", async (req, res) => {
+    try {
+      const { userId } = req.body;
+      if (!userId) return res.status(400).json({ error: "User ID required." });
+
+      const u = db.users.find(user => user.id === userId);
+      const p = db.profiles.find(profile => profile.userId === userId);
+      if (!u) return res.status(404).json({ error: "User not found locally." });
+
+      const fDb = getFirestoreDb();
+      if (!fDb || firestoreSyncDisabled) {
+        return res.status(400).json({ error: "Firestore is disabled or has exceeded its daily quota." });
+      }
+
+      // Force write to Firestore
+      await fDb.collection("users").doc(userId).set(u);
+      if (p) {
+        await fDb.collection("profiles").doc(p.userId || userId).set(p);
+      }
+      res.json({ success: true, message: `Successfully force-synced user "${u.fullName}" to Firestore.` });
+    } catch (fsErr: any) {
+      console.error("[Diagnostics Force Sync Error]", fsErr);
+      res.status(500).json({ error: "Failed to force write to Firestore: " + (fsErr.message || String(fsErr)) });
     }
   });
 

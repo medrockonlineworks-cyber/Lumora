@@ -15,6 +15,9 @@ export interface User {
   password?: string;
   registeredByAdmin?: boolean;
   fullOwner?: boolean;
+  lastActiveDeviceId?: string;
+  lastActiveTimestamp?: string;
+  syncMetadata?: string;
 }
 
 export interface Profile {
@@ -50,6 +53,9 @@ export interface Profile {
   registeredByAdmin?: boolean;
   fullOwner?: boolean;
   claimedLevelBonuses?: number[];
+  lastActiveDeviceId?: string;
+  lastActiveTimestamp?: string;
+  syncMetadata?: string;
 }
 
 export interface InvestmentPlan {

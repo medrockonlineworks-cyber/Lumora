@@ -14,7 +14,12 @@ interface AdminPanelProps {
 }
 
 export default function AdminPanel({ onBack }: AdminPanelProps) {
-  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'deposits' | 'withdrawals' | 'id-verify' | 'users' | 'loans' | 'settings' | 'cards' | 'audit-logs'>('overview');
+  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'deposits' | 'withdrawals' | 'id-verify' | 'users' | 'loans' | 'settings' | 'cards' | 'audit-logs' | 'sync-diagnostics'>('overview');
+  const [diagnosticData, setDiagnosticData] = useState<any>(null);
+  const [diagnosticLoading, setDiagnosticLoading] = useState(false);
+  const [diagnosticSearch, setDiagnosticSearch] = useState('');
+  const [diagnosticStatusFilter, setDiagnosticStatusFilter] = useState<'all' | 'synced' | 'local_only' | 'firestore_only' | 'missing_profile'>('all');
+
   const [stats, setStats] = useState<any>(null);
   const [users, setUsers] = useState<any[]>([]);
   const [deposits, setDeposits] = useState<Deposit[]>([]);
@@ -270,6 +275,51 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
       setLoading(false);
     }
   };
+
+  const fetchDiagnostics = async () => {
+    setDiagnosticLoading(true);
+    try {
+      const res = await fetch('/api/admin/sync-diagnostics');
+      if (res.ok) {
+        const data = await res.json();
+        setDiagnosticData(data);
+      } else {
+        showToast('Failed to load diagnostics information.', 'error');
+      }
+    } catch (err: any) {
+      showToast('Error loading diagnostics: ' + (err.message || String(err)), 'error');
+    } finally {
+      setDiagnosticLoading(false);
+    }
+  };
+
+  const handleForceSync = async (userId: string) => {
+    setActionLoading(`sync-${userId}`);
+    try {
+      const res = await fetch('/api/admin/force-sync-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast(data.message || 'User successfully synchronized to Firestore.', 'success');
+        await fetchDiagnostics();
+      } else {
+        showToast(data.error || 'Failed to force sync user.', 'error');
+      }
+    } catch (err: any) {
+      showToast('Error synchronizing user: ' + (err.message || String(err)), 'error');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  useEffect(() => {
+    if (activeSubTab === 'sync-diagnostics') {
+      fetchDiagnostics();
+    }
+  }, [activeSubTab]);
 
   useEffect(() => {
     fetchAllAdminData();
@@ -889,7 +939,8 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
           { id: 'cards', label: 'LUMORA Cards', icon: CreditCard, count: allCards.filter(c => c.status === 'pending').length },
           { id: 'loans', label: 'Loans Board', icon: FileText, count: loans.filter(l => l.status === 'pending').length },
           { id: 'settings', label: 'Settings', icon: Settings },
-          { id: 'audit-logs', label: 'Audit Logs', icon: ShieldCheck }
+          { id: 'audit-logs', label: 'Audit Logs', icon: ShieldCheck },
+          { id: 'sync-diagnostics', label: 'Sync Diagnostics', icon: RefreshCw }
         ].map((tab) => {
           const Icon = tab.icon;
           const isActive = activeSubTab === tab.id;
@@ -2476,6 +2527,285 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                           </div>
                         );
                       })}
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
+          {/* TAB 10: SYNCHRONIZATION DIAGNOSTICS */}
+          {activeSubTab === 'sync-diagnostics' && (
+            <div className="bg-white rounded-3xl border border-slate-200/80 p-6 space-y-6 shadow-xs font-sans">
+              
+              {/* Header and Summary */}
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-100 pb-5">
+                <div>
+                  <h3 className="font-display font-black text-sm text-[#0A3D91] uppercase tracking-wider flex items-center gap-2">
+                    <RefreshCw className={`w-5 h-5 text-[#0A3D91] ${diagnosticLoading ? 'animate-spin' : ''}`} />
+                    <span>Sync & Device Diagnostics Gate</span>
+                  </h3>
+                  <p className="text-slate-500 text-[11px] mt-1 font-medium">
+                    Analyze user identities, cross-device synchronization status, last active session timestamps, and environment metadata.
+                  </p>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={fetchDiagnostics}
+                    disabled={diagnosticLoading}
+                    className="px-4 py-2 bg-[#0A3D91] hover:bg-blue-800 disabled:opacity-50 text-white font-bold text-[10px] uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-xs active:scale-97 flex items-center gap-1.5"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${diagnosticLoading ? 'animate-spin' : ''}`} />
+                    <span>Run Diagnostics Check</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Status & Stats Overview Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 font-sans">
+                <div className="p-4 bg-slate-50/50 rounded-2xl border border-slate-200/60">
+                  <span className="text-[9px] font-black uppercase text-slate-400 block tracking-wider">Firestore Gateway Connection</span>
+                  <div className="flex items-center gap-2 mt-1.5">
+                    <span className={`w-2 h-2 rounded-full ${
+                      diagnosticData?.firestoreStatus === 'active' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
+                    }`}></span>
+                    <span className="text-xs font-black uppercase text-slate-800">
+                      {diagnosticData?.firestoreStatus === 'active' ? 'ACTIVE & VERIFIED' : 'LOCAL RESILIENCY FALLBACK'}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-semibold block mt-1">
+                    {diagnosticData?.firestoreStatus === 'active' 
+                      ? 'Live real-time dual-write active' 
+                      : `Spark limits exceeded or quota disconnected`}
+                  </span>
+                </div>
+
+                <div className="p-4 bg-slate-50/50 rounded-2xl border border-slate-200/60">
+                  <span className="text-[9px] font-black uppercase text-slate-400 block tracking-wider">Express Memory Registry</span>
+                  <div className="text-lg font-black text-slate-850 mt-1">
+                    {diagnosticData?.totalLocalUsers ?? 0} <span className="text-xs text-slate-400 font-medium">registered users</span>
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-semibold block mt-1">
+                    Direct local sandbox database records
+                  </span>
+                </div>
+
+                <div className="p-4 bg-slate-50/50 rounded-2xl border border-slate-200/60">
+                  <span className="text-[9px] font-black uppercase text-slate-400 block tracking-wider">Firestore Remote Registry</span>
+                  <div className="text-lg font-black text-slate-850 mt-1">
+                    {diagnosticData?.totalFirestoreUsers ?? 0} <span className="text-xs text-slate-400 font-medium">remote documents</span>
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-semibold block mt-1">
+                    Live cloud storage synchronization count
+                  </span>
+                </div>
+              </div>
+
+              {/* Diagnostic Explanation Banner */}
+              <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-2xl font-sans text-xs">
+                <h4 className="font-bold text-[#0A3D91] uppercase tracking-wider text-[10px]">Understanding Gaps & Self-Healing</h4>
+                <p className="text-slate-600 mt-1 leading-relaxed text-[10.5px]">
+                  Users listed as <span className="font-black text-amber-700 bg-amber-50 px-1 rounded">Local Only</span> exist only in the local Express container but have not reached Firestore. Those flagged as <span className="font-black text-blue-700 bg-blue-50 px-1 rounded">Firestore Only</span> were registered remotely but missed the local in-memory cache sync. Use the <span className="font-bold text-[#0A3D91]">Force Push</span> tool to repair individual synchronization mismatches.
+                </p>
+              </div>
+
+              {/* Filters panel */}
+              <div className="flex flex-col sm:flex-row gap-3.5 items-center justify-between font-sans pt-2 border-t border-slate-100">
+                <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
+                  {(['all', 'synced', 'local_only', 'firestore_only', 'missing_profile'] as const).map((statusType) => {
+                    const isActive = diagnosticStatusFilter === statusType;
+                    const labels: Record<string, string> = {
+                      all: "All Records",
+                      synced: "Fully Synced",
+                      local_only: "Local Only",
+                      firestore_only: "Firestore Only",
+                      missing_profile: "Missing Profile"
+                    };
+                    return (
+                      <button
+                        key={statusType}
+                        onClick={() => setDiagnosticStatusFilter(statusType)}
+                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+                          isActive 
+                            ? 'bg-[#0A3D91] text-white shadow-xs' 
+                            : 'bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200/50'
+                        }`}
+                      >
+                        {labels[statusType]}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="relative max-w-xs w-full">
+                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={diagnosticSearch}
+                    onChange={(e) => setDiagnosticSearch(e.target.value)}
+                    placeholder="Search name, phone, device ID..."
+                    className="w-full bg-slate-50/50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#0A3D91] shadow-3xs"
+                  />
+                </div>
+              </div>
+
+              {/* Diagnostics List Table */}
+              {diagnosticLoading ? (
+                <div className="py-12 text-center font-sans space-y-3">
+                  <div className="w-8 h-8 border-3 border-blue-100 border-t-[#0A3D91] rounded-full animate-spin mx-auto"></div>
+                  <p className="text-slate-400 text-xs font-black uppercase tracking-widest">Compiling cross-database diagnostics...</p>
+                </div>
+              ) : !diagnosticData || !diagnosticData.diagnostics || diagnosticData.diagnostics.length === 0 ? (
+                <p className="text-slate-400 text-xs font-black uppercase tracking-widest text-center py-10 font-sans">No diagnostic records parsed.</p>
+              ) : (() => {
+                const filtered = diagnosticData.diagnostics.filter((item: any) => {
+                  const q = diagnosticSearch.toLowerCase().trim();
+                  if (q) {
+                    const matchName = item.fullName?.toLowerCase().includes(q);
+                    const matchPhone = item.phone?.toLowerCase().includes(q);
+                    const matchEmail = item.email?.toLowerCase().includes(q);
+                    const matchDevice = item.lastActiveDeviceId?.toLowerCase().includes(q);
+                    if (!matchName && !matchPhone && !matchEmail && !matchDevice) return false;
+                  }
+
+                  if (diagnosticStatusFilter !== 'all') {
+                    if (item.syncStatus !== diagnosticStatusFilter) return false;
+                  }
+
+                  return true;
+                });
+
+                if (filtered.length === 0) {
+                  return <p className="text-slate-400 text-xs font-black uppercase tracking-widest text-center py-10 font-sans">No user matches found for selected criteria.</p>;
+                }
+
+                return (
+                  <div className="border border-slate-200/80 rounded-2xl overflow-hidden shadow-3xs font-sans">
+                    <div className="overflow-x-auto max-h-[500px]">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-slate-50 border-b border-slate-200 text-[10px] font-black uppercase text-slate-500 tracking-wider">
+                            <th className="py-3 px-4">User Details</th>
+                            <th className="py-3 px-4">Registry State</th>
+                            <th className="py-3 px-4">Last Active Device</th>
+                            <th className="py-3 px-4">Activity Timestamp</th>
+                            <th className="py-3 px-4 text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
+                          {filtered.map((item: any) => {
+                            let syncBadge = null;
+                            if (item.syncStatus === 'synced') {
+                              syncBadge = <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/60 px-2 py-0.5 rounded-md text-[9px] font-black uppercase">Fully Synced</span>;
+                            } else if (item.syncStatus === 'local_only') {
+                              syncBadge = <span className="bg-amber-50 text-amber-700 border border-amber-200/60 px-2 py-0.5 rounded-md text-[9px] font-black uppercase">Local Memory Only</span>;
+                            } else if (item.syncStatus === 'firestore_only') {
+                              syncBadge = <span className="bg-blue-50 text-blue-700 border border-blue-200/60 px-2 py-0.5 rounded-md text-[9px] font-black uppercase">Firestore Only</span>;
+                            } else if (item.syncStatus === 'missing_profile') {
+                              syncBadge = <span className="bg-rose-50 text-rose-700 border border-rose-200/60 px-2 py-0.5 rounded-md text-[9px] font-black uppercase">Missing Profile Doc</span>;
+                            }
+
+                            let metaObj: any = null;
+                            try {
+                              if (item.syncMetadata) {
+                                metaObj = JSON.parse(item.syncMetadata);
+                              }
+                            } catch (e) {}
+
+                            return (
+                              <tr key={item.id} className="hover:bg-slate-50/40 transition">
+                                <td className="py-3.5 px-4 space-y-1 max-w-[220px]">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="font-extrabold text-slate-850 text-[12px]">{item.fullName}</span>
+                                    {item.isAdmin && (
+                                      <span className="bg-purple-100 text-purple-800 text-[8px] font-black uppercase px-1 rounded">Admin</span>
+                                    )}
+                                  </div>
+                                  <div className="text-[10px] text-slate-500 font-mono flex flex-col space-y-0.5 font-semibold">
+                                    <span>Phone: {item.phone}</span>
+                                    {item.email && <span className="truncate">Email: {item.email}</span>}
+                                    <span className="text-[8px] text-slate-400">ID: {item.id}</span>
+                                  </div>
+                                </td>
+
+                                <td className="py-3.5 px-4 space-y-1.5">
+                                  <div>{syncBadge}</div>
+                                  <div className="text-[9.5px] font-bold text-slate-400 space-y-0.5 font-sans">
+                                    <div className="flex items-center gap-1">
+                                      <span className={`w-1.5 h-1.5 rounded-full ${item.inLocalDb ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
+                                      <span>Local DB: {item.inLocalDb ? 'YES' : 'NO'}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <span className={`w-1.5 h-1.5 rounded-full ${item.inFirestore ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
+                                      <span>Firestore DB: {item.inFirestore ? 'YES' : 'NO'}</span>
+                                    </div>
+                                  </div>
+                                </td>
+
+                                <td className="py-3.5 px-4 space-y-1 max-w-[180px]">
+                                  <div className="flex items-center gap-1">
+                                    <span className="font-mono text-[10px] text-[#0A3D91] bg-slate-100 px-1.5 py-0.5 rounded font-black">
+                                      {item.lastActiveDeviceId || 'None'}
+                                    </span>
+                                  </div>
+                                  {metaObj && (
+                                    <div className="text-[9px] text-slate-500 leading-relaxed font-semibold">
+                                      <div>IP: <span className="font-mono">{metaObj.ip || 'Unknown'}</span></div>
+                                      <div className="truncate" title={metaObj.userAgent}>Agent: {metaObj.userAgent?.substring(0, 40)}...</div>
+                                      <div>Screen: <span className="font-mono">{metaObj.screen || 'Unknown'}</span></div>
+                                    </div>
+                                  )}
+                                </td>
+
+                                <td className="py-3.5 px-4 space-y-0.5">
+                                  {item.lastActiveTimestamp !== 'N/A' ? (
+                                    <>
+                                      <span className="text-[11px] font-mono font-black text-slate-800 block">
+                                        {new Date(item.lastActiveTimestamp).toLocaleDateString()}
+                                      </span>
+                                      <span className="text-[10px] font-mono text-slate-400 font-bold block">
+                                        {new Date(item.lastActiveTimestamp).toLocaleTimeString()}
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <span className="text-slate-400 text-[10px] font-black uppercase tracking-wider font-mono">NEVER LOGGED</span>
+                                  )}
+                                </td>
+
+                                <td className="py-3.5 px-4 text-right">
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    {item.syncStatus !== 'synced' && item.inLocalDb && (
+                                      <button
+                                        disabled={actionLoading === `sync-${item.id}`}
+                                        onClick={() => handleForceSync(item.id)}
+                                        className="px-2.5 py-1.5 bg-[#0A3D91] hover:bg-blue-800 text-white font-black text-[9px] uppercase tracking-wider rounded-md cursor-pointer active:scale-95 transition shadow-3xs flex items-center gap-1 disabled:opacity-50"
+                                      >
+                                        {actionLoading === `sync-${item.id}` ? (
+                                          <span className="w-2.5 h-2.5 border border-white/30 border-t-white rounded-full animate-spin"></span>
+                                        ) : (
+                                          <RefreshCw className="w-2.5 h-2.5" />
+                                        )}
+                                        <span>Force Push</span>
+                                      </button>
+                                    )}
+                                    <button
+                                      onClick={() => {
+                                        navigator.clipboard.writeText(JSON.stringify(item, null, 2));
+                                        showToast('Diagnostic details copied to clipboard.', 'success');
+                                      }}
+                                      className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-[9px] uppercase tracking-wider rounded-md cursor-pointer active:scale-95 transition"
+                                      title="Copy JSON Payload"
+                                    >
+                                      Copy info
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
                 );
