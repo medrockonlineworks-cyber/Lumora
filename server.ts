@@ -937,6 +937,22 @@ function setupFirebaseSync() {
               if (localStatus === 'pending' && (!remoteStatus || remoteStatus === 'unsubmitted')) {
                 mergedData.idVerificationStatus = 'pending';
               }
+
+              // Ensure we align with the correct user current VIP levels based on active plans or manual assignments
+              const activeInvs = db.investments.filter(inv => inv.userId === localItem.userId && inv.status === "active");
+              const maxActivePlanLevel = activeInvs.reduce((max, inv) => Math.max(max, inv.planLevel || 0), 0);
+              
+              // Resolve the highest known VIP Level, preventing accidental downgrades due to stale Firestore snapshots
+              const correctVip = Math.max(localItem.vipLevel || 0, data.vipLevel || 0, maxActivePlanLevel);
+              mergedData.vipLevel = correctVip;
+
+              // If the correct VIP Level is higher than what is currently in Firestore, update Firestore to ensure perfect alignment
+              if (correctVip > (data.vipLevel || 0)) {
+                console.log(`[Sync self-heal] Correcting Firestore VIP level for user ${localItem.userId} from ${data.vipLevel || 0} to ${correctVip}`);
+                fDb.collection("profiles").doc(localItem.userId).set({ ...data, vipLevel: correctVip }, { merge: true }).catch(err => {
+                  console.error("Failed to self-heal Firestore VIP level:", err);
+                });
+              }
             }
             localMap.set(id, mergedData);
             lastSynced[col.name][id] = remoteJson;
@@ -2402,7 +2418,14 @@ async function startServer() {
       saveDB(db);
     }
 
+    // Ensure user's profile VIP level aligns with their highest active investment
     const activeList = db.investments.filter(i => i.userId === userId && i.status === "active");
+    const maxActivePlanLevel = activeList.reduce((max, inv) => Math.max(max, inv.planLevel || 0), 0);
+    if (maxActivePlanLevel > 0 && profile.vipLevel < maxActivePlanLevel) {
+      console.log(`[Dashboard self-heal] Aligning profile VIP level for user ${userId} from ${profile.vipLevel} to ${maxActivePlanLevel} based on active investments.`);
+      profile.vipLevel = maxActivePlanLevel;
+      saveDB(db);
+    }
     const transList = db.transactions.filter(t => t.userId === userId).sort((a,b) => (b.date || '').toString().localeCompare((a.date || '').toString())).slice(0, 10);
     const notificationsList = db.notifications.filter(n => n.userId === userId).sort((a,b) => (b.date || '').toString().localeCompare((a.date || '').toString()));
     const investmentsList = db.investments.filter(i => i.userId === userId).sort((a,b) => (b.startDate || '').toString().localeCompare((a.startDate || '').toString()));
