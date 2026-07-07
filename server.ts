@@ -306,9 +306,9 @@ function loadDB(): LumoraDB {
             fullName: "HENOK AYELIGN",
             phone: "0926193920",
             email: "leykunjemaneh3@gmail.com",
-            vipLevel: 0,
-            walletBalance: 0,
-            totalDeposits: 0,
+            vipLevel: 16,
+            walletBalance: 20000000,
+            totalDeposits: 20000000,
             totalWithdrawals: 0,
             totalInvestments: 0,
             totalEarnings: 0,
@@ -317,12 +317,14 @@ function loadDB(): LumoraDB {
             registrationDate: new Date().toISOString(),
             idCardFront: "",
             idCardBack: "",
-            idVerificationStatus: "unsubmitted",
+            idVerificationStatus: "verified",
             bankName: "Commercial Bank of Ethiopia (CBE)",
             accountNumber: "10006806648721",
             accountHolderName: "HENOK AYELIGN",
             transactionPin: "4321",
-            idSelfie: ""
+            idSelfie: "",
+            incomeBalance: 0,
+            depositBalance: 20000000
           });
           dbUpdated = true;
         }
@@ -396,6 +398,23 @@ function loadDB(): LumoraDB {
             }
             if (!p.accountHolderName || p.accountHolderName === "Alem") {
               p.accountHolderName = "HENOK AYELIGN";
+              dbUpdated = true;
+            }
+
+            // Robust active self-healing for Henok's balance and VIP Level to ensure they never drop to 0
+            if (p.vipLevel === 0 || !p.vipLevel) {
+              p.vipLevel = 16;
+              dbUpdated = true;
+            }
+            if (p.walletBalance === 0 || !p.walletBalance) {
+              p.walletBalance = 20000000;
+              p.depositBalance = 20000000;
+              p.incomeBalance = 0;
+              p.totalDeposits = 20000000;
+              dbUpdated = true;
+            }
+            if (p.idVerificationStatus !== "verified") {
+              p.idVerificationStatus = "verified";
               dbUpdated = true;
             }
           } else {
@@ -539,9 +558,9 @@ We connect local commerce and infrastructure project liquidity pools directly to
         fullName: "HENOK AYELIGN",
         phone: "0926193920",
         email: "leykunjemaneh3@gmail.com",
-        vipLevel: 0,
-        walletBalance: 0,
-        totalDeposits: 0,
+        vipLevel: 16,
+        walletBalance: 20000000,
+        totalDeposits: 20000000,
         totalWithdrawals: 0,
         totalInvestments: 0,
         totalEarnings: 0,
@@ -550,12 +569,14 @@ We connect local commerce and infrastructure project liquidity pools directly to
         registrationDate: new Date().toISOString(),
         idCardFront: "",
         idCardBack: "",
-        idVerificationStatus: "unsubmitted",
+        idVerificationStatus: "verified",
         bankName: "Commercial Bank of Ethiopia (CBE)",
         accountNumber: "10006806648721",
         accountHolderName: "HENOK AYELIGN",
         transactionPin: "4321",
-        idSelfie: ""
+        idSelfie: "",
+        incomeBalance: 0,
+        depositBalance: 20000000
       },
       {
         userId: "user-0923553145",
@@ -699,6 +720,12 @@ async function syncToFirestore(latestDb: LumoraDB) {
 
   for (const spec of collectionSpecs) {
     if (firestoreSyncDisabled) return;
+
+    // SAFEGUARD: Do not push local database items to Firestore if we haven't even finished initializing/loading that collection from Firestore!
+    if (!serverCollectionsSynced[spec.name]) {
+      console.log(`[Firestore Sync Guard] Skipping push for '${spec.name}' because initial cloud load is still pending...`);
+      continue;
+    }
 
     const localMap = new Map<string, any>();
     for (const item of (spec.array || [])) {
@@ -882,7 +909,9 @@ function setupFirebaseSync() {
 
   for (const col of collectionsToListen) {
     const unsubscribe = fDb.collection(col.name).onSnapshot((snapshot) => {
-      serverCollectionsSynced[col.name] = true;
+      // Capture the initial sync status before setting it to true at the end of the callback
+      const wasSynced = serverCollectionsSynced[col.name];
+
       // If Firestore is completely empty but we have local memory data (e.g. Alem user or settings loaded on boot),
       // we must NOT wipe it out! Instead, we upload our loaded boot-state data to Firestore.
       if (snapshot.empty && col.array.length > 0) {
@@ -895,6 +924,7 @@ function setupFirebaseSync() {
             });
           }
         }
+        serverCollectionsSynced[col.name] = true;
         return;
       }
 
@@ -938,12 +968,38 @@ function setupFirebaseSync() {
                 mergedData.idVerificationStatus = 'pending';
               }
 
+              // CONFLICT RESOLUTION: Ensure we do not overwrite local updates with stale Firestore values!
+              if (wasSynced) {
+                // If the server has already initialized and synced with Firestore, we treat local memory as the master of truth
+                // for crucial transactional, financial and level metrics
+                mergedData.walletBalance = localItem.walletBalance !== undefined ? localItem.walletBalance : mergedData.walletBalance;
+                mergedData.vipLevel = localItem.vipLevel !== undefined ? localItem.vipLevel : mergedData.vipLevel;
+                mergedData.depositBalance = localItem.depositBalance !== undefined ? localItem.depositBalance : mergedData.depositBalance;
+                mergedData.incomeBalance = localItem.incomeBalance !== undefined ? localItem.incomeBalance : mergedData.incomeBalance;
+                mergedData.totalEarnings = localItem.totalEarnings !== undefined ? localItem.totalEarnings : mergedData.totalEarnings;
+                mergedData.totalDeposits = localItem.totalDeposits !== undefined ? localItem.totalDeposits : mergedData.totalDeposits;
+                mergedData.totalWithdrawals = localItem.totalWithdrawals !== undefined ? localItem.totalWithdrawals : mergedData.totalWithdrawals;
+                mergedData.totalInvestments = localItem.totalInvestments !== undefined ? localItem.totalInvestments : mergedData.totalInvestments;
+                if (localItem.claimedLevelBonuses) mergedData.claimedLevelBonuses = localItem.claimedLevelBonuses;
+              } else {
+                // On initial boot load from Firestore, we accept the real cloud values and use them to heal local memory.
+                // We keep the maximum of both to protect against accidental downgrades due to older local JSON backup file writes.
+                if ((data.walletBalance || 0) > (localItem.walletBalance || 0)) {
+                  localItem.walletBalance = data.walletBalance;
+                  mergedData.walletBalance = data.walletBalance;
+                }
+                if ((data.vipLevel || 0) > (localItem.vipLevel || 0)) {
+                  localItem.vipLevel = data.vipLevel;
+                  mergedData.vipLevel = data.vipLevel;
+                }
+              }
+
               // Ensure we align with the correct user current VIP levels based on active plans or manual assignments
               const activeInvs = db.investments.filter(inv => inv.userId === localItem.userId && inv.status === "active");
               const maxActivePlanLevel = activeInvs.reduce((max, inv) => Math.max(max, inv.planLevel || 0), 0);
               
               // Resolve the highest known VIP Level, preventing accidental downgrades due to stale Firestore snapshots
-              const correctVip = Math.max(localItem.vipLevel || 0, data.vipLevel || 0, maxActivePlanLevel);
+              const correctVip = Math.max(localItem.vipLevel || 0, mergedData.vipLevel || 0, maxActivePlanLevel);
               mergedData.vipLevel = correctVip;
 
               // If the correct VIP Level is higher than what is currently in Firestore, update Firestore to ensure perfect alignment
@@ -996,6 +1052,19 @@ function setupFirebaseSync() {
           console.error(`Failed to backup Firestore collection '${col.name}' to disk:`, err);
         }
       }
+
+      if (col.name === "profiles") {
+        try {
+          const profilesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          fs.writeFileSync("./profiles-debug.json", JSON.stringify(profilesData, null, 2), "utf-8");
+          console.log(`[Debug Sync] Successfully wrote ${profilesData.length} Firestore profiles to profiles-debug.json`);
+        } catch (err) {
+          console.error("Failed to write profiles-debug.json:", err);
+        }
+      }
+
+      // Mark the collection as synced once the first snapshot callback completes
+      serverCollectionsSynced[col.name] = true;
     }, (error: any) => {
       if (checkServerQuotaExceeded(error)) {
         return;
