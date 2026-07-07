@@ -196,19 +196,23 @@ function loadLocalDB(): LumoraDB {
   if (data) {
     try {
       const parsed = JSON.parse(data) as LumoraDB;
-      if (!parsed.users) parsed.users = [];
-      if (!parsed.profiles) parsed.profiles = [];
-      if (!parsed.investments) parsed.investments = [];
-      if (!parsed.deposits) parsed.deposits = [];
-      if (!parsed.withdrawals) parsed.withdrawals = [];
-      if (!parsed.transactions) parsed.transactions = [];
-      if (!parsed.notifications) parsed.notifications = [];
-      if (!parsed.referrals) parsed.referrals = [];
-      if (!parsed.loans) parsed.loans = [];
-      if (!parsed.cards) parsed.cards = [];
-      if (!parsed.cardTransactions) parsed.cardTransactions = [];
-      if (!parsed.deletedUsers) parsed.deletedUsers = [];
-      db = parsed;
+      if (parsed && typeof parsed === 'object') {
+        if (!parsed.users) parsed.users = [];
+        if (!parsed.profiles) parsed.profiles = [];
+        if (!parsed.investments) parsed.investments = [];
+        if (!parsed.deposits) parsed.deposits = [];
+        if (!parsed.withdrawals) parsed.withdrawals = [];
+        if (!parsed.transactions) parsed.transactions = [];
+        if (!parsed.notifications) parsed.notifications = [];
+        if (!parsed.referrals) parsed.referrals = [];
+        if (!parsed.loans) parsed.loans = [];
+        if (!parsed.cards) parsed.cards = [];
+        if (!parsed.cardTransactions) parsed.cardTransactions = [];
+        if (!parsed.deletedUsers) parsed.deletedUsers = [];
+        db = parsed;
+      } else {
+        db = getInitialDB();
+      }
     } catch {
       db = getInitialDB();
     }
@@ -349,10 +353,12 @@ const lastSyncedClient: Record<string, Record<string, string>> = (() => {
       const saved = localStorage.getItem("lumora_last_synced_client");
       if (saved) {
         const parsed = JSON.parse(saved);
-        Object.keys(defaultVal).forEach(k => {
-          if (!parsed[k]) parsed[k] = {};
-        });
-        return parsed;
+        if (parsed && typeof parsed === 'object') {
+          Object.keys(defaultVal).forEach(k => {
+            if (!parsed[k]) parsed[k] = {};
+          });
+          return parsed;
+        }
       }
     } catch (e) {
       console.warn("Failed to parse lastSyncedClient:", e);

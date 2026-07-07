@@ -211,12 +211,12 @@ function MainAppContent() {
           setDeposits(data);
           localStorage.setItem(`lumora_cached_deposits_${userId}`, JSON.stringify(data));
         } catch (e) {
-          console.error("Error reading deposits:", e);
+          console.warn("Error reading deposits:", e);
         }
       }
 
     } catch (err) {
-      console.error("Error retrieving dashboard logs:", err);
+      console.warn("Error retrieving dashboard logs:", err);
       setIsOffline(true); // Treat fetch exceptions (e.g. DNS failure / offline) as offline rather than logging out
     } finally {
       setRestoringSession(false);
