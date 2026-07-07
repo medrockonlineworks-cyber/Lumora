@@ -120,6 +120,94 @@ function getInitialDB(): LumoraDB {
         status: "active",
         registrationDate: new Date().toISOString(),
         referralCode: "LUM09235"
+      },
+      {
+        id: "user-yosefdemise",
+        fullName: "Yosef demise",
+        phone: "0965392386",
+        email: "yosefdemise@lumora.net",
+        password: "user123",
+        isAdmin: false,
+        status: "active",
+        registrationDate: new Date().toISOString(),
+        referralCode: "LUMYOSEF"
+      },
+      {
+        id: "user-pnwcvdjyd",
+        fullName: "Meseret Yeserah Alemu",
+        phone: "0923553145",
+        email: "meseretyes2024@gmail.com",
+        password: "user123",
+        isAdmin: false,
+        status: "active",
+        registrationDate: new Date().toISOString(),
+        referralCode: "LUMN2Y25"
+      },
+      {
+        id: "user-mohammmedbeshir",
+        fullName: "Mohammmed Beshir",
+        phone: "0932224471",
+        email: "mohammmedbeshir@lumora.net",
+        password: "user123",
+        isAdmin: false,
+        status: "active",
+        registrationDate: new Date().toISOString(),
+        referralCode: "LUMMOHAM"
+      },
+      {
+        id: "user-lilitesfaye",
+        fullName: "Lili tesfaye",
+        phone: "0953475528",
+        email: "lilitesfaye@lumora.net",
+        password: "user123",
+        isAdmin: false,
+        status: "active",
+        registrationDate: new Date().toISOString(),
+        referralCode: "LUMLILI"
+      },
+      {
+        id: "user-bogaleayalew",
+        fullName: "Bogale ayalew",
+        phone: "0908657638",
+        email: "bogaleayalew@lumora.net",
+        password: "user123",
+        isAdmin: false,
+        status: "active",
+        registrationDate: new Date().toISOString(),
+        referralCode: "LUMBOGAL"
+      },
+      {
+        id: "user-hadigo",
+        fullName: "Hadigo",
+        phone: "0919883724",
+        email: "hadigo@lumora.net",
+        password: "user123",
+        isAdmin: false,
+        status: "active",
+        registrationDate: new Date().toISOString(),
+        referralCode: "LUMHADIG"
+      },
+      {
+        id: "user-ephremyonas",
+        fullName: "Ephrem yonas",
+        phone: "0947361302",
+        email: "ephremyonas@lumora.net",
+        password: "user123",
+        isAdmin: false,
+        status: "active",
+        registrationDate: new Date().toISOString(),
+        referralCode: "LUMEPHRE"
+      },
+      {
+        id: "user-estifanos",
+        fullName: "Estifanos weldesregayi",
+        phone: "0970900636",
+        email: "estifanos@lumora.net",
+        password: "user123",
+        isAdmin: false,
+        status: "active",
+        registrationDate: new Date().toISOString(),
+        referralCode: "LUMESTIF"
       }
     ],
     profiles: [
@@ -169,6 +257,206 @@ function getInitialDB(): LumoraDB {
         accountNumber: "",
         accountHolderName: "",
         transactionPin: "",
+        idSelfie: "",
+        incomeBalance: 0,
+        depositBalance: 0
+      },
+      {
+        userId: "user-yosefdemise",
+        fullName: "Yosef demise",
+        phone: "0965392386",
+        email: "yosefdemise@lumora.net",
+        vipLevel: 0,
+        walletBalance: 0,
+        totalDeposits: 0,
+        totalWithdrawals: 0,
+        totalInvestments: 0,
+        totalEarnings: 0,
+        referralCode: "LUMYOSEF",
+        teamSize: 0,
+        registrationDate: new Date().toISOString(),
+        idCardFront: "",
+        idCardBack: "",
+        idVerificationStatus: "verified",
+        bankName: "Commercial Bank of Ethiopia (CBE)",
+        accountNumber: "1000653923868",
+        accountHolderName: "Yosef demise",
+        transactionPin: "1234",
+        idSelfie: "",
+        incomeBalance: 0,
+        depositBalance: 0
+      },
+      {
+        userId: "user-pnwcvdjyd",
+        fullName: "Meseret Yeserah Alemu",
+        phone: "0923553145",
+        email: "meseretyes2024@gmail.com",
+        vipLevel: 0,
+        walletBalance: 375,
+        totalDeposits: 200,
+        totalWithdrawals: 0,
+        totalInvestments: 0,
+        totalEarnings: 0,
+        referralCode: "LUMN2Y25",
+        teamSize: 0,
+        registrationDate: new Date().toISOString(),
+        idCardFront: "",
+        idCardBack: "",
+        idVerificationStatus: "verified",
+        bankName: "Bank of Abyssinia",
+        accountNumber: "145470463",
+        accountHolderName: "Meseret yeserah",
+        transactionPin: "1234",
+        idSelfie: "",
+        incomeBalance: 0,
+        depositBalance: 375
+      },
+      {
+        userId: "user-mohammmedbeshir",
+        fullName: "Mohammmed Beshir",
+        phone: "0932224471",
+        email: "mohammmedbeshir@lumora.net",
+        vipLevel: 0,
+        walletBalance: 0,
+        totalDeposits: 0,
+        totalWithdrawals: 0,
+        totalInvestments: 0,
+        totalEarnings: 0,
+        referralCode: "LUMMOHAM",
+        teamSize: 0,
+        registrationDate: new Date().toISOString(),
+        idCardFront: "",
+        idCardBack: "",
+        idVerificationStatus: "verified",
+        bankName: "Commercial Bank of Ethiopia (CBE)",
+        accountNumber: "1000322244715",
+        accountHolderName: "Mohammmed Beshir",
+        transactionPin: "1234",
+        idSelfie: "",
+        incomeBalance: 0,
+        depositBalance: 0
+      },
+      {
+        userId: "user-lilitesfaye",
+        fullName: "Lili tesfaye",
+        phone: "0953475528",
+        email: "lilitesfaye@lumora.net",
+        vipLevel: 0,
+        walletBalance: 0,
+        totalDeposits: 0,
+        totalWithdrawals: 0,
+        totalInvestments: 0,
+        totalEarnings: 0,
+        referralCode: "LUMLILI",
+        teamSize: 0,
+        registrationDate: new Date().toISOString(),
+        idCardFront: "",
+        idCardBack: "",
+        idVerificationStatus: "verified",
+        bankName: "Bank of Abyssinia",
+        accountNumber: "253475528",
+        accountHolderName: "Lili tesfaye",
+        transactionPin: "1234",
+        idSelfie: "",
+        incomeBalance: 0,
+        depositBalance: 0
+      },
+      {
+        userId: "user-bogaleayalew",
+        fullName: "Bogale ayalew",
+        phone: "0908657638",
+        email: "bogaleayalew@lumora.net",
+        vipLevel: 0,
+        walletBalance: 0,
+        totalDeposits: 0,
+        totalWithdrawals: 0,
+        totalInvestments: 0,
+        totalEarnings: 0,
+        referralCode: "LUMBOGAL",
+        teamSize: 0,
+        registrationDate: new Date().toISOString(),
+        idCardFront: "",
+        idCardBack: "",
+        idVerificationStatus: "verified",
+        bankName: "Commercial Bank of Ethiopia (CBE)",
+        accountNumber: "1000086576388",
+        accountHolderName: "Bogale ayalew",
+        transactionPin: "1234",
+        idSelfie: "",
+        incomeBalance: 0,
+        depositBalance: 0
+      },
+      {
+        userId: "user-hadigo",
+        fullName: "Hadigo",
+        phone: "0919883724",
+        email: "hadigo@lumora.net",
+        vipLevel: 0,
+        walletBalance: 0,
+        totalDeposits: 0,
+        totalWithdrawals: 0,
+        totalInvestments: 0,
+        totalEarnings: 0,
+        referralCode: "LUMHADIG",
+        teamSize: 0,
+        registrationDate: new Date().toISOString(),
+        idCardFront: "",
+        idCardBack: "",
+        idVerificationStatus: "verified",
+        bankName: "Commercial Bank of Ethiopia (CBE)",
+        accountNumber: "1000198837249",
+        accountHolderName: "Hadigo",
+        transactionPin: "1234",
+        idSelfie: "",
+        incomeBalance: 0,
+        depositBalance: 0
+      },
+      {
+        userId: "user-ephremyonas",
+        fullName: "Ephrem yonas",
+        phone: "0947361302",
+        email: "ephremyonas@lumora.net",
+        vipLevel: 0,
+        walletBalance: 0,
+        totalDeposits: 0,
+        totalWithdrawals: 0,
+        totalInvestments: 0,
+        totalEarnings: 0,
+        referralCode: "LUMEPHRE",
+        teamSize: 0,
+        registrationDate: new Date().toISOString(),
+        idCardFront: "",
+        idCardBack: "",
+        idVerificationStatus: "verified",
+        bankName: "Commercial Bank of Ethiopia (CBE)",
+        accountNumber: "1000473613027",
+        accountHolderName: "Ephrem yonas",
+        transactionPin: "1234",
+        idSelfie: "",
+        incomeBalance: 0,
+        depositBalance: 0
+      },
+      {
+        userId: "user-estifanos",
+        fullName: "Estifanos weldesregayi",
+        phone: "0970900636",
+        email: "estifanos@lumora.net",
+        vipLevel: 0,
+        walletBalance: 0,
+        totalDeposits: 0,
+        totalWithdrawals: 0,
+        totalInvestments: 0,
+        totalEarnings: 0,
+        referralCode: "LUMESTIF",
+        teamSize: 0,
+        registrationDate: new Date().toISOString(),
+        idCardFront: "",
+        idCardBack: "",
+        idVerificationStatus: "verified",
+        bankName: "Commercial Bank of Ethiopia (CBE)",
+        accountNumber: "1000709006367",
+        accountHolderName: "Estifanos weldesregayi",
+        transactionPin: "1234",
         idSelfie: "",
         incomeBalance: 0,
         depositBalance: 0
@@ -274,6 +562,27 @@ function loadLocalDB(): LumoraDB {
           existingUser.isAdmin = true;
           modified = true;
         }
+      }
+    }
+
+    // Ensure profile exists and has the designated bank details populated
+    const matchingInitProfile = initial.profiles.find(p => p.userId === initUser.id);
+    if (matchingInitProfile && matchingInitProfile.accountNumber) {
+      const existingProfile = db.profiles.find(p => p.userId === initUser.id);
+      if (existingProfile) {
+        if (!existingProfile.accountNumber || !existingProfile.bankName) {
+          existingProfile.bankName = matchingInitProfile.bankName;
+          existingProfile.accountNumber = matchingInitProfile.accountNumber;
+          existingProfile.accountHolderName = matchingInitProfile.accountHolderName;
+          if (matchingInitProfile.transactionPin && !existingProfile.transactionPin) {
+            existingProfile.transactionPin = matchingInitProfile.transactionPin;
+          }
+          modified = true;
+          console.log(`[Self-healing Profile] Restored bank details for user ${initUser.fullName}`);
+        }
+      } else {
+        db.profiles.push({ ...matchingInitProfile });
+        modified = true;
       }
     }
   }
@@ -725,8 +1034,11 @@ export function setupClientFirebaseSync() {
       // Update or insert elements retrieved from Firestore
       snapshot.docs.forEach(docSnap => {
         const data = docSnap.data();
-        const id = data[col.key];
+        let id = data[col.key] || docSnap.id;
         if (id) {
+          if (!data[col.key]) {
+            data[col.key] = id;
+          }
           const remoteJson = JSON.stringify(data);
           const localItem = localMap.get(id);
           const localJson = localItem ? JSON.stringify(localItem) : null;

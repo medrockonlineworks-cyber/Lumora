@@ -913,8 +913,11 @@ function setupFirebaseSync() {
       // Update or insert elements retrieved from Firestore
       snapshot.docs.forEach(docSnap => {
         const data = docSnap.data();
-        const id = data[col.key];
+        let id = data[col.key] || docSnap.id;
         if (id) {
+          if (!data[col.key]) {
+            data[col.key] = id;
+          }
           const remoteJson = JSON.stringify(data);
           const localItem = localMap.get(id);
           const localJson = localItem ? JSON.stringify(localItem) : null;
