@@ -392,8 +392,14 @@ function normalizeEthiopianPhone(phone: string | number): string {
   return clean.replace(/\D/g, '');
 }
 
+// Clear the client-disabled lock on page reload/startup to ensure we always try to connect and sync with Firestore.
+if (typeof window !== "undefined") {
+  try {
+    localStorage.removeItem("lumora_firestore_client_disabled");
+  } catch (e) {}
+}
 let firestoreClientDb: any = null;
-let firestoreClientDisabled = typeof window !== "undefined" && localStorage.getItem("lumora_firestore_client_disabled") === "true";
+let firestoreClientDisabled = false;
 let activeClientUnsubscribers: (() => void)[] = [];
 
 // Global error and unhandled rejection trap to catch and completely silence Firestore quota limits/resource exhausted errors
@@ -522,9 +528,20 @@ function getFirestoreClientDb() {
       messagingSenderId: firebaseConfig.messagingSenderId,
       appId: firebaseConfig.appId
     }) : getApp();
-    firestoreClientDb = initializeFirestore(app, {
-      experimentalForceLongPolling: true
-    }, firebaseConfig.firestoreDatabaseId);
+    try {
+      // Attempt modern auto-detect long polling setup (standard for resilient client-side iframe and cross-device sync)
+      firestoreClientDb = initializeFirestore(app, {
+        experimentalAutoDetectLongPolling: true
+      }, firebaseConfig.firestoreDatabaseId);
+    } catch (innerErr1) {
+      console.warn("[Client Firestore] Failed with auto-detect long polling, trying custom getFirestore...", innerErr1);
+      try {
+        firestoreClientDb = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+      } catch (innerErr2) {
+        console.warn("[Client Firestore] Failed with custom getFirestore, trying empty initializeFirestore...", innerErr2);
+        firestoreClientDb = initializeFirestore(app, {}, firebaseConfig.firestoreDatabaseId);
+      }
+    }
     console.log(`[Firebase Client Diagnostic] Connected successfully to Firebase Project ID: "${firebaseConfig.projectId}" and Database ID: "${firebaseConfig.firestoreDatabaseId}"`);
     return firestoreClientDb;
   } catch (err) {

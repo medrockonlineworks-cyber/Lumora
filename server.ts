@@ -1617,23 +1617,7 @@ async function startServer() {
 
   // Middleware to ensure DB is loaded from Firestore before serving API requests under serverless Vercel runtime
   app.use("/api", async (req, res, next) => {
-    if (firestoreSyncDisabled) {
-      return next();
-    }
-    const fDb = getFirestoreDb();
-    if (!fDb) {
-      return next();
-    }
-    
-    // Wait up to 3500ms for key tables to sync (specifically 'users' and 'profiles')
-    const start = Date.now();
-    while (!serverCollectionsSynced.users || !serverCollectionsSynced.profiles) {
-      if (Date.now() - start >= 3500) {
-        console.warn("[Server DB Sync Middleware] Wait for Firestore 'users' and 'profiles' sync timed out.");
-        break;
-      }
-      await new Promise((resolve) => setTimeout(resolve, 50));
-    }
+    // Non-blocking in persistent container environments like Cloud Run
     next();
   });
 
