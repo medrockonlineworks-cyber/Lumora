@@ -1168,7 +1168,7 @@ export function setupClientFirebaseSync() {
         targetArray.length = 0;
         targetArray.push(...Array.from(localMap.values()));
         saveLastSyncedClient();
-        localStorage.setItem('lumora_local_db', JSON.stringify(currentDb));
+        saveLocalDB(currentDb, true);
 
         if (typeof window !== "undefined") {
           window.dispatchEvent(new CustomEvent("lumoradb-updated", { detail: { collection: col.name } }));
@@ -1198,7 +1198,7 @@ export function setupClientFirebaseSync() {
       currentDb.settings = data as AppSettings;
       lastSyncedClient.settings["global"] = JSON.stringify(data);
       saveLastSyncedClient();
-      localStorage.setItem('lumora_local_db', JSON.stringify(currentDb));
+      saveLocalDB(currentDb, true);
       if (typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent("lumoradb-updated", { detail: { collection: "settings" } }));
       }
@@ -1232,7 +1232,7 @@ export function setupClientFirebaseSync() {
 
     if (updated) {
       saveLastSyncedClient();
-      localStorage.setItem('lumora_local_db', JSON.stringify(currentDb));
+      saveLocalDB(currentDb, true);
       if (typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent("lumoradb-updated", { detail: { collection: "chatHistory" } }));
       }
@@ -1245,7 +1245,7 @@ export function setupClientFirebaseSync() {
   activeClientUnsubscribers.push(unsubChat);
 }
 
-function saveLocalDB(db: LumoraDB) {
+function saveLocalDB(db: LumoraDB, skipCloudSync = false) {
   try {
     localStorage.setItem('lumora_local_db', JSON.stringify(db));
   } catch (err) {
@@ -1261,9 +1261,11 @@ function saveLocalDB(db: LumoraDB) {
       console.error("[Client LocalDB] Critical localStorage fallback also failed:", innerErr);
     }
   }
-  syncClientToFirestore(db).catch(err => {
-    console.warn("[Client Firestore Sync] Cloud update error:", err);
-  });
+  if (!skipCloudSync) {
+    syncClientToFirestore(db).catch(err => {
+      console.warn("[Client Firestore Sync] Cloud update error:", err);
+    });
+  }
 }
 
 function autoAllocateLocalDailyEarnings(db: LumoraDB) {
@@ -3939,31 +3941,30 @@ function ensureHealthChecked(): Promise<boolean> {
     .then(async (res) => {
       if (res.ok) {
         const hData = await res.json();
+        // Server is active and operational. Do NOT fallback to local client-side storage.
+        fallbackToLocalDB = false;
+        
         if (hData && hData.firestoreSyncDisabled) {
-          console.warn("[Client Firestore] Server reported Firestore is disabled (likely due to cross-project IAM restrictions). Activating Client-Side Direct Firestore Sync fallback.");
-          fallbackToLocalDB = true;
-          firestoreClientDisabled = false;
-          try {
-            localStorage.removeItem("lumora_firestore_client_disabled");
-          } catch (e) {}
-          setupClientFirebaseSync();
-          return true;
+          console.warn("[Client Firestore] Server reported Firestore is disabled. Running fully synchronized on server-side local DB.");
+          firestoreClientDisabled = true;
         } else {
           // Reactivate client sync if it was previously disabled but now restored by admin
-          if (firestoreClientDisabled && (!hData || !hData.firestoreSyncDisabled)) {
+          if (firestoreClientDisabled) {
             firestoreClientDisabled = false;
             try {
               localStorage.removeItem("lumora_firestore_client_disabled");
             } catch (e) {}
             setupClientFirebaseSync();
           }
-          return false;
         }
+        return true;
       }
+      fallbackToLocalDB = true;
       return false;
     })
     .catch(err => {
-      console.warn("[Client Firestore] Health check fetch exception:", err);
+      console.warn("[Client Firestore] Health check fetch exception. Falling back to Client-Side LocalStorage.", err);
+      fallbackToLocalDB = true;
       return false;
     });
 
