@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Users, Coins, CheckCircle, XCircle, Search, ShieldAlert, ShieldCheck, 
   UserPlus, Award, Landmark, RefreshCw, ChevronRight, Ban, Eye, Key,
@@ -325,13 +325,27 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
     fetchAllAdminData();
   }, [activeSubTab]);
 
+  const adminFetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const debouncedFetchAllAdminData = () => {
+    if (adminFetchTimeoutRef.current) {
+      clearTimeout(adminFetchTimeoutRef.current);
+    }
+    adminFetchTimeoutRef.current = setTimeout(() => {
+      fetchAllAdminData();
+    }, 500);
+  };
+
   useEffect(() => {
     const handleDbUpdate = () => {
-      fetchAllAdminData();
+      debouncedFetchAllAdminData();
     };
     window.addEventListener("lumoradb-updated", handleDbUpdate);
     return () => {
       window.removeEventListener("lumoradb-updated", handleDbUpdate);
+      if (adminFetchTimeoutRef.current) {
+        clearTimeout(adminFetchTimeoutRef.current);
+      }
     };
   }, []);
 

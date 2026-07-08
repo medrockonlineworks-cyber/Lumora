@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ShieldAlert } from 'lucide-react';
 import { LanguageProvider, useLanguage } from './locale';
@@ -134,25 +134,39 @@ function MainAppContent() {
     }
   }, [userId, profile, isAdmin]);
 
+  const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const debouncedFetchDashboardData = () => {
+    if (fetchTimeoutRef.current) {
+      clearTimeout(fetchTimeoutRef.current);
+    }
+    fetchTimeoutRef.current = setTimeout(() => {
+      fetchDashboardData();
+    }, 400);
+  };
+
   // Fetch dashboard data
   useEffect(() => {
     if (userId) {
       fetchDashboardData();
 
-      // Listen for local/remote database updates to synchronize client states immediately
+      // Listen for local/remote database updates to synchronize client states immediately with debouncing
       const handleUpdate = () => {
-        fetchDashboardData();
+        debouncedFetchDashboardData();
       };
       window.addEventListener("lumoradb-updated", handleUpdate);
 
-      // Setup periodic dashboard poll every 3 seconds for secondary real-time synchronization fallback
+      // Setup periodic dashboard poll every 10 seconds for secondary real-time synchronization fallback
       const handle = setInterval(() => {
-        fetchDashboardData();
-      }, 3000);
+        debouncedFetchDashboardData();
+      }, 10000);
 
       return () => {
         window.removeEventListener("lumoradb-updated", handleUpdate);
         clearInterval(handle);
+        if (fetchTimeoutRef.current) {
+          clearTimeout(fetchTimeoutRef.current);
+        }
       };
     }
   }, [userId]);

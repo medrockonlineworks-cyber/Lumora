@@ -267,6 +267,38 @@ function loadDB(): LumoraDB {
           dbUpdated = true;
         }
 
+        const user0956Exists = db.users.some(u => u.phone === "0956853030");
+        if (!user0956Exists) {
+          db.users.push({
+            id: "user-0956853030",
+            fullName: "LUMORA MEMBER",
+            phone: "0956853030",
+            email: "0956853030@lumora.net",
+            password: "12345678",
+            isAdmin: false,
+            status: "active",
+            registrationDate: new Date().toISOString(),
+            referralCode: "LUM09568"
+          });
+          dbUpdated = true;
+        }
+
+        const user0991Exists = db.users.some(u => u.phone === "0991589334");
+        if (!user0991Exists) {
+          db.users.push({
+            id: "user-0991589334",
+            fullName: "LUMORA MEMBER",
+            phone: "0991589334",
+            email: "0991589334@lumora.net",
+            password: "008505",
+            isAdmin: false,
+            status: "active",
+            registrationDate: new Date().toISOString(),
+            referralCode: "LUM09915"
+          });
+          dbUpdated = true;
+        }
+
         db.users.forEach(user => {
           if (user.phone === "0926193920") {
             if (!user.isAdmin) {
@@ -352,6 +384,88 @@ function loadDB(): LumoraDB {
             accountNumber: "",
             accountHolderName: "",
             transactionPin: ""
+          });
+          dbUpdated = true;
+        }
+
+        const user0956ProfileExists = db.profiles.some(p => p.phone === "0956853030" || p.userId === "user-0956853030");
+        if (!user0956ProfileExists) {
+          db.profiles.push({
+            userId: "user-0956853030",
+            fullName: "LUMORA MEMBER",
+            phone: "0956853030",
+            email: "0956853030@lumora.net",
+            vipLevel: 0,
+            walletBalance: 0,
+            totalDeposits: 0,
+            totalWithdrawals: 0,
+            totalInvestments: 0,
+            totalEarnings: 0,
+            referralCode: "LUM09568",
+            teamSize: 0,
+            registrationDate: new Date().toISOString(),
+            idCardFront: "",
+            idCardBack: "",
+            idVerificationStatus: "unsubmitted",
+            bankName: "",
+            accountNumber: "",
+            accountHolderName: "",
+            transactionPin: ""
+          });
+          dbUpdated = true;
+        }
+
+        const user0991ProfileExists = db.profiles.some(p => p.phone === "0991589334" || p.userId === "user-0991589334");
+        if (!user0991ProfileExists) {
+          db.profiles.push({
+            userId: "user-0991589334",
+            fullName: "LUMORA MEMBER",
+            phone: "0991589334",
+            email: "0991589334@lumora.net",
+            vipLevel: 1,
+            walletBalance: 1250,
+            totalDeposits: 3500,
+            totalWithdrawals: 0,
+            totalInvestments: 3500,
+            totalEarnings: 833,
+            referralCode: "LUM09915",
+            teamSize: 0,
+            registrationDate: new Date().toISOString(),
+            idCardFront: "",
+            idCardBack: "",
+            idVerificationStatus: "unsubmitted",
+            bankName: "",
+            accountNumber: "",
+            accountHolderName: "",
+            transactionPin: "",
+            incomeBalance: 1250,
+            depositBalance: 3500,
+            idSelfie: ""
+          });
+          dbUpdated = true;
+        }
+
+        const user0991InvestmentExists = db.investments.some(inv => inv.userId === "user-0991589334");
+        if (!user0991InvestmentExists) {
+          const startDate = new Date();
+          startDate.setDate(startDate.getDate() - 7);
+          const maturityDate = new Date(startDate.getTime() + 50 * 24 * 60 * 60 * 1000);
+          
+          db.investments.push({
+            id: "inv-0991589334",
+            userId: "user-0991589334",
+            planId: "starter",
+            planName: "Starter level",
+            planLevel: 1,
+            amount: 3500,
+            dailyRate: 0.0340,
+            dailyReturn: 119,
+            startDate: startDate.toISOString(),
+            maturityDate: maturityDate.toISOString(),
+            remainingDays: 43,
+            status: 'active',
+            totalEarned: 833,
+            lastPayoutDate: new Date().toISOString()
           });
           dbUpdated = true;
         }
