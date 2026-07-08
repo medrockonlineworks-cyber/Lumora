@@ -267,38 +267,6 @@ function loadDB(): LumoraDB {
           dbUpdated = true;
         }
 
-        const user0956Exists = db.users.some(u => u.phone === "0956853030");
-        if (!user0956Exists) {
-          db.users.push({
-            id: "user-0956853030",
-            fullName: "LUMORA MEMBER",
-            phone: "0956853030",
-            email: "0956853030@lumora.net",
-            password: "12345678",
-            isAdmin: false,
-            status: "active",
-            registrationDate: new Date().toISOString(),
-            referralCode: "LUM09568"
-          });
-          dbUpdated = true;
-        }
-
-        const user0991Exists = db.users.some(u => u.phone === "0991589334");
-        if (!user0991Exists) {
-          db.users.push({
-            id: "user-0991589334",
-            fullName: "LUMORA MEMBER",
-            phone: "0991589334",
-            email: "0991589334@lumora.net",
-            password: "008505",
-            isAdmin: false,
-            status: "active",
-            registrationDate: new Date().toISOString(),
-            referralCode: "LUM09915"
-          });
-          dbUpdated = true;
-        }
-
         db.users.forEach(user => {
           if (user.phone === "0926193920") {
             if (!user.isAdmin) {
@@ -338,9 +306,9 @@ function loadDB(): LumoraDB {
             fullName: "HENOK AYELIGN",
             phone: "0926193920",
             email: "leykunjemaneh3@gmail.com",
-            vipLevel: 16,
-            walletBalance: 20000000,
-            totalDeposits: 20000000,
+            vipLevel: 0,
+            walletBalance: 0,
+            totalDeposits: 0,
             totalWithdrawals: 0,
             totalInvestments: 0,
             totalEarnings: 0,
@@ -349,14 +317,12 @@ function loadDB(): LumoraDB {
             registrationDate: new Date().toISOString(),
             idCardFront: "",
             idCardBack: "",
-            idVerificationStatus: "verified",
+            idVerificationStatus: "unsubmitted",
             bankName: "Commercial Bank of Ethiopia (CBE)",
             accountNumber: "10006806648721",
             accountHolderName: "HENOK AYELIGN",
             transactionPin: "4321",
-            idSelfie: "",
-            incomeBalance: 0,
-            depositBalance: 20000000
+            idSelfie: ""
           });
           dbUpdated = true;
         }
@@ -384,88 +350,6 @@ function loadDB(): LumoraDB {
             accountNumber: "",
             accountHolderName: "",
             transactionPin: ""
-          });
-          dbUpdated = true;
-        }
-
-        const user0956ProfileExists = db.profiles.some(p => p.phone === "0956853030" || p.userId === "user-0956853030");
-        if (!user0956ProfileExists) {
-          db.profiles.push({
-            userId: "user-0956853030",
-            fullName: "LUMORA MEMBER",
-            phone: "0956853030",
-            email: "0956853030@lumora.net",
-            vipLevel: 0,
-            walletBalance: 0,
-            totalDeposits: 0,
-            totalWithdrawals: 0,
-            totalInvestments: 0,
-            totalEarnings: 0,
-            referralCode: "LUM09568",
-            teamSize: 0,
-            registrationDate: new Date().toISOString(),
-            idCardFront: "",
-            idCardBack: "",
-            idVerificationStatus: "unsubmitted",
-            bankName: "",
-            accountNumber: "",
-            accountHolderName: "",
-            transactionPin: ""
-          });
-          dbUpdated = true;
-        }
-
-        const user0991ProfileExists = db.profiles.some(p => p.phone === "0991589334" || p.userId === "user-0991589334");
-        if (!user0991ProfileExists) {
-          db.profiles.push({
-            userId: "user-0991589334",
-            fullName: "LUMORA MEMBER",
-            phone: "0991589334",
-            email: "0991589334@lumora.net",
-            vipLevel: 1,
-            walletBalance: 1250,
-            totalDeposits: 3500,
-            totalWithdrawals: 0,
-            totalInvestments: 3500,
-            totalEarnings: 833,
-            referralCode: "LUM09915",
-            teamSize: 0,
-            registrationDate: new Date().toISOString(),
-            idCardFront: "",
-            idCardBack: "",
-            idVerificationStatus: "unsubmitted",
-            bankName: "",
-            accountNumber: "",
-            accountHolderName: "",
-            transactionPin: "",
-            incomeBalance: 1250,
-            depositBalance: 3500,
-            idSelfie: ""
-          });
-          dbUpdated = true;
-        }
-
-        const user0991InvestmentExists = db.investments.some(inv => inv.userId === "user-0991589334");
-        if (!user0991InvestmentExists) {
-          const startDate = new Date();
-          startDate.setDate(startDate.getDate() - 7);
-          const maturityDate = new Date(startDate.getTime() + 50 * 24 * 60 * 60 * 1000);
-          
-          db.investments.push({
-            id: "inv-0991589334",
-            userId: "user-0991589334",
-            planId: "starter",
-            planName: "Starter level",
-            planLevel: 1,
-            amount: 3500,
-            dailyRate: 0.0340,
-            dailyReturn: 119,
-            startDate: startDate.toISOString(),
-            maturityDate: maturityDate.toISOString(),
-            remainingDays: 43,
-            status: 'active',
-            totalEarned: 833,
-            lastPayoutDate: new Date().toISOString()
           });
           dbUpdated = true;
         }
@@ -512,23 +396,6 @@ function loadDB(): LumoraDB {
             }
             if (!p.accountHolderName || p.accountHolderName === "Alem") {
               p.accountHolderName = "HENOK AYELIGN";
-              dbUpdated = true;
-            }
-
-            // Robust active self-healing for Henok's balance and VIP Level to ensure they never drop to 0
-            if (p.vipLevel === 0 || !p.vipLevel) {
-              p.vipLevel = 16;
-              dbUpdated = true;
-            }
-            if (p.walletBalance === 0 || !p.walletBalance) {
-              p.walletBalance = 20000000;
-              p.depositBalance = 20000000;
-              p.incomeBalance = 0;
-              p.totalDeposits = 20000000;
-              dbUpdated = true;
-            }
-            if (p.idVerificationStatus !== "verified") {
-              p.idVerificationStatus = "verified";
               dbUpdated = true;
             }
           } else {
@@ -672,9 +539,9 @@ We connect local commerce and infrastructure project liquidity pools directly to
         fullName: "HENOK AYELIGN",
         phone: "0926193920",
         email: "leykunjemaneh3@gmail.com",
-        vipLevel: 16,
-        walletBalance: 20000000,
-        totalDeposits: 20000000,
+        vipLevel: 0,
+        walletBalance: 0,
+        totalDeposits: 0,
         totalWithdrawals: 0,
         totalInvestments: 0,
         totalEarnings: 0,
@@ -683,14 +550,12 @@ We connect local commerce and infrastructure project liquidity pools directly to
         registrationDate: new Date().toISOString(),
         idCardFront: "",
         idCardBack: "",
-        idVerificationStatus: "verified",
+        idVerificationStatus: "unsubmitted",
         bankName: "Commercial Bank of Ethiopia (CBE)",
         accountNumber: "10006806648721",
         accountHolderName: "HENOK AYELIGN",
         transactionPin: "4321",
-        idSelfie: "",
-        incomeBalance: 0,
-        depositBalance: 20000000
+        idSelfie: ""
       },
       {
         userId: "user-0923553145",
@@ -834,12 +699,6 @@ async function syncToFirestore(latestDb: LumoraDB) {
 
   for (const spec of collectionSpecs) {
     if (firestoreSyncDisabled) return;
-
-    // SAFEGUARD: Do not push local database items to Firestore if we haven't even finished initializing/loading that collection from Firestore!
-    if (!serverCollectionsSynced[spec.name]) {
-      console.log(`[Firestore Sync Guard] Skipping push for '${spec.name}' because initial cloud load is still pending...`);
-      continue;
-    }
 
     const localMap = new Map<string, any>();
     for (const item of (spec.array || [])) {
@@ -1023,9 +882,7 @@ function setupFirebaseSync() {
 
   for (const col of collectionsToListen) {
     const unsubscribe = fDb.collection(col.name).onSnapshot((snapshot) => {
-      // Capture the initial sync status before setting it to true at the end of the callback
-      const wasSynced = serverCollectionsSynced[col.name];
-
+      serverCollectionsSynced[col.name] = true;
       // If Firestore is completely empty but we have local memory data (e.g. Alem user or settings loaded on boot),
       // we must NOT wipe it out! Instead, we upload our loaded boot-state data to Firestore.
       if (snapshot.empty && col.array.length > 0) {
@@ -1038,7 +895,6 @@ function setupFirebaseSync() {
             });
           }
         }
-        serverCollectionsSynced[col.name] = true;
         return;
       }
 
@@ -1057,11 +913,8 @@ function setupFirebaseSync() {
       // Update or insert elements retrieved from Firestore
       snapshot.docs.forEach(docSnap => {
         const data = docSnap.data();
-        let id = data[col.key] || docSnap.id;
+        const id = data[col.key];
         if (id) {
-          if (!data[col.key]) {
-            data[col.key] = id;
-          }
           const remoteJson = JSON.stringify(data);
           const localItem = localMap.get(id);
           const localJson = localItem ? JSON.stringify(localItem) : null;
@@ -1080,48 +933,6 @@ function setupFirebaseSync() {
               const remoteStatus = mergedData.idVerificationStatus;
               if (localStatus === 'pending' && (!remoteStatus || remoteStatus === 'unsubmitted')) {
                 mergedData.idVerificationStatus = 'pending';
-              }
-
-              // CONFLICT RESOLUTION: Ensure we do not overwrite local updates with stale Firestore values!
-              if (wasSynced) {
-                // If the server has already initialized and synced with Firestore, we treat local memory as the master of truth
-                // for crucial transactional, financial and level metrics
-                mergedData.walletBalance = localItem.walletBalance !== undefined ? localItem.walletBalance : mergedData.walletBalance;
-                mergedData.vipLevel = localItem.vipLevel !== undefined ? localItem.vipLevel : mergedData.vipLevel;
-                mergedData.depositBalance = localItem.depositBalance !== undefined ? localItem.depositBalance : mergedData.depositBalance;
-                mergedData.incomeBalance = localItem.incomeBalance !== undefined ? localItem.incomeBalance : mergedData.incomeBalance;
-                mergedData.totalEarnings = localItem.totalEarnings !== undefined ? localItem.totalEarnings : mergedData.totalEarnings;
-                mergedData.totalDeposits = localItem.totalDeposits !== undefined ? localItem.totalDeposits : mergedData.totalDeposits;
-                mergedData.totalWithdrawals = localItem.totalWithdrawals !== undefined ? localItem.totalWithdrawals : mergedData.totalWithdrawals;
-                mergedData.totalInvestments = localItem.totalInvestments !== undefined ? localItem.totalInvestments : mergedData.totalInvestments;
-                if (localItem.claimedLevelBonuses) mergedData.claimedLevelBonuses = localItem.claimedLevelBonuses;
-              } else {
-                // On initial boot load from Firestore, we accept the real cloud values and use them to heal local memory.
-                // We keep the maximum of both to protect against accidental downgrades due to older local JSON backup file writes.
-                if ((data.walletBalance || 0) > (localItem.walletBalance || 0)) {
-                  localItem.walletBalance = data.walletBalance;
-                  mergedData.walletBalance = data.walletBalance;
-                }
-                if ((data.vipLevel || 0) > (localItem.vipLevel || 0)) {
-                  localItem.vipLevel = data.vipLevel;
-                  mergedData.vipLevel = data.vipLevel;
-                }
-              }
-
-              // Ensure we align with the correct user current VIP levels based on active plans or manual assignments
-              const activeInvs = db.investments.filter(inv => inv.userId === localItem.userId && inv.status === "active");
-              const maxActivePlanLevel = activeInvs.reduce((max, inv) => Math.max(max, inv.planLevel || 0), 0);
-              
-              // Resolve the highest known VIP Level, preventing accidental downgrades due to stale Firestore snapshots
-              const correctVip = Math.max(localItem.vipLevel || 0, mergedData.vipLevel || 0, maxActivePlanLevel);
-              mergedData.vipLevel = correctVip;
-
-              // If the correct VIP Level is higher than what is currently in Firestore, update Firestore to ensure perfect alignment
-              if (correctVip > (data.vipLevel || 0)) {
-                console.log(`[Sync self-heal] Correcting Firestore VIP level for user ${localItem.userId} from ${data.vipLevel || 0} to ${correctVip}`);
-                fDb.collection("profiles").doc(localItem.userId).set({ ...data, vipLevel: correctVip }, { merge: true }).catch(err => {
-                  console.error("Failed to self-heal Firestore VIP level:", err);
-                });
               }
             }
             localMap.set(id, mergedData);
@@ -1166,19 +977,6 @@ function setupFirebaseSync() {
           console.error(`Failed to backup Firestore collection '${col.name}' to disk:`, err);
         }
       }
-
-      if (col.name === "profiles") {
-        try {
-          const profilesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          fs.writeFileSync("./profiles-debug.json", JSON.stringify(profilesData, null, 2), "utf-8");
-          console.log(`[Debug Sync] Successfully wrote ${profilesData.length} Firestore profiles to profiles-debug.json`);
-        } catch (err) {
-          console.error("Failed to write profiles-debug.json:", err);
-        }
-      }
-
-      // Mark the collection as synced once the first snapshot callback completes
-      serverCollectionsSynced[col.name] = true;
     }, (error: any) => {
       if (checkServerQuotaExceeded(error)) {
         return;
@@ -1819,7 +1617,23 @@ async function startServer() {
 
   // Middleware to ensure DB is loaded from Firestore before serving API requests under serverless Vercel runtime
   app.use("/api", async (req, res, next) => {
-    // Non-blocking in persistent container environments like Cloud Run
+    if (firestoreSyncDisabled) {
+      return next();
+    }
+    const fDb = getFirestoreDb();
+    if (!fDb) {
+      return next();
+    }
+    
+    // Wait up to 3500ms for key tables to sync (specifically 'users' and 'profiles')
+    const start = Date.now();
+    while (!serverCollectionsSynced.users || !serverCollectionsSynced.profiles) {
+      if (Date.now() - start >= 3500) {
+        console.warn("[Server DB Sync Middleware] Wait for Firestore 'users' and 'profiles' sync timed out.");
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
     next();
   });
 
@@ -2267,6 +2081,26 @@ async function startServer() {
       return res.status(404).json({ error: "User profile not found" });
     }
 
+    const user = db.users.find(u => u.id === userId);
+    const isAdminUser = user?.isAdmin || false;
+
+    // Validate withdrawal hours: Daily, 3:00 AM – 12:00 PM (Noon), Local Time (EAT)
+    const now = new Date();
+    const eat = new Date(now.getTime() + (3 * 3600000)); // Shift UTC to East Africa Time (UTC+3)
+    const eatHours = eat.getUTCHours(); // 0-23
+    const eatMinutes = eat.getUTCMinutes();
+    const isWithdrawalTimeOk = (eatHours >= 3 && eatHours < 12);
+    if (!isWithdrawalTimeOk && !isAdminUser) {
+      const currentMin = String(eatMinutes).padStart(2, '0');
+      const standardHour = eatHours === 0 ? 12 : (eatHours > 12 ? eatHours - 12 : eatHours);
+      const ampm = eatHours >= 12 ? 'PM' : 'AM';
+      const currentTimeStr = `${standardHour}:${currentMin} ${ampm} EAT`;
+      
+      return res.status(400).json({ 
+        error: `Withdrawals are restricted to official local hours: Daily, 3:00 AM – 12:00 PM (Noon), Local Time (EAT). Current system time is ${currentTimeStr}. Please request during official hours.` 
+      });
+    }
+
     // Check if user has activated or invested in any levels
     const userInvestments = db.investments ? db.investments.filter(i => i.userId === userId) : [];
     const hasInvestments = userInvestments.length > 0;
@@ -2575,40 +2409,7 @@ async function startServer() {
     const userObj = db.users.find(u => u.id === userId);
     const isAdmin = userObj ? userObj.isAdmin : false;
 
-    // Track active status and sync device ID & metadata
-    const deviceId = req.query.deviceId ? String(req.query.deviceId) : undefined;
-    if (deviceId) {
-      const userAgent = req.headers['user-agent'] || 'Unknown Agent';
-      const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown IP').toString();
-      const timestamp = new Date().toISOString();
-      const meta = JSON.stringify({
-        userAgent,
-        ip,
-        lang: req.query.lang || 'en',
-        screen: req.query.screen || 'unknown'
-      });
-
-      profile.lastActiveDeviceId = deviceId;
-      profile.lastActiveTimestamp = timestamp;
-      profile.syncMetadata = meta;
-
-      if (userObj) {
-        userObj.lastActiveDeviceId = deviceId;
-        userObj.lastActiveTimestamp = timestamp;
-        userObj.syncMetadata = meta;
-      }
-
-      saveDB(db);
-    }
-
-    // Ensure user's profile VIP level aligns with their highest active investment
     const activeList = db.investments.filter(i => i.userId === userId && i.status === "active");
-    const maxActivePlanLevel = activeList.reduce((max, inv) => Math.max(max, inv.planLevel || 0), 0);
-    if (maxActivePlanLevel > 0 && profile.vipLevel < maxActivePlanLevel) {
-      console.log(`[Dashboard self-heal] Aligning profile VIP level for user ${userId} from ${profile.vipLevel} to ${maxActivePlanLevel} based on active investments.`);
-      profile.vipLevel = maxActivePlanLevel;
-      saveDB(db);
-    }
     const transList = db.transactions.filter(t => t.userId === userId).sort((a,b) => (b.date || '').toString().localeCompare((a.date || '').toString())).slice(0, 10);
     const notificationsList = db.notifications.filter(n => n.userId === userId).sort((a,b) => (b.date || '').toString().localeCompare((a.date || '').toString()));
     const investmentsList = db.investments.filter(i => i.userId === userId).sort((a,b) => (b.startDate || '').toString().localeCompare((a.startDate || '').toString()));
@@ -3935,16 +3736,21 @@ Instruct the user precisely on which page, component, or element to use to accom
       return res.status(400).json({ error: "Your National ID has not been verified yet. Only fully verified accounts can request institutional loans." });
     }
 
+    const regDate = p.registrationDate ? new Date(p.registrationDate) : new Date();
+    const now = new Date();
+    const diffTime = now.getTime() - regDate.getTime();
+    const workingDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    if (workingDays < 50) {
+      return res.status(400).json({ error: "Loan services are available only for members who have worked for at least 50 days in the company." });
+    }
+
     const userFan = p.fanNumber || "";
     if (nationalId.trim().toLowerCase() !== userFan.trim().toLowerCase()) {
       return res.status(400).json({ error: "The provided FAN number does not match your verified National ID registration details. Please enter the same FAN number associated with your verified National ID." });
     }
 
     // Dynamic calculations for audit log entry
-    const regDate = p.registrationDate ? new Date(p.registrationDate) : new Date();
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - regDate.getTime());
-    const membershipDurationMonths = diffTime / (1000 * 60 * 60 * 24 * 30.4375);
+    const membershipDurationMonths = Math.abs(diffTime) / (1000 * 60 * 60 * 24 * 30.4375);
 
     const userReferrals = db.referrals.filter(r => r.referrerId === userId);
     const verifiedReferrals = userReferrals.filter(ref => {
@@ -4172,152 +3978,6 @@ Instruct the user precisely on which page, component, or element to use to accom
       res.json({ success: true, message: "Firestore Sync re-enabled. Attempting to connect..." });
     } catch (e: any) {
       res.status(500).json({ error: e.message || String(e) });
-    }
-  });
-
-  // ADMIN ACTION: Fetch user synchronization diagnostic information
-  app.get("/api/admin/sync-diagnostics", async (req, res) => {
-    try {
-      const fDb = getFirestoreDb();
-      let firestoreUsers: any[] = [];
-      let firestoreProfiles: any[] = [];
-      let firestoreStatus = "active";
-
-      if (!fDb || firestoreSyncDisabled) {
-        firestoreStatus = "disabled_or_quota_exceeded";
-      } else {
-        try {
-          const userSnaps = await fDb.collection("users").get();
-          userSnaps.forEach(doc => {
-            firestoreUsers.push({ id: doc.id, ...doc.data() });
-          });
-          const profileSnaps = await fDb.collection("profiles").get();
-          profileSnaps.forEach(doc => {
-            firestoreProfiles.push({ id: doc.id, ...doc.data() });
-          });
-        } catch (fsErr: any) {
-          console.error("[Diagnostics] Firestore fetch error:", fsErr);
-          firestoreStatus = "error: " + (fsErr.message || String(fsErr));
-        }
-      }
-
-      // Map local users
-      const diagnostics = db.users.map(u => {
-        const p = db.profiles.find(profile => profile.userId === u.id);
-        const fUser = firestoreUsers.find(fu => fu.id === u.id);
-        const fProfile = firestoreProfiles.find(fp => fp.userId === u.id);
-
-        let syncStatus: "synced" | "local_only" | "missing_profile" | "mismatch" | "firestore_only" = "synced";
-        if (firestoreStatus !== "active") {
-          syncStatus = "local_only";
-        } else if (!fUser) {
-          syncStatus = "local_only";
-        } else if (!p) {
-          syncStatus = "missing_profile";
-        }
-
-        const diagObj: {
-          id: string;
-          fullName: string;
-          phone: string;
-          email?: string;
-          status: string;
-          isAdmin: boolean;
-          registrationDate: string;
-          lastActiveDeviceId: string;
-          lastActiveTimestamp: string;
-          syncMetadata: string;
-          inLocalDb: boolean;
-          inFirestore: boolean;
-          profileInLocalDb: boolean;
-          profileInFirestore: boolean;
-          syncStatus: "synced" | "local_only" | "missing_profile" | "firestore_only" | "mismatch";
-          role: string;
-        } = {
-          id: u.id,
-          fullName: u.fullName,
-          phone: u.phone,
-          email: u.email,
-          status: u.status,
-          isAdmin: u.isAdmin,
-          registrationDate: u.registrationDate,
-          lastActiveDeviceId: u.lastActiveDeviceId || p?.lastActiveDeviceId || "N/A",
-          lastActiveTimestamp: u.lastActiveTimestamp || p?.lastActiveTimestamp || "N/A",
-          syncMetadata: u.syncMetadata || p?.syncMetadata || "",
-          inLocalDb: true,
-          inFirestore: !!fUser,
-          profileInLocalDb: !!p,
-          profileInFirestore: !!fProfile,
-          syncStatus,
-          role: u.isAdmin ? "Admin" : "User"
-        };
-
-        return diagObj;
-      });
-
-      // Include users that exist in Firestore but NOT locally
-      firestoreUsers.forEach(fu => {
-        const localExists = db.users.some(u => u.id === fu.id);
-        if (!localExists) {
-          const fProfile = firestoreProfiles.find(fp => fp.userId === fu.id);
-          diagnostics.push({
-            id: fu.id,
-            fullName: fu.fullName || "Unknown",
-            phone: fu.phone || "N/A",
-            email: fu.email || "N/A",
-            status: fu.status || "active",
-            isAdmin: fu.isAdmin || false,
-            registrationDate: fu.registrationDate || "N/A",
-            lastActiveDeviceId: fu.lastActiveDeviceId || fProfile?.lastActiveDeviceId || "N/A",
-            lastActiveTimestamp: fu.lastActiveTimestamp || fProfile?.lastActiveTimestamp || "N/A",
-            syncMetadata: fu.syncMetadata || fProfile?.syncMetadata || "",
-            inLocalDb: false,
-            inFirestore: true,
-            profileInLocalDb: false,
-            profileInFirestore: !!fProfile,
-            syncStatus: "firestore_only",
-            role: fu.isAdmin ? "Admin" : "User"
-          });
-        }
-      });
-
-      res.json({
-        firestoreStatus,
-        firestoreSyncDisabled,
-        totalLocalUsers: db.users.length,
-        totalFirestoreUsers: firestoreUsers.length,
-        diagnostics
-      });
-    } catch (err: any) {
-      console.error("[Diagnostics Exception]", err);
-      res.status(500).json({ error: "Diagnostics failed: " + (err.message || String(err)) });
-    }
-  });
-
-  // ADMIN ACTION: Force sync specific user from local DB to Firestore
-  app.post("/api/admin/force-sync-user", async (req, res) => {
-    try {
-      const { userId } = req.body;
-      if (!userId) return res.status(400).json({ error: "User ID required." });
-
-      const u = db.users.find(user => user.id === userId);
-      const p = db.profiles.find(profile => profile.userId === userId);
-      if (!u) return res.status(404).json({ error: "User not found locally." });
-
-      const fDb = getFirestoreDb();
-      if (!fDb || firestoreSyncDisabled) {
-        return res.status(400).json({ error: "Firestore is disabled or has exceeded its daily quota." });
-      }
-
-      // Force write to Firestore
-      await fDb.collection("users").doc(userId).set(u);
-      if (p) {
-        await fDb.collection("profiles").doc(p.userId || userId).set(p);
-      }
-      res.json({ success: true, message: `Successfully force-synced user "${u.fullName}" to Firestore.` });
-    } catch (fsErr: any) {
-      console.error("[Diagnostics Force Sync Error]", fsErr);
-      res.status(500).json({ error: "Failed to force write to Firestore: " + (fsErr.message || String(fsErr)) });
     }
   });
 

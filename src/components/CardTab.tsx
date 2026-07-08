@@ -459,21 +459,30 @@ export default function CardTab({ profile, onRefreshProfile }: CardTabProps) {
                 </div>
 
                 {/* 3. Company Tenure */}
-                <div className={`p-4 rounded-2xl border flex items-center justify-between ${isTenureEligible ? 'bg-emerald-50/20 border-emerald-100' : 'bg-slate-50 border-slate-150'}`}>
-                  <div className="flex items-center space-x-3.5 text-left">
-                    <div className={`p-2 rounded-xl text-xs font-black ${isTenureEligible ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
-                      TENURE
+                <div className={`p-4 rounded-2xl border flex flex-col space-y-3 ${isTenureEligible ? 'bg-emerald-50/20 border-emerald-100' : 'bg-slate-50 border-slate-150'}`}>
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center space-x-3.5 text-left">
+                      <div className={`p-2 rounded-xl text-xs font-black ${isTenureEligible ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
+                        TENURE
+                      </div>
+                      <div>
+                        <h4 className="text-[12px] font-black text-slate-900 uppercase">50 Days Working in Company</h4>
+                        <p className="text-[10px] text-slate-450 font-bold mt-0.5">Your status: {workingDays} / 50 Days</p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="text-[12px] font-black text-slate-900 uppercase">50 Days Working in Company</h4>
-                      <p className="text-[10px] text-slate-450 font-bold mt-0.5">Your status: {workingDays} / 50 Days</p>
-                    </div>
+                    {isTenureEligible ? (
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600 font-black shrink-0" />
+                    ) : (
+                      <span className="text-[10px] bg-red-500/10 text-red-650 border border-red-500/20 px-2 py-0.5 rounded-full font-black uppercase shrink-0">Required</span>
+                    )}
                   </div>
-                  {isTenureEligible ? (
-                    <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                  ) : (
-                    <span className="text-[10px] bg-red-500/10 text-red-650 border border-red-500/20 px-2 py-0.5 rounded-full font-black uppercase">Required</span>
-                  )}
+                  {/* Visual Progress Bar Tracker */}
+                  <div className="w-full bg-slate-200/80 h-2 rounded-full overflow-hidden border border-slate-250/20">
+                    <div 
+                      className={`h-full transition-all duration-700 rounded-full ${isTenureEligible ? 'bg-emerald-500' : 'bg-blue-600'}`}
+                      style={{ width: `${Math.min(100, (workingDays / 50) * 100)}%` }}
+                    />
+                  </div>
                 </div>
 
                 {/* 4. One-Time Issuance fee */}

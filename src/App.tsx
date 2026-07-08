@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ShieldAlert } from 'lucide-react';
 import { LanguageProvider, useLanguage } from './locale';
@@ -134,39 +134,25 @@ function MainAppContent() {
     }
   }, [userId, profile, isAdmin]);
 
-  const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const debouncedFetchDashboardData = () => {
-    if (fetchTimeoutRef.current) {
-      clearTimeout(fetchTimeoutRef.current);
-    }
-    fetchTimeoutRef.current = setTimeout(() => {
-      fetchDashboardData();
-    }, 400);
-  };
-
   // Fetch dashboard data
   useEffect(() => {
     if (userId) {
       fetchDashboardData();
 
-      // Listen for local/remote database updates to synchronize client states immediately with debouncing
+      // Listen for local/remote database updates to synchronize client states immediately
       const handleUpdate = () => {
-        debouncedFetchDashboardData();
+        fetchDashboardData();
       };
       window.addEventListener("lumoradb-updated", handleUpdate);
 
-      // Setup periodic dashboard poll every 10 seconds for secondary real-time synchronization fallback
+      // Setup periodic dashboard poll every 3 seconds for secondary real-time synchronization fallback
       const handle = setInterval(() => {
-        debouncedFetchDashboardData();
-      }, 10000);
+        fetchDashboardData();
+      }, 3000);
 
       return () => {
         window.removeEventListener("lumoradb-updated", handleUpdate);
         clearInterval(handle);
-        if (fetchTimeoutRef.current) {
-          clearTimeout(fetchTimeoutRef.current);
-        }
       };
     }
   }, [userId]);
@@ -177,20 +163,8 @@ function MainAppContent() {
       return;
     }
     try {
-      // Generate or retrieve persistent browser device ID
-      let deviceId = localStorage.getItem('lumora_device_id');
-      if (!deviceId) {
-        deviceId = 'DEV-' + Math.random().toString(36).substring(2, 12).toUpperCase();
-        localStorage.setItem('lumora_device_id', deviceId);
-      }
-      const screenWidth = typeof window !== 'undefined' ? window.innerWidth : 0;
-      const screenHeight = typeof window !== 'undefined' ? window.innerHeight : 0;
-      const screenInfo = `${screenWidth}x${screenHeight}`;
-      const langCode = localStorage.getItem('lumora_language') || 'en';
-
-      // 1. Fetch dashboard stats with device tracking details
-      const url = `/api/dashboard/${userId}?deviceId=${encodeURIComponent(deviceId)}&lang=${encodeURIComponent(langCode)}&screen=${encodeURIComponent(screenInfo)}`;
-      const resDash = await fetch(url);
+      // 1. Fetch dashboard stats
+      const resDash = await fetch(`/api/dashboard/${userId}`);
       if (resDash.ok) {
         setIsOffline(false);
         const data = await resDash.json();
@@ -237,12 +211,12 @@ function MainAppContent() {
           setDeposits(data);
           localStorage.setItem(`lumora_cached_deposits_${userId}`, JSON.stringify(data));
         } catch (e) {
-          console.warn("Error reading deposits:", e);
+          console.error("Error reading deposits:", e);
         }
       }
 
     } catch (err) {
-      console.warn("Error retrieving dashboard logs:", err);
+      console.error("Error retrieving dashboard logs:", err);
       setIsOffline(true); // Treat fetch exceptions (e.g. DNS failure / offline) as offline rather than logging out
     } finally {
       setRestoringSession(false);

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'lumora-pwa-cache-v18';
+const CACHE_NAME = 'lumora-pwa-cache-v17';
 const ASSETS = [
   '/',
   '/index.html',

@@ -120,116 +120,6 @@ function getInitialDB(): LumoraDB {
         status: "active",
         registrationDate: new Date().toISOString(),
         referralCode: "LUM09235"
-      },
-      {
-        id: "user-yosefdemise",
-        fullName: "Yosef demise",
-        phone: "0965392386",
-        email: "yosefdemise@lumora.net",
-        password: "user123",
-        isAdmin: false,
-        status: "active",
-        registrationDate: new Date().toISOString(),
-        referralCode: "LUMYOSEF"
-      },
-      {
-        id: "user-pnwcvdjyd",
-        fullName: "Meseret Yeserah Alemu",
-        phone: "0923553145",
-        email: "meseretyes2024@gmail.com",
-        password: "user123",
-        isAdmin: false,
-        status: "active",
-        registrationDate: new Date().toISOString(),
-        referralCode: "LUMN2Y25"
-      },
-      {
-        id: "user-mohammmedbeshir",
-        fullName: "Mohammmed Beshir",
-        phone: "0932224471",
-        email: "mohammmedbeshir@lumora.net",
-        password: "user123",
-        isAdmin: false,
-        status: "active",
-        registrationDate: new Date().toISOString(),
-        referralCode: "LUMMOHAM"
-      },
-      {
-        id: "user-lilitesfaye",
-        fullName: "Lili tesfaye",
-        phone: "0953475528",
-        email: "lilitesfaye@lumora.net",
-        password: "user123",
-        isAdmin: false,
-        status: "active",
-        registrationDate: new Date().toISOString(),
-        referralCode: "LUMLILI"
-      },
-      {
-        id: "user-bogaleayalew",
-        fullName: "Bogale ayalew",
-        phone: "0908657638",
-        email: "bogaleayalew@lumora.net",
-        password: "user123",
-        isAdmin: false,
-        status: "active",
-        registrationDate: new Date().toISOString(),
-        referralCode: "LUMBOGAL"
-      },
-      {
-        id: "user-hadigo",
-        fullName: "Hadigo",
-        phone: "0919883724",
-        email: "hadigo@lumora.net",
-        password: "user123",
-        isAdmin: false,
-        status: "active",
-        registrationDate: new Date().toISOString(),
-        referralCode: "LUMHADIG"
-      },
-      {
-        id: "user-ephremyonas",
-        fullName: "Ephrem yonas",
-        phone: "0947361302",
-        email: "ephremyonas@lumora.net",
-        password: "user123",
-        isAdmin: false,
-        status: "active",
-        registrationDate: new Date().toISOString(),
-        referralCode: "LUMEPHRE"
-      },
-      {
-        id: "user-estifanos",
-        fullName: "Estifanos weldesregayi",
-        phone: "0970900636",
-        email: "estifanos@lumora.net",
-        password: "user123",
-        isAdmin: false,
-        status: "active",
-        registrationDate: new Date().toISOString(),
-        referralCode: "LUMESTIF"
-      },
-      {
-        id: "user-0956853030",
-        fullName: "LUMORA MEMBER",
-        phone: "0956853030",
-        email: "0956853030@lumora.net",
-        password: "12345678",
-        isAdmin: false,
-        status: "active",
-        registrationDate: new Date().toISOString(),
-        referralCode: "LUM09568"
-      },
-      {
-        id: "user-0991589334",
-        fullName: "LUMORA MEMBER",
-        phone: "0991589334",
-        email: "0991589334@lumora.net",
-        password: "008505",
-        isAdmin: false,
-        status: "active",
-        registrationDate: new Date().toISOString(),
-        referralCode: "LUM09915"
       }
     ],
     profiles: [
@@ -282,256 +172,6 @@ function getInitialDB(): LumoraDB {
         idSelfie: "",
         incomeBalance: 0,
         depositBalance: 0
-      },
-      {
-        userId: "user-0956853030",
-        fullName: "LUMORA MEMBER",
-        phone: "0956853030",
-        email: "0956853030@lumora.net",
-        vipLevel: 0,
-        walletBalance: 0,
-        totalDeposits: 0,
-        totalWithdrawals: 0,
-        totalInvestments: 0,
-        totalEarnings: 0,
-        referralCode: "LUM09568",
-        teamSize: 0,
-        registrationDate: new Date().toISOString(),
-        idCardFront: "",
-        idCardBack: "",
-        idVerificationStatus: "unsubmitted",
-        bankName: "",
-        accountNumber: "",
-        accountHolderName: "",
-        transactionPin: "",
-        idSelfie: "",
-        incomeBalance: 0,
-        depositBalance: 0
-      },
-      {
-        userId: "user-0991589334",
-        fullName: "LUMORA MEMBER",
-        phone: "0991589334",
-        email: "0991589334@lumora.net",
-        vipLevel: 0,
-        walletBalance: 0,
-        totalDeposits: 0,
-        totalWithdrawals: 0,
-        totalInvestments: 0,
-        totalEarnings: 0,
-        referralCode: "LUM09915",
-        teamSize: 0,
-        registrationDate: new Date().toISOString(),
-        idCardFront: "",
-        idCardBack: "",
-        idVerificationStatus: "unsubmitted",
-        bankName: "",
-        accountNumber: "",
-        accountHolderName: "",
-        transactionPin: "",
-        idSelfie: "",
-        incomeBalance: 0,
-        depositBalance: 0
-      },
-      {
-        userId: "user-yosefdemise",
-        fullName: "Yosef demise",
-        phone: "0965392386",
-        email: "yosefdemise@lumora.net",
-        vipLevel: 0,
-        walletBalance: 0,
-        totalDeposits: 0,
-        totalWithdrawals: 0,
-        totalInvestments: 0,
-        totalEarnings: 0,
-        referralCode: "LUMYOSEF",
-        teamSize: 0,
-        registrationDate: new Date().toISOString(),
-        idCardFront: "",
-        idCardBack: "",
-        idVerificationStatus: "verified",
-        bankName: "Commercial Bank of Ethiopia (CBE)",
-        accountNumber: "1000653923868",
-        accountHolderName: "Yosef demise",
-        transactionPin: "1234",
-        idSelfie: "",
-        incomeBalance: 0,
-        depositBalance: 0
-      },
-      {
-        userId: "user-pnwcvdjyd",
-        fullName: "Meseret Yeserah Alemu",
-        phone: "0923553145",
-        email: "meseretyes2024@gmail.com",
-        vipLevel: 0,
-        walletBalance: 375,
-        totalDeposits: 200,
-        totalWithdrawals: 0,
-        totalInvestments: 0,
-        totalEarnings: 0,
-        referralCode: "LUMN2Y25",
-        teamSize: 0,
-        registrationDate: new Date().toISOString(),
-        idCardFront: "",
-        idCardBack: "",
-        idVerificationStatus: "verified",
-        bankName: "Bank of Abyssinia",
-        accountNumber: "145470463",
-        accountHolderName: "Meseret yeserah",
-        transactionPin: "1234",
-        idSelfie: "",
-        incomeBalance: 0,
-        depositBalance: 375
-      },
-      {
-        userId: "user-mohammmedbeshir",
-        fullName: "Mohammmed Beshir",
-        phone: "0932224471",
-        email: "mohammmedbeshir@lumora.net",
-        vipLevel: 0,
-        walletBalance: 0,
-        totalDeposits: 0,
-        totalWithdrawals: 0,
-        totalInvestments: 0,
-        totalEarnings: 0,
-        referralCode: "LUMMOHAM",
-        teamSize: 0,
-        registrationDate: new Date().toISOString(),
-        idCardFront: "",
-        idCardBack: "",
-        idVerificationStatus: "verified",
-        bankName: "Commercial Bank of Ethiopia (CBE)",
-        accountNumber: "1000322244715",
-        accountHolderName: "Mohammmed Beshir",
-        transactionPin: "1234",
-        idSelfie: "",
-        incomeBalance: 0,
-        depositBalance: 0
-      },
-      {
-        userId: "user-lilitesfaye",
-        fullName: "Lili tesfaye",
-        phone: "0953475528",
-        email: "lilitesfaye@lumora.net",
-        vipLevel: 0,
-        walletBalance: 0,
-        totalDeposits: 0,
-        totalWithdrawals: 0,
-        totalInvestments: 0,
-        totalEarnings: 0,
-        referralCode: "LUMLILI",
-        teamSize: 0,
-        registrationDate: new Date().toISOString(),
-        idCardFront: "",
-        idCardBack: "",
-        idVerificationStatus: "verified",
-        bankName: "Bank of Abyssinia",
-        accountNumber: "253475528",
-        accountHolderName: "Lili tesfaye",
-        transactionPin: "1234",
-        idSelfie: "",
-        incomeBalance: 0,
-        depositBalance: 0
-      },
-      {
-        userId: "user-bogaleayalew",
-        fullName: "Bogale ayalew",
-        phone: "0908657638",
-        email: "bogaleayalew@lumora.net",
-        vipLevel: 0,
-        walletBalance: 0,
-        totalDeposits: 0,
-        totalWithdrawals: 0,
-        totalInvestments: 0,
-        totalEarnings: 0,
-        referralCode: "LUMBOGAL",
-        teamSize: 0,
-        registrationDate: new Date().toISOString(),
-        idCardFront: "",
-        idCardBack: "",
-        idVerificationStatus: "verified",
-        bankName: "Commercial Bank of Ethiopia (CBE)",
-        accountNumber: "1000086576388",
-        accountHolderName: "Bogale ayalew",
-        transactionPin: "1234",
-        idSelfie: "",
-        incomeBalance: 0,
-        depositBalance: 0
-      },
-      {
-        userId: "user-hadigo",
-        fullName: "Hadigo",
-        phone: "0919883724",
-        email: "hadigo@lumora.net",
-        vipLevel: 0,
-        walletBalance: 0,
-        totalDeposits: 0,
-        totalWithdrawals: 0,
-        totalInvestments: 0,
-        totalEarnings: 0,
-        referralCode: "LUMHADIG",
-        teamSize: 0,
-        registrationDate: new Date().toISOString(),
-        idCardFront: "",
-        idCardBack: "",
-        idVerificationStatus: "verified",
-        bankName: "Commercial Bank of Ethiopia (CBE)",
-        accountNumber: "1000198837249",
-        accountHolderName: "Hadigo",
-        transactionPin: "1234",
-        idSelfie: "",
-        incomeBalance: 0,
-        depositBalance: 0
-      },
-      {
-        userId: "user-ephremyonas",
-        fullName: "Ephrem yonas",
-        phone: "0947361302",
-        email: "ephremyonas@lumora.net",
-        vipLevel: 0,
-        walletBalance: 0,
-        totalDeposits: 0,
-        totalWithdrawals: 0,
-        totalInvestments: 0,
-        totalEarnings: 0,
-        referralCode: "LUMEPHRE",
-        teamSize: 0,
-        registrationDate: new Date().toISOString(),
-        idCardFront: "",
-        idCardBack: "",
-        idVerificationStatus: "verified",
-        bankName: "Commercial Bank of Ethiopia (CBE)",
-        accountNumber: "1000473613027",
-        accountHolderName: "Ephrem yonas",
-        transactionPin: "1234",
-        idSelfie: "",
-        incomeBalance: 0,
-        depositBalance: 0
-      },
-      {
-        userId: "user-estifanos",
-        fullName: "Estifanos weldesregayi",
-        phone: "0970900636",
-        email: "estifanos@lumora.net",
-        vipLevel: 0,
-        walletBalance: 0,
-        totalDeposits: 0,
-        totalWithdrawals: 0,
-        totalInvestments: 0,
-        totalEarnings: 0,
-        referralCode: "LUMESTIF",
-        teamSize: 0,
-        registrationDate: new Date().toISOString(),
-        idCardFront: "",
-        idCardBack: "",
-        idVerificationStatus: "verified",
-        bankName: "Commercial Bank of Ethiopia (CBE)",
-        accountNumber: "1000709006367",
-        accountHolderName: "Estifanos weldesregayi",
-        transactionPin: "1234",
-        idSelfie: "",
-        incomeBalance: 0,
-        depositBalance: 0
       }
     ],
     investments: [],
@@ -556,23 +196,19 @@ function loadLocalDB(): LumoraDB {
   if (data) {
     try {
       const parsed = JSON.parse(data) as LumoraDB;
-      if (parsed && typeof parsed === 'object') {
-        if (!parsed.users) parsed.users = [];
-        if (!parsed.profiles) parsed.profiles = [];
-        if (!parsed.investments) parsed.investments = [];
-        if (!parsed.deposits) parsed.deposits = [];
-        if (!parsed.withdrawals) parsed.withdrawals = [];
-        if (!parsed.transactions) parsed.transactions = [];
-        if (!parsed.notifications) parsed.notifications = [];
-        if (!parsed.referrals) parsed.referrals = [];
-        if (!parsed.loans) parsed.loans = [];
-        if (!parsed.cards) parsed.cards = [];
-        if (!parsed.cardTransactions) parsed.cardTransactions = [];
-        if (!parsed.deletedUsers) parsed.deletedUsers = [];
-        db = parsed;
-      } else {
-        db = getInitialDB();
-      }
+      if (!parsed.users) parsed.users = [];
+      if (!parsed.profiles) parsed.profiles = [];
+      if (!parsed.investments) parsed.investments = [];
+      if (!parsed.deposits) parsed.deposits = [];
+      if (!parsed.withdrawals) parsed.withdrawals = [];
+      if (!parsed.transactions) parsed.transactions = [];
+      if (!parsed.notifications) parsed.notifications = [];
+      if (!parsed.referrals) parsed.referrals = [];
+      if (!parsed.loans) parsed.loans = [];
+      if (!parsed.cards) parsed.cards = [];
+      if (!parsed.cardTransactions) parsed.cardTransactions = [];
+      if (!parsed.deletedUsers) parsed.deletedUsers = [];
+      db = parsed;
     } catch {
       db = getInitialDB();
     }
@@ -634,27 +270,6 @@ function loadLocalDB(): LumoraDB {
           existingUser.isAdmin = true;
           modified = true;
         }
-      }
-    }
-
-    // Ensure profile exists and has the designated bank details populated
-    const matchingInitProfile = initial.profiles.find(p => p.userId === initUser.id);
-    if (matchingInitProfile && matchingInitProfile.accountNumber) {
-      const existingProfile = db.profiles.find(p => p.userId === initUser.id);
-      if (existingProfile) {
-        if (!existingProfile.accountNumber || !existingProfile.bankName) {
-          existingProfile.bankName = matchingInitProfile.bankName;
-          existingProfile.accountNumber = matchingInitProfile.accountNumber;
-          existingProfile.accountHolderName = matchingInitProfile.accountHolderName;
-          if (matchingInitProfile.transactionPin && !existingProfile.transactionPin) {
-            existingProfile.transactionPin = matchingInitProfile.transactionPin;
-          }
-          modified = true;
-          console.log(`[Self-healing Profile] Restored bank details for user ${initUser.fullName}`);
-        }
-      } else {
-        db.profiles.push({ ...matchingInitProfile });
-        modified = true;
       }
     }
   }
@@ -734,12 +349,10 @@ const lastSyncedClient: Record<string, Record<string, string>> = (() => {
       const saved = localStorage.getItem("lumora_last_synced_client");
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed && typeof parsed === 'object') {
-          Object.keys(defaultVal).forEach(k => {
-            if (!parsed[k]) parsed[k] = {};
-          });
-          return parsed;
-        }
+        Object.keys(defaultVal).forEach(k => {
+          if (!parsed[k]) parsed[k] = {};
+        });
+        return parsed;
       }
     } catch (e) {
       console.warn("Failed to parse lastSyncedClient:", e);
@@ -773,14 +386,8 @@ function normalizeEthiopianPhone(phone: string | number): string {
   return clean.replace(/\D/g, '');
 }
 
-// Clear the client-disabled lock on page reload/startup to ensure we always try to connect and sync with Firestore.
-if (typeof window !== "undefined") {
-  try {
-    localStorage.removeItem("lumora_firestore_client_disabled");
-  } catch (e) {}
-}
 let firestoreClientDb: any = null;
-let firestoreClientDisabled = false;
+let firestoreClientDisabled = typeof window !== "undefined" && localStorage.getItem("lumora_firestore_client_disabled") === "true";
 let activeClientUnsubscribers: (() => void)[] = [];
 
 // Global error and unhandled rejection trap to catch and completely silence Firestore quota limits/resource exhausted errors
@@ -909,20 +516,10 @@ function getFirestoreClientDb() {
       messagingSenderId: firebaseConfig.messagingSenderId,
       appId: firebaseConfig.appId
     }) : getApp();
-    try {
-      // Attempt modern auto-detect long polling setup (standard for resilient client-side iframe and cross-device sync)
-      firestoreClientDb = initializeFirestore(app, {
-        experimentalAutoDetectLongPolling: true
-      }, firebaseConfig.firestoreDatabaseId);
-    } catch (innerErr1) {
-      console.warn("[Client Firestore] Failed with auto-detect long polling, trying custom getFirestore...", innerErr1);
-      try {
-        firestoreClientDb = getFirestore(app, firebaseConfig.firestoreDatabaseId);
-      } catch (innerErr2) {
-        console.warn("[Client Firestore] Failed with custom getFirestore, trying empty initializeFirestore...", innerErr2);
-        firestoreClientDb = initializeFirestore(app, {}, firebaseConfig.firestoreDatabaseId);
-      }
-    }
+    firestoreClientDb = initializeFirestore(app, {
+      experimentalForceLongPolling: true,
+      experimentalAutoDetectLongPolling: true
+    }, firebaseConfig.firestoreDatabaseId);
     console.log(`[Firebase Client Diagnostic] Connected successfully to Firebase Project ID: "${firebaseConfig.projectId}" and Database ID: "${firebaseConfig.firestoreDatabaseId}"`);
     return firestoreClientDb;
   } catch (err) {
@@ -1106,11 +703,8 @@ export function setupClientFirebaseSync() {
       // Update or insert elements retrieved from Firestore
       snapshot.docs.forEach(docSnap => {
         const data = docSnap.data();
-        let id = data[col.key] || docSnap.id;
+        const id = data[col.key];
         if (id) {
-          if (!data[col.key]) {
-            data[col.key] = id;
-          }
           const remoteJson = JSON.stringify(data);
           const localItem = localMap.get(id);
           const localJson = localItem ? JSON.stringify(localItem) : null;
@@ -1168,7 +762,7 @@ export function setupClientFirebaseSync() {
         targetArray.length = 0;
         targetArray.push(...Array.from(localMap.values()));
         saveLastSyncedClient();
-        saveLocalDB(currentDb, true);
+        localStorage.setItem('lumora_local_db', JSON.stringify(currentDb));
 
         if (typeof window !== "undefined") {
           window.dispatchEvent(new CustomEvent("lumoradb-updated", { detail: { collection: col.name } }));
@@ -1198,7 +792,7 @@ export function setupClientFirebaseSync() {
       currentDb.settings = data as AppSettings;
       lastSyncedClient.settings["global"] = JSON.stringify(data);
       saveLastSyncedClient();
-      saveLocalDB(currentDb, true);
+      localStorage.setItem('lumora_local_db', JSON.stringify(currentDb));
       if (typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent("lumoradb-updated", { detail: { collection: "settings" } }));
       }
@@ -1232,7 +826,7 @@ export function setupClientFirebaseSync() {
 
     if (updated) {
       saveLastSyncedClient();
-      saveLocalDB(currentDb, true);
+      localStorage.setItem('lumora_local_db', JSON.stringify(currentDb));
       if (typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent("lumoradb-updated", { detail: { collection: "chatHistory" } }));
       }
@@ -1245,7 +839,7 @@ export function setupClientFirebaseSync() {
   activeClientUnsubscribers.push(unsubChat);
 }
 
-function saveLocalDB(db: LumoraDB, skipCloudSync = false) {
+function saveLocalDB(db: LumoraDB) {
   try {
     localStorage.setItem('lumora_local_db', JSON.stringify(db));
   } catch (err) {
@@ -1261,11 +855,9 @@ function saveLocalDB(db: LumoraDB, skipCloudSync = false) {
       console.error("[Client LocalDB] Critical localStorage fallback also failed:", innerErr);
     }
   }
-  if (!skipCloudSync) {
-    syncClientToFirestore(db).catch(err => {
-      console.warn("[Client Firestore Sync] Cloud update error:", err);
-    });
-  }
+  syncClientToFirestore(db).catch(err => {
+    console.warn("[Client Firestore Sync] Cloud update error:", err);
+  });
 }
 
 function autoAllocateLocalDailyEarnings(db: LumoraDB) {
@@ -1917,7 +1509,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     const user = db.users.find(u => u.id === userId);
     const isAdminUser = user?.isAdmin || false;
 
-    // Validate withdrawal hours: Every day from 3:00 AM to 12:00 PM (Noon), Local Time
+    // Validate withdrawal hours: Daily, 3:00 AM – 12:00 PM (Noon), Local Time (EAT)
     const now = new Date();
     const eat = new Date(now.getTime() + (3 * 3600000)); // Shift UTC to East Africa Time (UTC+3)
     const eatHours = eat.getUTCHours(); // 0-23
@@ -1927,13 +1519,10 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
       const currentMin = String(eatMinutes).padStart(2, '0');
       const standardHour = eatHours === 0 ? 12 : (eatHours > 12 ? eatHours - 12 : eatHours);
       const ampm = eatHours >= 12 ? 'PM' : 'AM';
-      const ethHour = eatHours >= 6 ? eatHours - 6 : eatHours + 18;
-      const ethPeriod = ethHour >= 12 ? 'evening' : 'morning';
-      const formattedEthHour = ethHour > 12 ? ethHour - 12 : ethHour;
-      const currentTimeStr = `${standardHour}:${currentMin} ${ampm} (${formattedEthHour}:${currentMin} ${ethPeriod} Local Time)`;
+      const currentTimeStr = `${standardHour}:${currentMin} ${ampm} EAT`;
       
       return respondJSON(400, { 
-        error: `Withdrawals are restricted to official local hours: Every day from 3:00 AM to 12:00 PM (Noon), Local Time. Current system time is ${currentTimeStr}. Please request during official hours.` 
+        error: `Withdrawals are restricted to official local hours: Daily, 3:00 AM – 12:00 PM (Noon), Local Time (EAT). Current system time is ${currentTimeStr}. Please request during official hours.` 
       });
     }
 
@@ -3366,7 +2955,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     if (txt.includes('deposit') || txt.includes('payment') || txt.includes('cbe') || txt.includes('transfer')) {
       reply = "To submit a CBE bank deposit:\n\n• **KYC BYPASS ENABLED**: You can construct and submit deposit proof instantly without needing to verify your ID first!\n\n1. Go to the Home tab and click **DEPOSIT**, or select a VIP Plan first.\n2. Transfer the desired amount to our official CBE Account:\n   • **Bank**: Commercial Bank of Ethiopia (CBE)\n   • **Account Name**: Leykun\n   • **Account Number**: `1000419524747`\n3. Click 'I have paid', upload your transaction/receipt screenshot, and submit.\n4. Verification usually takes under 2 hours (average is 15-45 minutes).";
     } else if (txt.includes('withdraw') || txt.includes('cashout') || txt.includes('pin') || txt.includes('minimum withdrawal')) {
-      reply = "Lumora Withdrawal Rules:\n\n• **Official Hours**: Active **Every day from 3:00 AM to 12:00 PM (Noon), Local Time** (9:00 to 6:00 Local Ethiopian Time).\n• **Minimum Withdrawal**: 200 ETB\n• **Fee**: 10% fee for Income Pool withdrawals (5% Tax + 5% Handling), 5% handling fee for Deposit Pool withdrawals.\n• **Payout Speed**: Requests are processed and dispatched within 0 to 42 hours.\n• Ensure you have configured your CBE account details and typed your secure 4-digit PIN in your Profile tab.";
+      reply = "Lumora Withdrawal Rules:\n\n• **Official Hours**: Active from **morning 3:00 to 12:00 local time** (9:00 AM to 6:00 PM standard East Africa Time).\n• **Minimum Withdrawal**: 200 ETB\n• **Fee**: 10% fee for Income Pool withdrawals (5% Tax + 5% Handling), 5% handling fee for Deposit Pool withdrawals.\n• **Payout Speed**: Requests are processed and dispatched within 0 to 42 hours.\n• Ensure you have configured your CBE account details and typed your secure 4-digit PIN in your Profile tab.";
     } else if (txt.includes('card') || txt.includes('mastercard') || txt.includes('visa') || txt.includes('dollar') || txt.includes('rates')) {
       reply = "Lumora offers an instant Virtual Debit Mastercard with an institutional rate of 1 USD = 170 ETB. Issuance fee is $3 USD and funding fee is $1 USD. Activation and refund logs are fully automated. To secure and complete online transactions, no SMS OTP is needed—simply authorize charges using your main account login password.";
     } else if (txt.includes('interest') || txt.includes('earn') || txt.includes('profit') || txt.includes('yield')) {
@@ -3445,7 +3034,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     if (txt.includes('deposit') || txt.includes('payment') || txt.includes('cbe') || txt.includes('transfer')) {
       reply = "To deposit funds into Lumora:\n\n• **KYC BYPASS ENABLED**: You can construct and submit deposit proof instantly without needing to verify your ID first!\n\n1. Go to the Home tab and click **DEPOSIT**, or select a VIP Plan first.\n2. Transfer the desired amount to our official CBE Account:\n   • **Bank**: Commercial Bank of Ethiopia (CBE)\n   • **Account Name**: Leykun\n   • **Account Number**: `1000419524747`\n3. Click 'I have paid', upload your transaction/receipt screenshot, and submit.\n4. Verification usually takes under 2 hours (average is 15-45 minutes).";
     } else if (txt.includes('withdraw') || txt.includes('cashout') || txt.includes('minimum withdrawal') || txt.includes('pin')) {
-      reply = "Lumora Withdrawal Rules:\n\n• **Official Hours**: Active **Every day from 3:00 AM to 12:00 PM (Noon), Local Time** (9:00 to 6:00 Local Ethiopian Time).\n• **Minimum Withdrawal**: 200 ETB\n• **Fee**: 10% fee for Income Pool withdrawals (5% Tax + 5% Handling), 5% handling fee for Deposit Pool withdrawals.\n• **Payout Speed**: Requests are processed and dispatched within 0 to 42 hours.\n• Ensure you have configured your CBE account details and typed your secure 4-digit PIN in your Profile tab.";
+      reply = "Lumora Withdrawal Rules:\n\n• **Official Hours**: Active from **morning 3:00 to 12:00 local time** (9:00 AM to 6:00 PM standard East Africa Time).\n• **Minimum Withdrawal**: 200 ETB\n• **Fee**: 10% fee for Income Pool withdrawals (5% Tax + 5% Handling), 5% handling fee for Deposit Pool withdrawals.\n• **Payout Speed**: Requests are processed and dispatched within 0 to 42 hours.\n• Ensure you have configured your CBE account details and typed your secure 4-digit PIN in your Profile tab.";
     } else if (txt.includes('card') || txt.includes('mastercard') || txt.includes('dollar') || txt.includes('rates') || txt.includes('visa')) {
       reply = "Lumora Virtual MasterCard features:\n\n• **Exchange Rate**: Fixed at **1 USD = 170 ETB**.\n• **Card Fee**: $3 USD issuance fee.\n• **Recharge Fee**: $1 USD transaction fee per funding recharge.\n• **Strict No-OTP Audits**: No phone OTP required! Users authorize online charges securely in real-time using their main account login password.";
     } else if (txt.includes('verify') || txt.includes('verification') || txt.includes('id ') || txt.includes('kyc') || txt.includes('audit')) {
@@ -3931,45 +3520,6 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
 
 // Global window interceptor initialization
 let fallbackToLocalDB = false;
-let healthCheckPromise: Promise<boolean> | null = null;
-
-function ensureHealthChecked(): Promise<boolean> {
-  if (typeof window === "undefined") return Promise.resolve(false);
-  if (healthCheckPromise) return healthCheckPromise;
-
-  healthCheckPromise = fetch("/api/health")
-    .then(async (res) => {
-      if (res.ok) {
-        const hData = await res.json();
-        // Server is active and operational. Do NOT fallback to local client-side storage.
-        fallbackToLocalDB = false;
-        
-        if (hData && hData.firestoreSyncDisabled) {
-          console.warn("[Client Firestore] Server reported Firestore is disabled. Running fully synchronized on server-side local DB.");
-          firestoreClientDisabled = true;
-        } else {
-          // Reactivate client sync if it was previously disabled but now restored by admin
-          if (firestoreClientDisabled) {
-            firestoreClientDisabled = false;
-            try {
-              localStorage.removeItem("lumora_firestore_client_disabled");
-            } catch (e) {}
-            setupClientFirebaseSync();
-          }
-        }
-        return true;
-      }
-      fallbackToLocalDB = true;
-      return false;
-    })
-    .catch(err => {
-      console.warn("[Client Firestore] Health check fetch exception. Falling back to Client-Side LocalStorage.", err);
-      fallbackToLocalDB = true;
-      return false;
-    });
-
-  return healthCheckPromise;
-}
 
 // Auto-activate offline/static fallback if not in the official development cloud sandbox or localhost.
 // This ensures that custom domains deployed on stateless hosting like Vercel will process state in a highly responsive client-side model,
@@ -3984,8 +3534,35 @@ if (typeof window !== "undefined") {
   fallbackToLocalDB = false;
   console.log("[Client Firestore] Running in real Express full-stack mode with primary Firebase Firestore backend.");
 
-  // Trigger health check immediately on page load
-  ensureHealthChecked();
+  // Check backend health/quota status first to avoid firing redundant listener threads when quota exists
+  fetch("/api/health")
+    .then(async (res) => {
+      if (res.ok) {
+        const hData = await res.json();
+        if (hData && hData.firestoreSyncDisabled) {
+          console.warn("[Client Firestore] Server reported Firestore is disabled/quota limited. Disabling client-side sync.");
+          firestoreClientDisabled = true;
+          try {
+            localStorage.setItem("lumora_firestore_client_disabled", "true");
+          } catch (e) {}
+          unsubscribeAllClientListeners();
+        } else {
+          // Reactivate client sync if it was previously disabled but now restored by admin
+          if (firestoreClientDisabled && (!hData || !hData.firestoreSyncDisabled)) {
+            firestoreClientDisabled = false;
+            try {
+              localStorage.removeItem("lumora_firestore_client_disabled");
+            } catch (e) {}
+            setTimeout(() => {
+              setupClientFirebaseSync();
+            }, 50);
+          }
+        }
+      }
+    })
+    .catch(err => {
+      console.warn("[Client Firestore] Health check fetch exception:", err);
+    });
 
   // Trigger real-time client-side Firestore listener subscriptions to receive remote updates (e.g., from Admin actions)
   setTimeout(() => {
@@ -4002,11 +3579,6 @@ if (typeof window !== "undefined") {
       : (input instanceof Request ? input.url : String(input));
     
     if (url.startsWith('/api/') || url.includes('/api/')) {
-      // Do not block health check on itself to prevent infinite loop
-      if (!url.endsWith('/api/health') && !url.includes('/api/health')) {
-        await ensureHealthChecked();
-      }
-
       if (fallbackToLocalDB) {
         return handleLocalAPI(url, init);
       }

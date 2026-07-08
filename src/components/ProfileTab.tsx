@@ -2675,22 +2675,31 @@ export default function ProfileTab({
                   </div>
 
                   {/* Condition 3: 50 Days Working in Company */}
-                  <div className={`p-3 rounded-[1.1rem] border flex items-center justify-between transition-all ${
+                  <div className={`p-3 rounded-[1.1rem] border flex flex-col space-y-2 transition-all ${
                     workingDays >= 50 
                       ? 'bg-emerald-50/20 border-emerald-100/80 text-emerald-950' 
                       : 'bg-[#FFFDF0] border-amber-200 text-amber-950'
                   }`}>
-                    <div className="flex items-center space-x-2.5">
-                      <span className={`text-sm font-black select-none ${workingDays >= 50 ? 'text-emerald-500 font-sans' : 'text-amber-500 font-serif italic'}`}>
-                        {workingDays >= 50 ? "✓" : "✗"}
-                      </span>
-                      <span className="text-[10.5px] font-bold text-slate-800">
-                        {language === 'am' ? 'በድርጅቱ ውስጥ 50 ቀናት መሥራት' : '50 Days Working in Company'}
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center space-x-2.5">
+                        <span className={`text-sm font-black select-none ${workingDays >= 50 ? 'text-emerald-500 font-sans' : 'text-amber-500 font-serif italic'}`}>
+                          {workingDays >= 50 ? "✓" : "✗"}
+                        </span>
+                        <span className="text-[10.5px] font-bold text-slate-800">
+                          {language === 'am' ? 'በድርጅቱ ውስጥ 50 ቀናት መሥራት' : '50 Days Working in Company'}
+                        </span>
+                      </div>
+                      <span className="text-[9.5px] font-mono font-black px-2.5 py-1 rounded-[8px] bg-white border border-slate-900 text-slate-900">
+                        {workingDays} / 50 Days
                       </span>
                     </div>
-                    <span className="text-[9.5px] font-mono font-black px-2.5 py-1 rounded-[8px] bg-white border border-slate-900 text-slate-900">
-                      {workingDays} / 50 Days
-                    </span>
+                    {/* Visual Progress Bar Tracker */}
+                    <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full transition-all duration-500 rounded-full ${workingDays >= 50 ? 'bg-emerald-500' : 'bg-blue-600'}`}
+                        style={{ width: `${Math.min(100, (workingDays / 50) * 100)}%` }}
+                      />
+                    </div>
                   </div>
                 </div>
 

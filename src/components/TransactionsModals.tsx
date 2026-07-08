@@ -991,6 +991,18 @@ export default function TransactionsModals({ type, profile, investments, onClose
   };
 
   const handleWithdrawSubmit = async () => {
+    // Validate withdrawal hours: Daily, 3:00 AM – 12:00 PM (Noon), Local Time (EAT)
+    const now = new Date();
+    const eat = new Date(now.getTime() + (3 * 3600000)); // Shift UTC to EAT
+    const eatHours = eat.getUTCHours();
+    const isWithdrawalTimeOk = (eatHours >= 3 && eatHours < 12);
+    const isAdmin = profile?.email === 'leykunjemaneh3@gmail.com' || profile?.fullName?.toLowerCase().includes('admin');
+    
+    if (!isWithdrawalTimeOk && !isAdmin) {
+      setMessage({ text: t.withdrawalTimeError, isError: true });
+      return;
+    }
+
     const parsedAmt = parseFloat(withdrawalAmount);
     if (isNaN(parsedAmt) || parsedAmt < 200) {
       setMessage({ text: 'Minimum withdrawal amount limit is 200 ETB', isError: true });
