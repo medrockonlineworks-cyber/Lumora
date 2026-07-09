@@ -387,7 +387,12 @@ function normalizeEthiopianPhone(phone: string | number): string {
 }
 
 let firestoreClientDb: any = null;
-let firestoreClientDisabled = typeof window !== "undefined" && localStorage.getItem("lumora_firestore_client_disabled") === "true";
+let firestoreClientDisabled = true;
+if (typeof window !== "undefined") {
+  try {
+    localStorage.removeItem("lumora_firestore_client_disabled");
+  } catch (e) {}
+}
 let activeClientUnsubscribers: (() => void)[] = [];
 
 // Global error and unhandled rejection trap to catch and completely silence Firestore quota limits/resource exhausted errors
@@ -3519,55 +3524,16 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
 }
 
 // Global window interceptor initialization
-let fallbackToLocalDB = false;
+let fallbackToLocalDB = true;
 
 // Auto-activate offline/static fallback if not in the official development cloud sandbox or localhost.
 // This ensures that custom domains deployed on stateless hosting like Vercel will process state in a highly responsive client-side model,
 // with immediate, real-time background synchronization directly into Firestore.
 if (typeof window !== "undefined") {
-  const host = window.location.hostname;
-  const isSandbox = host.includes("europe-west1.run.app") || host.includes("localhost") || host.includes("127.0.0.1") || host.startsWith("192.168.");
-  
-  const isFirestoreActive = firebaseConfig.projectId && firebaseConfig.projectId !== "YOUR_PROJECT_ID";
-
-  // Always use the real Express/Firestore backend for production consistency; do not default to client local storage.
-  fallbackToLocalDB = false;
-  console.log("[Client Firestore] Running in real Express full-stack mode with primary Firebase Firestore backend.");
-
-  // Check backend health/quota status first to avoid firing redundant listener threads when quota exists
-  fetch("/api/health")
-    .then(async (res) => {
-      if (res.ok) {
-        const hData = await res.json();
-        if (hData && hData.firestoreSyncDisabled) {
-          console.warn("[Client Firestore] Server reported Firestore is disabled/quota limited. Disabling client-side sync.");
-          firestoreClientDisabled = true;
-          try {
-            localStorage.setItem("lumora_firestore_client_disabled", "true");
-          } catch (e) {}
-          unsubscribeAllClientListeners();
-        } else {
-          // Reactivate client sync if it was previously disabled but now restored by admin
-          if (firestoreClientDisabled && (!hData || !hData.firestoreSyncDisabled)) {
-            firestoreClientDisabled = false;
-            try {
-              localStorage.removeItem("lumora_firestore_client_disabled");
-            } catch (e) {}
-            setTimeout(() => {
-              setupClientFirebaseSync();
-            }, 50);
-          }
-        }
-      }
-    })
-    .catch(err => {
-      console.warn("[Client Firestore] Health check fetch exception:", err);
-    });
-
-  // Trigger real-time client-side Firestore listener subscriptions to receive remote updates (e.g., from Admin actions)
-  setTimeout(() => {
-    setupClientFirebaseSync();
-  }, 50);
+  // Always use local storage mode as requested by the user
+  fallbackToLocalDB = true;
+  firestoreClientDisabled = true;
+  console.log("[Client Auth] Running in local storage mode for database and authentication. Firebase sync is disabled.");
 }
 
 if (typeof window !== "undefined") {

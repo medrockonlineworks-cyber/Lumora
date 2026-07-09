@@ -138,7 +138,7 @@ export default function ProfileTab({
   investments = []
 }: ProfileTabProps) {
   const { language, setLanguage, t, et } = useLanguage();
-  const isQuotaExceeded = typeof window !== "undefined" && localStorage.getItem("lumora_firestore_client_disabled") === "true";
+  const isQuotaExceeded = false;
 
   const workingDays = React.useMemo(() => {
     if (!profile?.registrationDate) return 0;

@@ -100,7 +100,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   const [regMakeAdmin, setRegMakeAdmin] = useState(false);
 
   // Firestore quota states
-  const [isQuotaExceededOnClient, setIsQuotaExceededOnClient] = useState(typeof window !== "undefined" && localStorage.getItem("lumora_firestore_client_disabled") === "true");
+  const [isQuotaExceededOnClient, setIsQuotaExceededOnClient] = useState(false);
   const [recalculatingQuota, setRecalculatingQuota] = useState(false);
 
   // System Reset states

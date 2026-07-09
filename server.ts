@@ -32,7 +32,7 @@ import { getFirestore, Firestore } from "firebase-admin/firestore";
 import firebaseConfig from "./firebase-applet-config.json";
 
 let firestoreDb: Firestore | null = null;
-let firestoreSyncDisabled = fs.existsSync(".firestore_disabled");
+let firestoreSyncDisabled = true; // Completely disabled per user request to stop Firebase setup
 let activeServerUnsubscribers: (() => void)[] = [];
 
 function unsubscribeAllServerListeners() {
