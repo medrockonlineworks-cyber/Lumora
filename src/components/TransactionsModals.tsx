@@ -16,7 +16,9 @@ interface CelebrationOverlayProps {
 }
 
 const VIP_PRESETS = [
-  { level: 1, amount: 3500, name: "Starter" },
+  { level: -1, amount: 1000, name: "Starter Level 1" },
+  { level: -2, amount: 2000, name: "Starter Level 2" },
+  { level: 1, amount: 3500, name: "Starter Level 3" },
   { level: 2, amount: 5000, name: "VIP 1" },
   { level: 3, amount: 10000, name: "VIP 2" },
   { level: 4, amount: 25000, name: "VIP 3" },
@@ -269,7 +271,9 @@ function WithdrawalCelebrationOverlay({ amount, walletType, bankName, accountNum
 
     const names = sortedInvs.map(inv => {
       const level = inv.planLevel !== undefined ? inv.planLevel : 1;
-      if (level === 1) return 'starter level';
+      if (level === -1) return 'starter level 1';
+      if (level === -2) return 'starter level 2';
+      if (level === 1) return 'starter level 3';
       return `VIP ${level - 1}`;
     });
     

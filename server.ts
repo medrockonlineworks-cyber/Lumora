@@ -200,7 +200,9 @@ const DEFAULT_SETTINGS: AppSettings = {
 
 // Seed 15 VIP investment plans
 const VIP_PLANS = [
-  { level: 1, name: "Starter level", requiredInvestment: 3500, dailyRate: 0.0340, durationDays: 50, estimatedReturn: 9450 },
+  { level: -1, name: "Starter Level 1", requiredInvestment: 1000, dailyRate: 0.0320, durationDays: 50, estimatedReturn: 2600 },
+  { level: -2, name: "Starter Level 2", requiredInvestment: 2000, dailyRate: 0.0320, durationDays: 50, estimatedReturn: 5200 },
+  { level: 1, name: "Starter Level 3", requiredInvestment: 3500, dailyRate: 0.0340, durationDays: 50, estimatedReturn: 9450 },
   { level: 2, name: "VIP Level 1", requiredInvestment: 5000, dailyRate: 0.0350, durationDays: 50, estimatedReturn: 13750 },
   { level: 3, name: "VIP Level 2", requiredInvestment: 10000, dailyRate: 0.0375, durationDays: 50, estimatedReturn: 28750 },
   { level: 4, name: "VIP Level 3", requiredInvestment: 25000, dailyRate: 0.0400, durationDays: 50, estimatedReturn: 75000 },
@@ -466,6 +468,16 @@ We connect local commerce and infrastructure project liquidity pools directly to
         db.settings.cbeAccountNumber = "1000419524747";
         db.settings.cbeAccountName = "Leykun";
         dbUpdated = true;
+      }
+
+      // Migrate existing Starter level investments to Starter Level 3
+      if (db.investments) {
+        db.investments.forEach(inv => {
+          if (inv.planLevel === 1 && (inv.planName === "Starter level" || inv.planName === "Starter Level")) {
+            inv.planName = "Starter Level 3";
+            dbUpdated = true;
+          }
+        });
       }
 
       if (dbUpdated) {
@@ -2237,7 +2249,7 @@ async function startServer() {
 
     // Require KYC verification to upgrade to VIP Level 1 (plan.level = 2) or above
     if (plan.level >= 2 && profile.idVerificationStatus !== "verified") {
-      return res.status(403).json({ error: "Identity Verification (KYC) is required to upgrade to higher VIP levels. Please complete your ID submission." });
+      return res.status(403).json({ error: "Account verification is required before activating VIP levels. Please complete your identity verification to continue." });
     }
 
     // Level 5 Activation Constraint Guard

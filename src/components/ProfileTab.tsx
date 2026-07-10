@@ -1123,11 +1123,36 @@ export default function ProfileTab({
             <div className="inline-flex items-center space-x-1.5 px-4 py-1.5 rounded-2xl bg-amber-500/10 text-amber-700 border border-amber-500/20 text-[10px] font-black uppercase tracking-widest font-sans">
               <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
               <span>
-                {language === 'am' ? (profile.vipLevel === 1 ? "ዕጩ ጀማሪ አባል" : `ከፍተኛ ደረጃ ቪአይፒ ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0} አባል`) :
-                 language === 'om' ? (profile.vipLevel === 1 ? "STARTER MEMBER" : `SADARKAA OLAANAA VIP ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0} SECTOR`) :
-                 language === 'ti' ? (profile.vipLevel === 1 ? "ጀማሪ ኣባል" : `ላዕለዋይ ሰንሰለት ቪአይፒ ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0} ኣባል`) :
-                 language === 'so' ? (profile.vipLevel === 1 ? "XUBINTA BILOWGA AH" : `VIP-KA HEERKA SARE ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0} XUBIN`) :
-                 (profile.vipLevel === 1 ? "STARTER LEVEL MEMBER" : `PEAK LEVEL VIP ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0} MEMBER`)}
+                {language === 'am' ? (
+                  profile.vipLevel === -1 ? "ዕጩ ጀማሪ 1 አባል" :
+                  profile.vipLevel === -2 ? "ዕጩ ጀማሪ 2 አባል" :
+                  profile.vipLevel === 1 ? "ዕጩ ጀማሪ 3 አባል" :
+                  `ከፍተኛ ደረጃ ቪአይፒ ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0} አባል`
+                ) :
+                 language === 'om' ? (
+                  profile.vipLevel === -1 ? "STARTER LEVEL 1 MEMBER" :
+                  profile.vipLevel === -2 ? "STARTER LEVEL 2 MEMBER" :
+                  profile.vipLevel === 1 ? "STARTER LEVEL 3 MEMBER" :
+                  `SADARKAA OLAANAA VIP ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0} SECTOR`
+                ) :
+                 language === 'ti' ? (
+                  profile.vipLevel === -1 ? "ጀማሪ 1 ኣባል" :
+                  profile.vipLevel === -2 ? "ጀማሪ 2 ኣባል" :
+                  profile.vipLevel === 1 ? "ጀማሪ 3 ኣባል" :
+                  `ላዕለዋይ ሰንሰለት ቪአይፒ ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0} ኣባል`
+                ) :
+                 language === 'so' ? (
+                  profile.vipLevel === -1 ? "XUBINTA BILOWGA 1 AH" :
+                  profile.vipLevel === -2 ? "XUBINTA BILOWGA 2 AH" :
+                  profile.vipLevel === 1 ? "XUBINTA BILOWGA 3 AH" :
+                  `VIP-KA HEERKA SARE ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0} XUBIN`
+                ) :
+                 (
+                  profile.vipLevel === -1 ? "STARTER LEVEL 1 MEMBER" :
+                  profile.vipLevel === -2 ? "STARTER LEVEL 2 MEMBER" :
+                  profile.vipLevel === 1 ? "STARTER LEVEL 3 MEMBER" :
+                  `PEAK LEVEL VIP ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0} MEMBER`
+                 )}
               </span>
             </div>
           </div>
@@ -1288,7 +1313,7 @@ export default function ProfileTab({
                 </span>
               </div>
               <span className="text-[10px] font-mono font-black px-2 py-0.5 rounded bg-white border">
-                {profile.vipLevel === 1 ? "Starter" : `VIP ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0}`} / 3
+                {profile.vipLevel === -1 ? "Starter 1" : profile.vipLevel === -2 ? "Starter 2" : profile.vipLevel === 1 ? "Starter 3" : `VIP ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0}`} / 3
               </span>
             </div>
 
@@ -1338,7 +1363,7 @@ export default function ProfileTab({
               Loan Feature Locked
             </span>
             <p className="text-[11px] text-amber-900 leading-relaxed font-bold max-w-sm mx-auto">
-              Sovereign loan request portal is closed. Loan services are available only for members who have reached VIP Level 3 or higher. Current level: <strong>{profile.vipLevel === 1 ? "Starter Level" : `VIP ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0}`}</strong>.
+              Sovereign loan request portal is closed. Loan services are available only for members who have reached VIP Level 3 or higher. Current level: <strong>{profile.vipLevel === -1 ? "Starter Level 1" : profile.vipLevel === -2 ? "Starter Level 2" : profile.vipLevel === 1 ? "Starter Level 3" : `VIP ${profile.vipLevel > 1 ? profile.vipLevel - 1 : 0}`}</strong>.
             </p>
             <p className="text-[10px] text-slate-600 leading-normal max-w-xs mx-auto">
               Please visit the <strong>Investments Screen</strong> to upgrade your plan to VIP Level 3 or higher to acquire full eligibility.

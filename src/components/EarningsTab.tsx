@@ -89,9 +89,11 @@ const PROJECT_ID_TO_NAME: Record<string, string> = {
 };
 
 const getDailyLevelIncome = (vipLevel: number) => {
+  if (vipLevel === -1) return 32;
+  if (vipLevel === -2) return 64;
+  if (vipLevel === 1) return 119;
   if (vipLevel <= 0) return 0;
   switch (vipLevel) {
-    case 1: return 119;      // Starter level
     case 2: return 175;      // VIP 1
     case 3: return 375;      // VIP 2
     case 4: return 1000;     // VIP 3
@@ -112,8 +114,10 @@ const getDailyLevelIncome = (vipLevel: number) => {
 };
 
 const getLevelName = (vipLevel: number) => {
+  if (vipLevel === -1) return 'Starter Level 1';
+  if (vipLevel === -2) return 'Starter Level 2';
+  if (vipLevel === 1) return 'Starter Level 3';
   if (vipLevel <= 0) return 'Unactivated';
-  if (vipLevel === 1) return 'Starter Level';
   return `VIP Level ${vipLevel - 1}`;
 };
 
