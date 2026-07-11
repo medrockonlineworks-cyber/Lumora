@@ -3,28 +3,67 @@
   <head>
     <script>
       (function() {
-        try {
-          Object.defineProperty(Object.prototype, 'experimentalForceLongPolling', {
-            configurable: true,
-            enumerable: false,
-            get() {
-              if (this && typeof this === 'object' && this.experimentalAutoDetectLongPolling !== undefined) {
-                return undefined;
-              }
-              return true;
-            },
-            set(val) {
+        const forcePollingValues = new WeakMap();
+        const autoDetectValues = new WeakMap();
+
+        function isPlainObject(obj) {
+          if (!obj || typeof obj !== 'object') return false;
+          if (obj.nodeType !== undefined) return false;
+          if (obj.$$typeof !== undefined) return false;
+          if (obj === window || obj === document) return false;
+          
+          const proto = Object.getPrototypeOf(obj);
+          return proto === null || proto === Object.prototype;
+        }
+
+        Object.defineProperty(Object.prototype, 'experimentalForceLongPolling', {
+          configurable: true,
+          enumerable: false,
+          get() {
+            if (!isPlainObject(this)) return undefined;
+            return forcePollingValues.get(this);
+          },
+          set(val) {
+            if (!isPlainObject(this)) {
               Object.defineProperty(this, 'experimentalForceLongPolling', {
                 value: val,
                 writable: true,
                 configurable: true,
                 enumerable: true
               });
+              return;
             }
-          });
-        } catch (e) {
-          console.warn('Failed to configure Firestore polling defaults:', e);
-        }
+            forcePollingValues.set(this, val);
+            if (val) {
+              autoDetectValues.set(this, false);
+            }
+          }
+        });
+
+        Object.defineProperty(Object.prototype, 'experimentalAutoDetectLongPolling', {
+          configurable: true,
+          enumerable: false,
+          get() {
+            if (!isPlainObject(this)) return undefined;
+            return autoDetectValues.get(this);
+          },
+          set(val) {
+            if (!isPlainObject(this)) {
+              Object.defineProperty(this, 'experimentalAutoDetectLongPolling', {
+                value: val,
+                writable: true,
+                configurable: true,
+                enumerable: true
+              });
+              return;
+            }
+            if (forcePollingValues.get(this)) {
+              autoDetectValues.set(this, false);
+            } else {
+              autoDetectValues.set(this, val);
+            }
+          }
+        });
       })();
     </script>
     <meta charset="UTF-8" />
