@@ -8,51 +8,18 @@
             configurable: true,
             enumerable: false,
             get() {
+              if (this && typeof this === 'object' && this.experimentalAutoDetectLongPolling !== undefined) {
+                return undefined;
+              }
               return true;
             },
             set(val) {
-              if (this && typeof this === 'object') {
-                Object.defineProperty(this, 'experimentalForceLongPolling', {
-                  value: val,
-                  writable: true,
-                  configurable: true,
-                  enumerable: true
-                });
-                if (val) {
-                  Object.defineProperty(this, 'experimentalAutoDetectLongPolling', {
-                    value: false,
-                    writable: true,
-                    configurable: true,
-                    enumerable: true
-                  });
-                }
-              }
-            }
-          });
-
-          Object.defineProperty(Object.prototype, 'experimentalAutoDetectLongPolling', {
-            configurable: true,
-            enumerable: false,
-            get() {
-              return false;
-            },
-            set(val) {
-              if (this && typeof this === 'object') {
-                Object.defineProperty(this, 'experimentalAutoDetectLongPolling', {
-                  value: val,
-                  writable: true,
-                  configurable: true,
-                  enumerable: true
-                });
-                if (val) {
-                  Object.defineProperty(this, 'experimentalForceLongPolling', {
-                    value: false,
-                    writable: true,
-                    configurable: true,
-                    enumerable: true
-                  });
-                }
-              }
+              Object.defineProperty(this, 'experimentalForceLongPolling', {
+                value: val,
+                writable: true,
+                configurable: true,
+                enumerable: true
+              });
             }
           });
         } catch (e) {
