@@ -922,228 +922,368 @@ export default function InvestmentsTab({ plans, profile, onBuyPlan }: Investment
         </div>
       </div>
 
-      {/* 15 VIP Plans Grid listing - Highly Professional & Durable Design Structure */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {plans.map((p) => {
-          const isElevated = p.requiredInvestment > (profile?.walletBalance ?? 0);
-          const currentPlanActive = (profile?.vipLevel ?? 0) >= p.level;
+      {/* Starter Levels Listing */}
+      <div className="space-y-4">
+        <div className="flex items-center space-x-2 border-b-2 border-slate-200 pb-2">
+          <div className="w-1.5 h-5 bg-amber-500 rounded-full"></div>
+          <h3 className="font-display font-black text-sm text-[#0A3D91] uppercase tracking-wide">
+            Starter Levels
+          </h3>
+          <span className="text-[9px] font-mono font-black text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md uppercase tracking-wider">
+            Verification Not Required
+          </span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {plans.filter(p => p.level < 2).map((p) => {
+            const isElevated = p.requiredInvestment > (profile?.walletBalance ?? 0);
+            const currentPlanActive = (profile?.vipLevel ?? 0) >= p.level;
 
-          return (
-            <div 
-              key={p.level}
-              className="p-5 rounded-3xl bg-white border-2 border-slate-200 hover:border-[#0A3D91]/60 hover:shadow-md transition-all flex flex-col justify-between space-y-4 shadow-sm"
-            >
-              <div>
-                <div className="flex items-center justify-between">
-                  {/* VIP Badge - Dominant High Contrast */}
-                  <span className="px-3 py-1 text-[10px] font-black rounded-lg bg-[#0A3D91] text-white uppercase tracking-wider shadow-2xs font-mono">
-                    {p.name}
-                  </span>
-                  
-                  {currentPlanActive ? (
-                    <span className="text-[9px] font-black text-emerald-900 flex items-center space-x-1.5 uppercase tracking-wider bg-emerald-100 px-2.5 py-1 rounded-full border border-emerald-400">
-                      <CheckCircle className="w-3.5 h-3.5 text-emerald-700 animate-pulse animate-duration-1000" />
-                      <span>{activeTrans.unlockedActive}</span>
+            return (
+              <div 
+                key={p.level}
+                className="p-5 rounded-3xl bg-white border-2 border-slate-200 hover:border-[#0A3D91]/60 hover:shadow-md transition-all flex flex-col justify-between space-y-4 shadow-sm"
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    {/* VIP Badge - Dominant High Contrast */}
+                    <span className="px-3 py-1 text-[10px] font-black rounded-lg bg-amber-500 text-white uppercase tracking-wider shadow-2xs font-mono">
+                      {p.name}
                     </span>
-                  ) : (
-                    <span className="text-[8px] font-mono font-black text-slate-800 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-300 uppercase tracking-widest">
-                      Tier {p.level}
+                    
+                    {currentPlanActive ? (
+                      <span className="text-[9px] font-black text-emerald-900 flex items-center space-x-1.5 uppercase tracking-wider bg-emerald-100 px-2.5 py-1 rounded-full border border-emerald-400">
+                        <CheckCircle className="w-3.5 h-3.5 text-emerald-700 animate-pulse" />
+                        <span>{activeTrans.unlockedActive}</span>
+                      </span>
+                    ) : (
+                      <span className="text-[8px] font-mono font-black text-slate-800 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-300 uppercase tracking-widest">
+                        Tier {p.level}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Investment Capital Readout */}
+                  <div className="mt-3.5 flex items-baseline space-x-2">
+                    <span className="font-display font-black text-2xl text-slate-950 tracking-tight font-mono">
+                      {p.requiredInvestment.toLocaleString()}
                     </span>
+                    <span className="text-sm font-black text-slate-800 font-mono">ETB</span>
+                  </div>
+                  <p className="text-[9.5px] text-slate-800 mt-1 uppercase tracking-wider font-extrabold flex items-center">
+                    <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mr-1.5"></span>
+                    {activeTrans.requiredCapitalCore}
+                  </p>
+
+                  {/* Secure Partnership Badge */}
+                  <div className="mt-2.5 flex items-center space-x-1.5 px-2.5 py-1 text-[9px] font-black rounded-lg bg-emerald-50 text-emerald-950 border border-emerald-350 w-fit uppercase tracking-wide">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+                    <span>{activeTrans.sovereignCbeSecureBadge}</span>
+                  </div>
+
+                  {/* Return Rate indicators with full-contrast weights */}
+                  <div className="grid grid-cols-2 gap-2 mt-4 pt-4 border-t-2 border-slate-100">
+                    <div className="bg-slate-50 p-2 rounded-xl border border-slate-200">
+                      <span className="text-[9px] text-slate-800 block font-black uppercase tracking-wide">{t.dailyReturnRate}</span>
+                      <span className="text-xs font-black text-emerald-700 font-mono block mt-0.5">
+                        {(p.dailyRate * 100).toFixed(1)}% / {t.day || 'day'}
+                      </span>
+                    </div>
+                    <div className="bg-slate-50 p-2 rounded-xl border border-slate-200">
+                      <span className="text-[9px] text-slate-800 block font-black uppercase tracking-wide">{t.duration} {activeTrans.cycleLabel}</span>
+                      <span className="text-xs font-black text-slate-900 font-mono block mt-0.5">
+                        {getPlanDuration(p.level)} {t.days}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Duration Tenure Picker inside card */}
+                  <div className="mt-3.5 space-y-1.5">
+                    <span className="text-[9px] font-black uppercase tracking-wider text-[#0A3D91] block font-sans">
+                      Choose Investment Tenure
+                    </span>
+                    <div className="grid grid-cols-4 gap-1">
+                      {[50, 70, 90, 120, 180, 240, 360, 720].map((dt) => {
+                        const isActive = getPlanDuration(p.level) === dt;
+                        return (
+                          <button
+                            key={dt}
+                            type="button"
+                            onClick={() => setChosenDurations(prev => ({ ...prev, [p.level]: dt }))}
+                            className={`py-1 text-[9.5px] font-black font-mono rounded-lg border transition-all text-center cursor-pointer ${
+                              isActive
+                                ? 'bg-[#0A3D91] border-[#0A3D91] text-white shadow-2xs'
+                                : 'bg-slate-55 border-slate-200 text-slate-705 hover:bg-slate-100'
+                            }`}
+                          >
+                            {dt}d
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Total return highlight box */}
+                  <div className="mt-3.5 bg-blue-50/50 rounded-xl p-2.5 px-3 flex justify-between items-center text-[11px] border-2 border-blue-150 animate-in fade-in duration-100" key={getPlanDuration(p.level)}>
+                    <span className="text-[9.5px] text-[#0A3D91] font-black uppercase tracking-wider">{t.estimatedReturn}</span>
+                    <span className="font-black text-[#0A3D91] text-xs font-mono">
+                      {getDynamicReturn(p).toLocaleString()} ETB
+                    </span>
+                  </div>
+                </div>
+
+                {/* Purchase Trigger Button - High Contrast Action Call */}
+                <button
+                  onClick={() => setSelectedPlan({
+                    ...p,
+                    durationDays: getPlanDuration(p.level),
+                    estimatedReturn: getDynamicReturn(p)
+                  })}
+                  className={`w-full py-2.5 rounded-xl font-display text-[11px] font-black uppercase tracking-wider transition-all duration-150 active:scale-95 cursor-pointer ${
+                    isElevated 
+                      ? 'bg-slate-100 text-slate-500 border-2 border-slate-300 font-bold' 
+                      : 'bg-[#0a3d91] hover:bg-[#072452] hover:border-[#0A3D91] text-white border-2 border-[#0a3d91] shadow-sm font-black'
+                  }`}
+                >
+                  {isElevated ? `⚠ ${t.insufficientBalance}` : activeTrans.investInPlan.replace('{name}', p.name)}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* VIP Investment Levels Listing */}
+      <div className="space-y-4">
+        <div className="flex items-center space-x-2 border-b-2 border-slate-200 pb-2">
+          <div className="w-1.5 h-5 bg-[#0A3D91] rounded-full"></div>
+          <h3 className="font-display font-black text-sm text-[#0A3D91] uppercase tracking-wide">
+            VIP Investment Levels
+          </h3>
+          <span className="text-[9px] font-mono font-black text-blue-800 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md uppercase tracking-wider">
+            Verification Mandatory
+          </span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {plans.filter(p => p.level >= 2).map((p) => {
+            const isElevated = p.requiredInvestment > (profile?.walletBalance ?? 0);
+            const currentPlanActive = (profile?.vipLevel ?? 0) >= p.level;
+
+            return (
+              <div 
+                key={p.level}
+                className="p-5 rounded-3xl bg-white border-2 border-slate-200 hover:border-[#0A3D91]/60 hover:shadow-md transition-all flex flex-col justify-between space-y-4 shadow-sm"
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    {/* VIP Badge - Dominant High Contrast */}
+                    <span className="px-3 py-1 text-[10px] font-black rounded-lg bg-[#0A3D91] text-white uppercase tracking-wider shadow-2xs font-mono">
+                      {p.name}
+                    </span>
+                    
+                    {currentPlanActive ? (
+                      <span className="text-[9px] font-black text-emerald-900 flex items-center space-x-1.5 uppercase tracking-wider bg-emerald-100 px-2.5 py-1 rounded-full border border-emerald-400">
+                        <CheckCircle className="w-3.5 h-3.5 text-emerald-700 animate-pulse animate-duration-1000" />
+                        <span>{activeTrans.unlockedActive}</span>
+                      </span>
+                    ) : (
+                      <span className="text-[8px] font-mono font-black text-slate-800 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-300 uppercase tracking-widest">
+                        Tier {p.level}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Investment Capital Readout */}
+                  <div className="mt-3.5 flex items-baseline space-x-2">
+                    <span className="font-display font-black text-2xl text-slate-950 tracking-tight font-mono">
+                      {p.requiredInvestment.toLocaleString()}
+                    </span>
+                    <span className="text-sm font-black text-slate-800 font-mono">ETB</span>
+                  </div>
+                  <p className="text-[9.5px] text-slate-800 mt-1 uppercase tracking-wider font-extrabold flex items-center">
+                    <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mr-1.5"></span>
+                    {activeTrans.requiredCapitalCore}
+                  </p>
+
+                  {/* Secure Partnership Badge */}
+                  <div className="mt-2.5 flex items-center space-x-1.5 px-2.5 py-1 text-[9px] font-black rounded-lg bg-emerald-50 text-emerald-950 border border-emerald-350 w-fit uppercase tracking-wide">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+                    <span>{activeTrans.sovereignCbeSecureBadge}</span>
+                  </div>
+
+                  {/* Return Rate indicators with full-contrast weights */}
+                  <div className="grid grid-cols-2 gap-2 mt-4 pt-4 border-t-2 border-slate-100">
+                    <div className="bg-slate-50 p-2 rounded-xl border border-slate-200">
+                      <span className="text-[9px] text-slate-800 block font-black uppercase tracking-wide">{t.dailyReturnRate}</span>
+                      <span className="text-xs font-black text-emerald-700 font-mono block mt-0.5">
+                        {(p.dailyRate * 100).toFixed(1)}% / {t.day || 'day'}
+                      </span>
+                    </div>
+                    <div className="bg-slate-50 p-2 rounded-xl border border-slate-200">
+                      <span className="text-[9px] text-slate-800 block font-black uppercase tracking-wide">{t.duration} {activeTrans.cycleLabel}</span>
+                      <span className="text-xs font-black text-slate-900 font-mono block mt-0.5">
+                        {getPlanDuration(p.level)} {t.days}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Duration Tenure Picker inside card */}
+                  <div className="mt-3.5 space-y-1.5">
+                    <span className="text-[9px] font-black uppercase tracking-wider text-[#0A3D91] block font-sans">
+                      Choose Investment Tenure
+                    </span>
+                    <div className="grid grid-cols-4 gap-1">
+                      {[50, 70, 90, 120, 180, 240, 360, 720].map((dt) => {
+                        const isActive = getPlanDuration(p.level) === dt;
+                        return (
+                          <button
+                            key={dt}
+                            type="button"
+                            onClick={() => setChosenDurations(prev => ({ ...prev, [p.level]: dt }))}
+                            className={`py-1 text-[9.5px] font-black font-mono rounded-lg border transition-all text-center cursor-pointer ${
+                              isActive
+                                ? 'bg-[#0A3D91] border-[#0A3D91] text-white shadow-2xs'
+                                : 'bg-slate-55 border-slate-200 text-slate-705 hover:bg-slate-100'
+                            }`}
+                          >
+                            {dt}d
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Total return highlight box */}
+                  <div className="mt-3.5 bg-blue-50/50 rounded-xl p-2.5 px-3 flex justify-between items-center text-[11px] border-2 border-blue-150 animate-in fade-in duration-100" key={getPlanDuration(p.level)}>
+                    <span className="text-[9.5px] text-[#0A3D91] font-black uppercase tracking-wider">{t.estimatedReturn}</span>
+                    <span className="font-black text-[#0A3D91] text-xs font-mono">
+                      {getDynamicReturn(p).toLocaleString()} ETB
+                    </span>
+                  </div>
+
+                  {/* VIP 5+ Milestone Tracker with Hide/Show mechanisms, as requested */}
+                  {p.level >= 2 && (
+                    <div className="mt-3.5 pt-3.5 border-t border-slate-205">
+                      {(() => {
+                        const vipLevelNum = p.level - 1; // 1 for VIP 1, 5 for VIP 5, etc.
+                        const isUperVip = vipLevelNum >= 5;
+                        const requiredInvites = isUperVip ? 25 + (vipLevelNum - 5) * 5 : 0;
+                        const requiredMonths = isUperVip ? 5 : 0;
+
+                        // Calculate dynamic values
+                        const regDate = profile.registrationDate ? new Date(profile.registrationDate) : new Date();
+                        const now = new Date();
+                        const diffTime = Math.abs(now.getTime() - regDate.getTime());
+                        const durationMonths = diffTime / (1000 * 60 * 60 * 24 * 30.4375);
+                        const hasDuration = durationMonths >= requiredMonths;
+
+                        const verifiedInvitesCount = referrals.filter(r => r.isVerified || r.referredVipLevel >= 1).length;
+                        const hasInvites = verifiedInvitesCount >= requiredInvites;
+                        const isIdVerified = profile.idVerificationStatus === 'verified';
+
+                        return (
+                          <>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-[10px] font-black text-[#0A3D91] uppercase tracking-wide flex items-center space-x-1">
+                                <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
+                                <span>VIP {vipLevelNum} Tracker</span>
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => setShowTrackers(prev => ({ ...prev, [p.level]: !prev[p.level] }))}
+                                className={`text-[9.5px] font-black uppercase px-2.5 py-1 rounded transition-all border cursor-pointer active:scale-95 ${
+                                  showTrackers[p.level]
+                                    ? "bg-[#0A3D91] text-white border-[#0A3D91]"
+                                    : "bg-slate-50 text-[#0A3D91] border-slate-200 hover:bg-slate-100"
+                                }`}
+                                title={showTrackers[p.level] ? "Hide milestone checks" : "Show milestone checks"}
+                              >
+                                {showTrackers[p.level] ? "✕ Hide" : "✦ Show Tracker"}
+                              </button>
+                            </div>
+
+                            {showTrackers[p.level] && (
+                              <div className="space-y-2.5 p-3 rounded-2xl bg-slate-50 border border-slate-150 text-[10.5px] font-sans antialiased animate-in fade-in slide-in-from-top-1 duration-200">
+                                
+                                {/* Requirement 1: National ID Status */}
+                                <div className="flex items-center justify-between p-1">
+                                  <div className="flex items-center space-x-2">
+                                    {isIdVerified ? (
+                                      <span className="text-emerald-600 font-extrabold text-[13px]">✓</span>
+                                    ) : (
+                                      <span className="text-rose-500 font-bold text-[13px]">✗</span>
+                                    )}
+                                    <span className="text-[9.5px] font-bold text-slate-800">Verified National ID Status</span>
+                                  </div>
+                                  <span className={`text-[8.5px] font-mono font-black px-2 py-0.5 rounded-lg uppercase tracking-wider border ${
+                                    isIdVerified
+                                      ? "bg-emerald-50 text-emerald-850 border-emerald-200"
+                                      : "bg-amber-50 text-amber-850 border-amber-200"
+                                  }`}>
+                                    {profile.idVerificationStatus || 'Unsubmitted'}
+                                  </span>
+                                </div>
+
+                                {isUperVip && (
+                                  <>
+                                    {/* Requirement 2: Membership Duration */}
+                                    <div className="flex items-center justify-between p-1 border-t border-slate-100 pt-1.5">
+                                      <div className="flex items-center space-x-2">
+                                        {hasDuration ? (
+                                          <span className="text-emerald-600 font-extrabold text-[13px]">✓</span>
+                                        ) : (
+                                          <span className="text-rose-500 font-bold text-[13px]">✗</span>
+                                        )}
+                                        <span className="text-[9.5px] font-bold text-slate-800">Membership at least {requiredMonths} Months</span>
+                                      </div>
+                                      <span className="font-mono text-[9px] font-black text-slate-700 bg-white border px-2 py-0.5 rounded-lg shadow-4xs">
+                                        {(Math.round(durationMonths * 10) / 10).toFixed(1)} / {requiredMonths}.0m
+                                      </span>
+                                    </div>
+
+                                    {/* Requirement 3: Verified Direct Invites */}
+                                    <div className="flex items-center justify-between p-1 border-t border-slate-100 pt-1.5">
+                                      <div className="flex items-center space-x-2">
+                                        {hasInvites ? (
+                                          <span className="text-emerald-600 font-extrabold text-[13px]">✓</span>
+                                        ) : (
+                                          <span className="text-rose-500 font-bold text-[13px]">✗</span>
+                                        )}
+                                        <span className="text-[9.5px] font-bold text-slate-800">{requiredInvites}+ Verified Direct Invites</span>
+                                      </div>
+                                      <span className="font-mono text-[9px] font-black text-slate-700 bg-white border px-2 py-0.5 rounded-lg shadow-4xs">
+                                        {verifiedInvitesCount} / {requiredInvites}
+                                      </span>
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
+                    </div>
                   )}
                 </div>
 
-                {/* Investment Capital Readout */}
-                <div className="mt-3.5 flex items-baseline space-x-2">
-                  <span className="font-display font-black text-2xl text-slate-950 tracking-tight font-mono">
-                    {p.requiredInvestment.toLocaleString()}
-                  </span>
-                  <span className="text-sm font-black text-slate-800 font-mono">ETB</span>
-                </div>
-                <p className="text-[9.5px] text-slate-800 mt-1 uppercase tracking-wider font-extrabold flex items-center">
-                  <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mr-1.5"></span>
-                  {activeTrans.requiredCapitalCore}
-                </p>
-
-                {/* Secure Partnership Badge */}
-                <div className="mt-2.5 flex items-center space-x-1.5 px-2.5 py-1 text-[9px] font-black rounded-lg bg-emerald-50 text-emerald-950 border border-emerald-350 w-fit uppercase tracking-wide">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
-                  <span>{activeTrans.sovereignCbeSecureBadge}</span>
-                </div>
-
-                {/* Return Rate indicators with full-contrast weights */}
-                <div className="grid grid-cols-2 gap-2 mt-4 pt-4 border-t-2 border-slate-100">
-                  <div className="bg-slate-50 p-2 rounded-xl border border-slate-200">
-                    <span className="text-[9px] text-slate-800 block font-black uppercase tracking-wide">{t.dailyReturnRate}</span>
-                    <span className="text-xs font-black text-emerald-700 font-mono block mt-0.5">
-                      {(p.dailyRate * 100).toFixed(1)}% / {t.day || 'day'}
-                    </span>
-                  </div>
-                  <div className="bg-slate-50 p-2 rounded-xl border border-slate-200">
-                    <span className="text-[9px] text-slate-800 block font-black uppercase tracking-wide">{t.duration} {activeTrans.cycleLabel}</span>
-                    <span className="text-xs font-black text-slate-900 font-mono block mt-0.5">
-                      {getPlanDuration(p.level)} {t.days}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Duration Tenure Picker inside card */}
-                <div className="mt-3.5 space-y-1.5">
-                  <span className="text-[9px] font-black uppercase tracking-wider text-[#0A3D91] block font-sans">
-                    Choose Investment Tenure
-                  </span>
-                  <div className="grid grid-cols-4 gap-1">
-                    {[50, 70, 90, 120, 180, 240, 360, 720].map((dt) => {
-                      const isActive = getPlanDuration(p.level) === dt;
-                      return (
-                        <button
-                          key={dt}
-                          type="button"
-                          onClick={() => setChosenDurations(prev => ({ ...prev, [p.level]: dt }))}
-                          className={`py-1 text-[9.5px] font-black font-mono rounded-lg border transition-all text-center cursor-pointer ${
-                            isActive
-                              ? 'bg-[#0A3D91] border-[#0A3D91] text-white shadow-2xs'
-                              : 'bg-slate-55 border-slate-200 text-slate-705 hover:bg-slate-100'
-                          }`}
-                        >
-                          {dt}d
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Total return highlight box */}
-                <div className="mt-3.5 bg-blue-50/50 rounded-xl p-2.5 px-3 flex justify-between items-center text-[11px] border-2 border-blue-150 animate-in fade-in duration-100" key={getPlanDuration(p.level)}>
-                  <span className="text-[9.5px] text-[#0A3D91] font-black uppercase tracking-wider">{t.estimatedReturn}</span>
-                  <span className="font-black text-[#0A3D91] text-xs font-mono">
-                    {getDynamicReturn(p).toLocaleString()} ETB
-                  </span>
-                </div>
-
-                {/* VIP 5+ Milestone Tracker with Hide/Show mechanisms, as requested */}
-                {p.level >= 2 && (
-                  <div className="mt-3.5 pt-3.5 border-t border-slate-205">
-                    {(() => {
-                      const vipLevelNum = p.level - 1; // 1 for VIP 1, 5 for VIP 5, etc.
-                      const isUperVip = vipLevelNum >= 5;
-                      const requiredInvites = isUperVip ? 25 + (vipLevelNum - 5) * 5 : 0;
-                      const requiredMonths = isUperVip ? 5 : 0;
-
-                      // Calculate dynamic values
-                      const regDate = profile.registrationDate ? new Date(profile.registrationDate) : new Date();
-                      const now = new Date();
-                      const diffTime = Math.abs(now.getTime() - regDate.getTime());
-                      const durationMonths = diffTime / (1000 * 60 * 60 * 24 * 30.4375);
-                      const hasDuration = durationMonths >= requiredMonths;
-
-                      const verifiedInvitesCount = referrals.filter(r => r.isVerified || r.referredVipLevel >= 1).length;
-                      const hasInvites = verifiedInvitesCount >= requiredInvites;
-                      const isIdVerified = profile.idVerificationStatus === 'verified';
-
-                      return (
-                        <>
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-[10px] font-black text-[#0A3D91] uppercase tracking-wide flex items-center space-x-1">
-                              <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
-                              <span>VIP {vipLevelNum} Tracker</span>
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => setShowTrackers(prev => ({ ...prev, [p.level]: !prev[p.level] }))}
-                              className={`text-[9.5px] font-black uppercase px-2.5 py-1 rounded transition-all border cursor-pointer active:scale-95 ${
-                                showTrackers[p.level]
-                                  ? "bg-[#0A3D91] text-white border-[#0A3D91]"
-                                  : "bg-slate-50 text-[#0A3D91] border-slate-200 hover:bg-slate-100"
-                              }`}
-                              title={showTrackers[p.level] ? "Hide milestone checks" : "Show milestone checks"}
-                            >
-                              {showTrackers[p.level] ? "✕ Hide" : "✦ Show Tracker"}
-                            </button>
-                          </div>
-
-                          {showTrackers[p.level] && (
-                            <div className="space-y-2.5 p-3 rounded-2xl bg-slate-50 border border-slate-150 text-[10.5px] font-sans antialiased animate-in fade-in slide-in-from-top-1 duration-200">
-                              
-                              {/* Requirement 1: National ID Status */}
-                              <div className="flex items-center justify-between p-1">
-                                <div className="flex items-center space-x-2">
-                                  {isIdVerified ? (
-                                    <span className="text-emerald-600 font-extrabold text-[13px]">✓</span>
-                                  ) : (
-                                    <span className="text-rose-500 font-bold text-[13px]">✗</span>
-                                  )}
-                                  <span className="text-[9.5px] font-bold text-slate-800">Verified National ID Status</span>
-                                </div>
-                                <span className={`text-[8.5px] font-mono font-black px-2 py-0.5 rounded-lg uppercase tracking-wider border ${
-                                  isIdVerified
-                                    ? "bg-emerald-50 text-emerald-850 border-emerald-200"
-                                    : "bg-amber-50 text-amber-850 border-amber-200"
-                                }`}>
-                                  {profile.idVerificationStatus || 'Unsubmitted'}
-                                </span>
-                              </div>
-
-                              {isUperVip && (
-                                <>
-                                  {/* Requirement 2: Membership Duration */}
-                                  <div className="flex items-center justify-between p-1 border-t border-slate-100 pt-1.5">
-                                    <div className="flex items-center space-x-2">
-                                      {hasDuration ? (
-                                        <span className="text-emerald-600 font-extrabold text-[13px]">✓</span>
-                                      ) : (
-                                        <span className="text-rose-500 font-bold text-[13px]">✗</span>
-                                      )}
-                                      <span className="text-[9.5px] font-bold text-slate-800">Membership at least {requiredMonths} Months</span>
-                                    </div>
-                                    <span className="font-mono text-[9px] font-black text-slate-700 bg-white border px-2 py-0.5 rounded-lg shadow-4xs">
-                                      {(Math.round(durationMonths * 10) / 10).toFixed(1)} / {requiredMonths}.0m
-                                    </span>
-                                  </div>
-
-                                  {/* Requirement 3: Verified Direct Invites */}
-                                  <div className="flex items-center justify-between p-1 border-t border-slate-100 pt-1.5">
-                                    <div className="flex items-center space-x-2">
-                                      {hasInvites ? (
-                                        <span className="text-emerald-600 font-extrabold text-[13px]">✓</span>
-                                      ) : (
-                                        <span className="text-rose-500 font-bold text-[13px]">✗</span>
-                                      )}
-                                      <span className="text-[9.5px] font-bold text-slate-800">{requiredInvites}+ Verified Direct Invites</span>
-                                    </div>
-                                    <span className="font-mono text-[9px] font-black text-slate-700 bg-white border px-2 py-0.5 rounded-lg shadow-4xs">
-                                      {verifiedInvitesCount} / {requiredInvites}
-                                    </span>
-                                  </div>
-                                </>
-                              )}
-                            </div>
-                          )}
-                        </>
-                      );
-                    })()}
-                  </div>
-                )}
+                {/* Purchase Trigger Button - High Contrast Action Call */}
+                <button
+                  onClick={() => setSelectedPlan({
+                    ...p,
+                    durationDays: getPlanDuration(p.level),
+                    estimatedReturn: getDynamicReturn(p)
+                  })}
+                  className={`w-full py-2.5 rounded-xl font-display text-[11px] font-black uppercase tracking-wider transition-all duration-150 active:scale-95 cursor-pointer ${
+                    isElevated 
+                      ? 'bg-slate-100 text-slate-500 border-2 border-slate-300 font-bold' 
+                      : 'bg-[#0a3d91] hover:bg-[#072452] hover:border-[#0A3D91] text-white border-2 border-[#0a3d91] shadow-sm font-black'
+                  }`}
+                >
+                  {isElevated ? `⚠ ${t.insufficientBalance}` : activeTrans.investInPlan.replace('{name}', p.name)}
+                </button>
               </div>
-
-              {/* Purchase Trigger Button - High Contrast Action Call */}
-              <button
-                onClick={() => setSelectedPlan({
-                  ...p,
-                  durationDays: getPlanDuration(p.level),
-                  estimatedReturn: getDynamicReturn(p)
-                })}
-                className={`w-full py-2.5 rounded-xl font-display text-[11px] font-black uppercase tracking-wider transition-all duration-150 active:scale-95 cursor-pointer ${
-                  isElevated 
-                    ? 'bg-slate-100 text-slate-500 border-2 border-slate-300 font-bold' 
-                    : 'bg-[#0a3d91] hover:bg-[#072452] hover:border-[#0A3D91] text-white border-2 border-[#0a3d91] shadow-sm font-black'
-                }`}
-              >
-                {isElevated ? `⚠ ${t.insufficientBalance}` : activeTrans.investInPlan.replace('{name}', p.name)}
-              </button>
-
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
       {/* Checkout Modal confirmation - Premium Secure Overlay */}

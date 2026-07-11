@@ -54,7 +54,9 @@ const DEFAULT_SETTINGS: AppSettings = {
 };
 
 const VIP_PLANS = [
-  { level: 1, name: "Starter level", requiredInvestment: 3500, dailyRate: 0.0340, durationDays: 50, estimatedReturn: 9450 },
+  { level: 1.1, name: "Starter Level 1", requiredInvestment: 1000, dailyRate: 0.032, durationDays: 50, estimatedReturn: 2600 },
+  { level: 1.2, name: "Starter Level 2", requiredInvestment: 2000, dailyRate: 0.032, durationDays: 50, estimatedReturn: 5200 },
+  { level: 1.3, name: "Starter Level 3", requiredInvestment: 3500, dailyRate: 0.034, durationDays: 50, estimatedReturn: 9450 },
   { level: 2, name: "VIP Level 1", requiredInvestment: 5000, dailyRate: 0.0350, durationDays: 50, estimatedReturn: 13750 },
   { level: 3, name: "VIP Level 2", requiredInvestment: 10000, dailyRate: 0.0375, durationDays: 50, estimatedReturn: 28750 },
   { level: 4, name: "VIP Level 3", requiredInvestment: 25000, dailyRate: 0.0400, durationDays: 50, estimatedReturn: 75000 },
@@ -272,6 +274,25 @@ function loadLocalDB(): LumoraDB {
         }
       }
     }
+  }
+
+  // Auto-migrate existing users on the old 3,500 ETB Starter plan (level 1) to Starter Level 3 (level 1.3)
+  if (db.investments) {
+    db.investments.forEach(inv => {
+      if (inv.planLevel === 1 || inv.planName === "Starter level" || inv.planName === "Starter Level") {
+        inv.planName = "Starter Level 3";
+        inv.planLevel = 1.3;
+        modified = true;
+      }
+    });
+  }
+  if (db.profiles) {
+    db.profiles.forEach(p => {
+      if (p.vipLevel === 1) {
+        p.vipLevel = 1.3;
+        modified = true;
+      }
+    });
   }
 
   const balancesModified = sanitizeLocalDBBalances(db);
@@ -917,7 +938,10 @@ function awardLocalLevelActivationBonus(db: LumoraDB, profile: any, level: numbe
   if (!profile) return false;
   
   const bonuses: Record<number, { name: string; amount: number }> = {
-    1: { name: "Starter Level", amount: 150 },
+    1.1: { name: "Starter Level 1", amount: 50 },
+    1.2: { name: "Starter Level 2", amount: 100 },
+    1.3: { name: "Starter Level 3", amount: 150 },
+    1: { name: "Starter Level 3", amount: 150 },
     2: { name: "VIP Level 1", amount: 200 },
     3: { name: "VIP Level 2", amount: 300 },
     4: { name: "VIP Level 3", amount: 400 },
@@ -1667,7 +1691,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     if (!plan) return respondJSON(400, { error: "Invalid VIP Level selected" });
 
     if (plan.level >= 2 && profile.idVerificationStatus !== "verified") {
-      return respondJSON(400, { error: "Identity verification is mandatory to unlock higher VIP plans." });
+      return respondJSON(403, { error: "Account verification is required before activating VIP levels. Please complete your identity verification to continue." });
     }
 
     if (profile.walletBalance < plan.requiredInvestment) {

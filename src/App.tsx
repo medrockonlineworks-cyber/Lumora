@@ -360,7 +360,8 @@ function MainAppContent() {
   }
 
   // Force registered user to submit both sides of the National ID before they can enter the application
-  if (profile.idVerificationStatus === 'unsubmitted' && !isAdmin) {
+  // ONLY if they have activated or are trying to use VIP levels (level >= 2)
+  if (profile.vipLevel >= 2 && profile.idVerificationStatus === 'unsubmitted' && !isAdmin) {
     return (
       <IdUploadGate 
         userId={userId}
