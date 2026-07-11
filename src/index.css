@@ -19,5 +19,5 @@
 }
 
 input:focus, select:focus, textarea:focus {
-  @apply outline-hidden ring-2 ring-[#0A3D91] border-transparent;
+  @apply outline-none ring-2 ring-[#0A3D91] border-transparent;
 }
