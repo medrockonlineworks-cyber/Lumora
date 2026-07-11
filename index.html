@@ -4,12 +4,56 @@
     <script>
       (function() {
         try {
-          // Define default prototype property (enumerable: false to prevent React DOM warnings)
           Object.defineProperty(Object.prototype, 'experimentalForceLongPolling', {
-            value: true,
-            writable: true,
             configurable: true,
-            enumerable: false
+            enumerable: false,
+            get() {
+              return true;
+            },
+            set(val) {
+              if (this && typeof this === 'object') {
+                Object.defineProperty(this, 'experimentalForceLongPolling', {
+                  value: val,
+                  writable: true,
+                  configurable: true,
+                  enumerable: true
+                });
+                if (val) {
+                  Object.defineProperty(this, 'experimentalAutoDetectLongPolling', {
+                    value: false,
+                    writable: true,
+                    configurable: true,
+                    enumerable: true
+                  });
+                }
+              }
+            }
+          });
+
+          Object.defineProperty(Object.prototype, 'experimentalAutoDetectLongPolling', {
+            configurable: true,
+            enumerable: false,
+            get() {
+              return false;
+            },
+            set(val) {
+              if (this && typeof this === 'object') {
+                Object.defineProperty(this, 'experimentalAutoDetectLongPolling', {
+                  value: val,
+                  writable: true,
+                  configurable: true,
+                  enumerable: true
+                });
+                if (val) {
+                  Object.defineProperty(this, 'experimentalForceLongPolling', {
+                    value: false,
+                    writable: true,
+                    configurable: true,
+                    enumerable: true
+                  });
+                }
+              }
+            }
           });
         } catch (e) {
           console.warn('Failed to configure Firestore polling defaults:', e);
