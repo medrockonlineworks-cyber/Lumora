@@ -1,78 +1,26 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <script>
-      (function() {
-        const forcePollingValues = new WeakMap();
-        const autoDetectValues = new WeakMap();
-
-        function isPlainObject(obj) {
-          if (!obj || typeof obj !== 'object') return false;
-          if (obj.nodeType !== undefined) return false;
-          if (obj.$$typeof !== undefined) return false;
-          if (obj === window || obj === document) return false;
-          
-          const proto = Object.getPrototypeOf(obj);
-          return proto === null || proto === Object.prototype;
-        }
-
-        Object.defineProperty(Object.prototype, 'experimentalForceLongPolling', {
-          configurable: true,
-          enumerable: false,
-          get() {
-            if (!isPlainObject(this)) return undefined;
-            return forcePollingValues.get(this);
-          },
-          set(val) {
-            if (!isPlainObject(this)) {
-              Object.defineProperty(this, 'experimentalForceLongPolling', {
-                value: val,
-                writable: true,
-                configurable: true,
-                enumerable: true
-              });
-              return;
-            }
-            forcePollingValues.set(this, val);
-            if (val) {
-              autoDetectValues.set(this, false);
-            }
-          }
-        });
-
-        Object.defineProperty(Object.prototype, 'experimentalAutoDetectLongPolling', {
-          configurable: true,
-          enumerable: false,
-          get() {
-            if (!isPlainObject(this)) return undefined;
-            return autoDetectValues.get(this);
-          },
-          set(val) {
-            if (!isPlainObject(this)) {
-              Object.defineProperty(this, 'experimentalAutoDetectLongPolling', {
-                value: val,
-                writable: true,
-                configurable: true,
-                enumerable: true
-              });
-              return;
-            }
-            if (forcePollingValues.get(this)) {
-              autoDetectValues.set(this, false);
-            } else {
-              autoDetectValues.set(this, val);
-            }
-          }
-        });
-      })();
-    </script>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22 width=%22100%22 height=%22100%22><text y=%220.9em%22 font-size=%2290%22>💎</text></svg>" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LUMORA | Smart Investing</title>
+    <title>LUMORA — Smart Investing. Secure Growth.</title>
+    <link rel="icon" type="image/x-icon" href="/favicon_v8.ico?v=10" />
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon_v8.ico?v=10" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/logo.png" />
+    <link rel="apple-touch-icon" href="/logo.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/logo.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/logo.png" />
+    <link rel="apple-touch-icon" sizes="512x512" href="/logo.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="LUMORA" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#0A3D91" />
   </head>
-  <body class="bg-slate-50 text-slate-900 antialiased font-sans">
+  <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
+

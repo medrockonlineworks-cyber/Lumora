@@ -1,507 +1,610 @@
-import React, { useState, useEffect } from 'react';
-import { Language, translations } from './locale';
-import { UserProfile, InvestmentPlan, Investment, Transaction, Referral } from './types';
-import LoginScreen from './components/LoginScreen';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { ShieldAlert } from 'lucide-react';
+import { LanguageProvider, useLanguage } from './locale';
 import HeaderBar from './components/HeaderBar';
 import BottomNavBar from './components/BottomNavBar';
 import HomeTab from './components/HomeTab';
 import InvestmentsTab from './components/InvestmentsTab';
 import EarningsTab from './components/EarningsTab';
+import CustomerServiceTab from './components/CustomerServiceTab';
 import CardTab from './components/CardTab';
 import ProfileTab from './components/ProfileTab';
-import CustomerServiceTab from './components/CustomerServiceTab';
+import LoginScreen from './components/LoginScreen';
+import AgreementsPage from './components/AgreementsPage';
+import AboutUsPage from './components/AboutUsPage';
+import TransactionsModals from './components/TransactionsModals';
+import IdUploadGate from './components/IdUploadGate';
+import WalkthroughModal from './components/WalkthroughModal';
+import LumoraLogo from './components/LumoraLogo';
 import AdminPanel from './components/AdminPanel';
-import { ShieldCheck, AlertCircle } from 'lucide-react';
+import { Profile, Investment, MyTransaction, Notification, InvestmentPlan, Withdrawal, Loan, Deposit } from './types';
 
-export default function App() {
-  const [language, setLanguage] = useState<Language>('en');
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [investments, setInvestments] = useState<Investment[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [referrals, setReferrals] = useState<Referral[]>([]);
-  const [currentTab, setCurrentTab] = useState<string>('home');
-  const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
-  const [withdrawAmount, setWithdrawAmount] = useState('');
-  const [withdrawError, setWithdrawError] = useState('');
-  const [withdrawSuccess, setWithdrawSuccess] = useState('');
+const offlineTranslations: Record<string, string> = {
+  en: "Offline Mode — Showing last synced profile & portfolio",
+  am: "ከመስመር ውጭ ሁኔታ — ለመጨረሻ ጊዜ የተመሳሰለ መገለጫ እና ፖርትፎሊዮ እያሳየ ነው",
+  om: "Haala Sarara Alaa — Profila fi portfolio dhumarratti dhiyaate argisiisaa jira",
+  ti: "ካብ መስመር ወጻኢ — ናይ መወዳእታ ግዘ ዝተሰማምዐ ፕሮፋይልን ፖርትፎሊዮን የርኢ ኣሎ",
+  so: "Habka Khadka Ka Baxsan — Wuxuu muujinayaa profile-kii iyo portfolio-gii ugu dambeeyay"
+};
 
-  const t = translations[language];
+function MainAppContent() {
+  const { t, language } = useLanguage();
+  
+  // Splash screen state (shows for exactly 5 seconds when app starts)
+  const [showSplash, setShowSplash] = useState<boolean>(true);
 
-  // Official Lumora Investment Plans
-  const plans: InvestmentPlan[] = [
-    { level: 0, name: 'Starter Level 1', requiredInvestment: 1000, dailyRate: 0.035, durationDays: 50, activationBonus: 50, isVip: false },
-    { level: 1, name: 'Starter Level 2', requiredInvestment: 2000, dailyRate: 0.04, durationDays: 60, activationBonus: 100, isVip: false },
-    { level: 2, name: 'Starter Level 3', requiredInvestment: 3500, dailyRate: 0.045, durationDays: 70, activationBonus: 150, isVip: false },
-    { level: 3, name: 'VIP Level 1', requiredInvestment: 5000, dailyRate: 0.05, durationDays: 90, activationBonus: 250, isVip: true },
-    { level: 4, name: 'VIP Level 2', requiredInvestment: 10000, dailyRate: 0.055, durationDays: 120, activationBonus: 500, isVip: true },
-    { level: 5, name: 'VIP Level 3', requiredInvestment: 20000, dailyRate: 0.06, durationDays: 150, activationBonus: 1000, isVip: true },
-    { level: 6, name: 'VIP Level 4', requiredInvestment: 40000, dailyRate: 0.065, durationDays: 180, activationBonus: 2500, isVip: true },
-    { level: 7, name: 'VIP Level 5', requiredInvestment: 80000, dailyRate: 0.07, durationDays: 240, activationBonus: 5500, isVip: true },
-  ];
-
-  // Load from LocalStorage
   useEffect(() => {
-    const savedProfile = localStorage.getItem('lumora_profile');
-    const savedInvestments = localStorage.getItem('lumora_investments');
-    const savedTransactions = localStorage.getItem('lumora_transactions');
-    const savedReferrals = localStorage.getItem('lumora_referrals');
-
-    if (savedProfile) setProfile(JSON.parse(savedProfile));
-    if (savedInvestments) setInvestments(JSON.parse(savedInvestments));
-    if (savedTransactions) setTransactions(JSON.parse(savedTransactions));
-    if (savedReferrals) setReferrals(JSON.parse(savedReferrals));
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 5000);
+    return () => clearTimeout(timer);
   }, []);
 
-  // Save to LocalStorage helper
-  const saveState = (
-    newProfile: UserProfile | null,
-    newInvests: Investment[],
-    newTxs: Transaction[],
-    newRefs: Referral[]
-  ) => {
-    if (newProfile) {
-      localStorage.setItem('lumora_profile', JSON.stringify(newProfile));
-      setProfile(newProfile);
-    }
-    localStorage.setItem('lumora_investments', JSON.stringify(newInvests));
-    localStorage.setItem('lumora_transactions', JSON.stringify(newTxs));
-    localStorage.setItem('lumora_referrals', JSON.stringify(newRefs));
-    
-    setInvestments(newInvests);
-    setTransactions(newTxs);
-    setReferrals(newRefs);
-  };
+  // App state variables
+  const [userId, setUserId] = useState<string | null>(() => localStorage.getItem('lumora_user_id'));
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [restoringSession, setRestoringSession] = useState<boolean>(() => !!localStorage.getItem('lumora_user_id'));
+  const [plans, setPlans] = useState<InvestmentPlan[]>([]);
+  const [investments, setInvestments] = useState<Investment[]>([]);
+  const [recentTransactions, setRecentTransactions] = useState<MyTransaction[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
+  const [deposits, setDeposits] = useState<Deposit[]>([]);
+  const [loans, setLoans] = useState<Loan[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+  
+  // Offline state indicator
+  const [isOffline, setIsOffline] = useState<boolean>(() => !navigator.onLine);
 
-  // Login handler
-  const handleLogin = (newProfile: UserProfile) => {
-    // Add default initial transactions/referrals if user is new
-    const savedProfile = localStorage.getItem('lumora_profile');
-    if (!savedProfile) {
-      // 100 ETB Starter Signup Bonus!
-      const initialBonusTx: Transaction = {
-        id: 'bonus_' + Math.random().toString(36).substring(2, 9),
-        type: 'bonus',
-        amount: 100,
-        status: 'completed',
-        createdAt: new Date().toISOString(),
-      };
-      
-      const updatedProfile = {
-        ...newProfile,
-        walletBalance: 100, // Preloaded with starter bonus
-        totalEarned: 100,
-      };
+  // Rehydrate initial state from localStorage cache for instant offline or reload display
+  useEffect(() => {
+    if (userId) {
+      try {
+        const cachedDash = localStorage.getItem(`lumora_cached_dashboard_${userId}`);
+        if (cachedDash) {
+          const data = JSON.parse(cachedDash);
+          if (data.profile) setProfile(data.profile);
+          if (data.investments) setInvestments(data.investments);
+          if (data.recentTransactions) setRecentTransactions(data.recentTransactions);
+          if (data.notifications) setNotifications(data.notifications);
+          if (data.isAdmin !== undefined) setIsAdmin(data.isAdmin);
+          if (data.loans) setLoans(data.loans);
+        }
+        
+        const cachedPlans = localStorage.getItem(`lumora_cached_plans`);
+        if (cachedPlans) {
+          setPlans(JSON.parse(cachedPlans));
+        }
 
-      const mockReferralList: Referral[] = [
-        { phone: '0911854911', name: 'Almaz Kassa', isVerified: true, referredVipLevel: 1, joinedAt: new Date(Date.now() - 86400000 * 2).toISOString() },
-        { phone: '0922831005', name: 'Elias Tekle', isVerified: false, referredVipLevel: 0, joinedAt: new Date(Date.now() - 86400000 * 5).toISOString() }
-      ];
+        const cachedWithdrawals = localStorage.getItem(`lumora_cached_withdrawals_${userId}`);
+        if (cachedWithdrawals) {
+          setWithdrawals(JSON.parse(cachedWithdrawals));
+        }
 
-      saveState(updatedProfile, [], [initialBonusTx], mockReferralList);
-      alert(language === 'am' ? 'ሉሞራን ስለተቀላቀሉ የ 100 ETB የጀማሪ ጉርሻ አግኝተዋል!' : 'Welcome to LUMORA! You have received a 100 ETB Starter Signup Bonus!');
-    } else {
-      setProfile(JSON.parse(savedProfile));
-    }
-  };
-
-  // Secure Logout
-  const handleLogout = () => {
-    localStorage.removeItem('lumora_profile');
-    setProfile(null);
-    setCurrentTab('home');
-  };
-
-  // Submit CBE Deposit Proof
-  const handleDepositProof = (amount: number, refCode: string, receiptPhoto: string) => {
-    if (!profile) return;
-    const newTx: Transaction = {
-      id: 'tx_' + Math.random().toString(36).substring(2, 9),
-      type: 'deposit',
-      amount,
-      status: 'pending',
-      referenceCode: refCode,
-      receiptPhoto,
-      createdAt: new Date().toISOString(),
-    };
-    const updatedTxs = [newTx, ...transactions];
-    saveState(profile, investments, updatedTxs, referrals);
-  };
-
-  // Claim Daily Earning Emitter
-  const handleClaimDaily = (inv: Investment) => {
-    if (!profile) return;
-    const dailyReturn = inv.capital * inv.dailyRate;
-    
-    // Update investment status progress
-    const updatedInvests: Investment[] = investments.map(i => {
-      if (i.id === inv.id) {
-        const nextDays = i.daysElapsed + 1;
-        const isFinished = nextDays >= i.durationDays;
-        return {
-          ...i,
-          daysElapsed: nextDays,
-          earningsEarned: i.earningsEarned + dailyReturn,
-          status: (isFinished ? 'completed' : 'active') as 'completed' | 'active',
-        };
+        const cachedDeposits = localStorage.getItem(`lumora_cached_deposits_${userId}`);
+        if (cachedDeposits) {
+          setDeposits(JSON.parse(cachedDeposits));
+        }
+      } catch (err) {
+        console.error("Failed to restore dashboard cache:", err);
       }
-      return i;
-    });
+    }
+  }, [userId]);
 
-    const earningTx: Transaction = {
-      id: 'claim_' + Math.random().toString(36).substring(2, 9),
-      type: 'earning',
-      amount: dailyReturn,
-      status: 'completed',
-      createdAt: new Date().toISOString(),
+  // Handle active online/offline browser state changes
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOffline(false);
+      fetchDashboardData();
+    };
+    const handleOffline = () => {
+      setIsOffline(true);
     };
 
-    const updatedProfile = {
-      ...profile,
-      walletBalance: profile.walletBalance + dailyReturn,
-      totalEarned: profile.totalEarned + dailyReturn,
-    };
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
 
-    saveState(updatedProfile, updatedInvests, [earningTx, ...transactions], referrals);
-    alert(language === 'am' ? `የዕለት ተቀናሽ ትርፍዎ +${dailyReturn.toLocaleString()} ETB ተጨምሯል!` : `Your daily return of +${dailyReturn.toLocaleString()} ETB was claimed successfully!`);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [userId]);
+
+  // Layout states
+  const [activeTab, setActiveTab] = useState<string>('home');
+  const [showAdmin, setShowAdmin] = useState<boolean>(false);
+  const [showAgreements, setShowAgreements] = useState<boolean>(false);
+  const [showAboutUs, setShowAboutUs] = useState<boolean>(false);
+  
+  // Transaction gates popups
+  const [transactionGate, setTransactionGate] = useState<'deposit' | 'withdrawal' | null>(null);
+
+  // Walkthrough onboarding state
+  const [showWalkthrough, setShowWalkthrough] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (userId && profile && (profile.idVerificationStatus !== 'unsubmitted' || isAdmin)) {
+      const completed = localStorage.getItem(`lumora_walkthrough_new_${userId}`);
+      if (completed !== 'completed') {
+        setShowWalkthrough(true);
+      }
+    } else {
+      setShowWalkthrough(false);
+    }
+  }, [userId, profile, isAdmin]);
+
+  // Fetch dashboard data
+  useEffect(() => {
+    if (userId) {
+      fetchDashboardData();
+
+      // Listen for local/remote database updates to synchronize client states immediately
+      const handleUpdate = () => {
+        fetchDashboardData();
+      };
+      window.addEventListener("lumoradb-updated", handleUpdate);
+
+      // Setup periodic dashboard poll every 3 seconds for secondary real-time synchronization fallback
+      const handle = setInterval(() => {
+        fetchDashboardData();
+      }, 3000);
+
+      return () => {
+        window.removeEventListener("lumoradb-updated", handleUpdate);
+        clearInterval(handle);
+      };
+    }
+  }, [userId]);
+
+  const fetchDashboardData = async () => {
+    if (!userId) {
+      setRestoringSession(false);
+      return;
+    }
+    try {
+      // 1. Fetch dashboard stats
+      const resDash = await fetch(`/api/dashboard/${userId}`);
+      if (resDash.ok) {
+        setIsOffline(false);
+        const data = await resDash.json();
+        setProfile(data.profile);
+        setInvestments(data.investments);
+        setRecentTransactions(data.recentTransactions);
+        setNotifications(data.notifications);
+        setIsAdmin(data.isAdmin);
+        setLoans(data.loans || []);
+
+        // Cache successful dashboard payload
+        localStorage.setItem(`lumora_cached_dashboard_${userId}`, JSON.stringify(data));
+      } else {
+        // ONLY log out if backend explicitly reports unauthorized session (e.g., status 401/403)
+        // Otherwise, flag as offline and preserve current local state to prevent wiping user data!
+        if (resDash.status === 401 || resDash.status === 403) {
+          handleLogout();
+        } else {
+          setIsOffline(true);
+        }
+      }
+
+      // 2. Fetch investment plans
+      const resPlans = await fetch('/api/plans');
+      if (resPlans.ok) {
+        const data = await resPlans.json();
+        setPlans(data);
+        localStorage.setItem('lumora_cached_plans', JSON.stringify(data));
+      }
+
+      // 3. Fetch user withdrawal cashout history
+      const resWithdrawals = await fetch(`/api/withdrawals/user/${userId}`);
+      if (resWithdrawals.ok) {
+        const data = await resWithdrawals.json();
+        setWithdrawals(data);
+        localStorage.setItem(`lumora_cached_withdrawals_${userId}`, JSON.stringify(data));
+      }
+
+      // 3b. Fetch user deposit history
+      const resDeposits = await fetch(`/api/deposits/user/${userId}`);
+      if (resDeposits.ok) {
+        try {
+          const data = await resDeposits.json();
+          setDeposits(data);
+          localStorage.setItem(`lumora_cached_deposits_${userId}`, JSON.stringify(data));
+        } catch (e) {
+          console.error("Error reading deposits:", e);
+        }
+      }
+
+    } catch (err) {
+      console.error("Error retrieving dashboard logs:", err);
+      setIsOffline(true); // Treat fetch exceptions (e.g. DNS failure / offline) as offline rather than logging out
+    } finally {
+      setRestoringSession(false);
+    }
   };
 
-  // Invest in plan handler
-  const handleInvest = (plan: InvestmentPlan, duration: number) => {
-    if (!profile) return;
-    if (profile.walletBalance < plan.requiredInvestment) return;
+  const handleLoginSuccess = (cid: string, prof: Profile) => {
+    localStorage.setItem('lumora_user_id', cid);
+    setUserId(cid);
+    setProfile(prof);
+    setActiveTab('home');
+    setShowAdmin(false);
+  };
 
-    // Deduct and create active investment
-    const newInvest: Investment = {
-      id: 'inv_' + Math.random().toString(36).substring(2, 9),
-      planLevel: plan.level,
-      planName: plan.name,
-      capital: plan.requiredInvestment,
-      dailyRate: plan.dailyRate,
-      durationDays: duration,
-      daysElapsed: 0,
-      earningsEarned: 0,
-      totalExpectedReturn: plan.requiredInvestment + (plan.requiredInvestment * plan.dailyRate * duration),
-      status: 'active',
-      createdAt: new Date().toISOString(),
-      lastClaimedAt: new Date().toISOString(),
-    };
+  const handleLogout = () => {
+    if (userId) {
+      localStorage.removeItem(`lumora_cached_dashboard_${userId}`);
+      localStorage.removeItem(`lumora_cached_withdrawals_${userId}`);
+      localStorage.removeItem(`lumora_cached_deposits_${userId}`);
+    }
+    localStorage.removeItem('lumora_user_id');
+    setUserId(null);
+    setProfile(null);
+    setInvestments([]);
+    setRecentTransactions([]);
+    setNotifications([]);
+    setWithdrawals([]);
+    setDeposits([]);
+    setIsAdmin(false);
+    setActiveTab('home');
+    setShowAdmin(false);
+  };
 
-    // Credit activation bonus!
-    const bonusTx: Transaction = {
-      id: 'bonus_act_' + Math.random().toString(36).substring(2, 9),
-      type: 'bonus',
-      amount: plan.activationBonus,
-      status: 'completed',
-      createdAt: new Date().toISOString(),
-    };
+  const handleBuyPlan = async (level: number, durationDays?: number) => {
+    if (!userId) return { success: false, error: 'User session expired' };
+    try {
+      const res = await fetch('/api/investments/buy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, vipLevel: level, durationDays })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        fetchDashboardData();
+        return { success: true };
+      }
+      return { success: false, error: data.error };
+    } catch (err) {
+      return { success: false, error: 'Network failure' };
+    }
+  };
 
-    const updatedProfile = {
-      ...profile,
-      walletBalance: profile.walletBalance - plan.requiredInvestment + plan.activationBonus,
-      totalEarned: profile.totalEarned + plan.activationBonus,
-      vipLevel: Math.max(profile.vipLevel, plan.level), // Upgrade level on purchase
-    };
+  const handleSetPin = async (pin: string) => {
+    if (!userId) return { success: false, error: 'User session expired' };
+    try {
+      const res = await fetch('/api/profiles/pin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, transactionPin: pin })
+      });
+      if (res.ok) {
+        fetchDashboardData();
+        return { success: true };
+      }
+      return { success: false, error: 'Failed to configure security PIN' };
+    } catch (err) {
+      return { success: false, error: 'Network failure' };
+    }
+  };
 
-    const updatedInvests = [newInvest, ...investments];
-    const updatedTxs = [bonusTx, ...transactions];
+  const handleUploadAvatar = async (base64: string) => {
+    if (!userId) return { success: false, error: 'User session expired' };
+    try {
+      const res = await fetch('/api/profiles/avatar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, avatarBase64: base64 })
+      });
+      if (res.ok) {
+        fetchDashboardData();
+        return { success: true };
+      }
+      const data = await res.json().catch(() => ({}));
+      return { success: false, error: data.error || 'Failed to update avatar image' };
+    } catch (err) {
+      return { success: false, error: 'Network failure' };
+    }
+  };
 
-    saveState(updatedProfile, updatedInvests, updatedTxs, referrals);
-    alert(
-      language === 'am'
-        ? `በ${plan.name} በተሳካ ሁኔታ ኢንቨስት አድርገዋል! ተጨማሪ የ +${plan.activationBonus} ETB የአግብሮት ቦነስ አግኝተዋል!`
-        : `Successfully activated ${plan.name}! You have received an instant +${plan.activationBonus} ETB activation bonus!`
+  const handleSubmitLoan = async (amount: number, nationalId: string, tenureMonths: number) => {
+    if (!userId) return { success: false, error: 'User session expired' };
+    try {
+      const res = await fetch('/api/loans/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, amount, nationalId, tenureMonths })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        fetchDashboardData();
+        return { success: true };
+      }
+      return { success: false, error: data.error || 'Failed to submit loan request' };
+    } catch (err) {
+      return { success: false, error: 'Network failure' };
+    }
+  };
+
+  const handleNotificationsRead = async () => {
+    if (!userId) return;
+    try {
+      await fetch('/api/notifications/read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId })
+      });
+      fetchDashboardData();
+    } catch (err) { console.error(err); }
+  };
+
+  if (showSplash) {
+    return (
+      <div className="fixed inset-0 bg-[#020617] z-[99999] flex flex-col items-center justify-center">
+        <LumoraLogo type="splash" size="full" className="!rounded-none !border-none !shadow-none !h-full !max-w-md" />
+      </div>
     );
-    setCurrentTab('earnings');
-  };
-
-  // Submit KYC handler
-  const handleKycSubmit = (idNumber: string, _idPhoto: string) => {
-    if (!profile) return;
-    const updatedProfile: UserProfile = {
-      ...profile,
-      idVerificationStatus: 'pending',
-      idCardNumber: idNumber,
-    };
-    saveState(updatedProfile, investments, transactions, referrals);
-  };
-
-  // Secure Withdrawal handler
-  const handleWithdrawRequest = (e: React.FormEvent) => {
-    e.preventDefault();
-    setWithdrawError('');
-    setWithdrawSuccess('');
-
-    const amountNum = Number(withdrawAmount);
-    if (!withdrawAmount || amountNum < 250) {
-      setWithdrawError(language === 'am' ? 'የማውጫው አነስተኛ መጠን 250 ETB ነው' : 'Minimum withdrawal limit is 250 ETB');
-      return;
-    }
-
-    if (!profile || profile.walletBalance < amountNum) {
-      setWithdrawError(language === 'am' ? 'በቂ የኪስ ቦርሳ ቀሪ ሂሳብ የለዎትም' : 'Insufficient wallet balance for this withdrawal');
-      return;
-    }
-
-    // Create withdrawal transaction
-    const newTx: Transaction = {
-      id: 'tx_with_' + Math.random().toString(36).substring(2, 9),
-      type: 'withdrawal',
-      amount: amountNum,
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-    };
-
-    const updatedProfile = {
-      ...profile,
-      walletBalance: profile.walletBalance - amountNum,
-    };
-
-    const updatedTxs = [newTx, ...transactions];
-    saveState(updatedProfile, investments, updatedTxs, referrals);
-    setWithdrawSuccess(t.withdrawSuccess);
-    setWithdrawAmount('');
-  };
-
-  // Administrative Controls backend triggers
-  const handleApproveDeposit = (txId: string) => {
-    if (!profile) return;
-    const targetTx = transactions.find(t => t.id === txId);
-    if (!targetTx) return;
-
-    const updatedProfile = {
-      ...profile,
-      walletBalance: profile.walletBalance + targetTx.amount,
-      totalDeposited: profile.totalDeposited + targetTx.amount,
-    };
-
-    const updatedTxs = transactions.map(t => {
-      if (t.id === txId) return { ...t, status: 'completed' as const };
-      return t;
-    });
-
-    saveState(updatedProfile, investments, updatedTxs, referrals);
-  };
-
-  const handleRejectDeposit = (txId: string) => {
-    if (!profile) return;
-    const updatedTxs = transactions.map(t => {
-      if (t.id === txId) return { ...t, status: 'rejected' as const };
-      return t;
-    });
-    saveState(profile, investments, updatedTxs, referrals);
-  };
-
-  const handleApproveWithdraw = (txId: string) => {
-    if (!profile) return;
-    const targetTx = transactions.find(t => t.id === txId);
-    if (!targetTx) return;
-
-    const updatedProfile = {
-      ...profile,
-      totalWithdrawn: profile.totalWithdrawn + targetTx.amount,
-    };
-
-    const updatedTxs = transactions.map(t => {
-      if (t.id === txId) return { ...t, status: 'completed' as const };
-      return t;
-    });
-
-    saveState(updatedProfile, investments, updatedTxs, referrals);
-  };
-
-  const handleRejectWithdraw = (txId: string) => {
-    if (!profile) return;
-    const targetTx = transactions.find(t => t.id === txId);
-    if (!targetTx) return;
-
-    const updatedProfile = {
-      ...profile,
-      walletBalance: profile.walletBalance + targetTx.amount, // Refund wallet on reject
-    };
-
-    const updatedTxs = transactions.map(t => {
-      if (t.id === txId) return { ...t, status: 'rejected' as const };
-      return t;
-    });
-
-    saveState(updatedProfile, investments, updatedTxs, referrals);
-  };
-
-  const handleApproveKyc = () => {
-    if (!profile) return;
-    const updatedProfile: UserProfile = {
-      ...profile,
-      idVerificationStatus: 'verified',
-    };
-    saveState(updatedProfile, investments, transactions, referrals);
-  };
-
-  const handleRejectKyc = () => {
-    if (!profile) return;
-    const updatedProfile: UserProfile = {
-      ...profile,
-      idVerificationStatus: 'rejected',
-    };
-    saveState(updatedProfile, investments, transactions, referrals);
-  };
-
-  if (!profile) {
-    return <LoginScreen onLogin={handleLogin} language={language} setLanguage={setLanguage} />;
   }
 
+  if (restoringSession) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center text-[#0A3D91] p-6">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0A3D91] mb-2"></div>
+        <p className="text-xs font-mono font-black tracking-wide">Restoring LUMORA session...</p>
+      </div>
+    );
+  }
+
+  // Safe checks for un-authenticated views
+  if (!userId || !profile) {
+    return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  // Force registered user to submit both sides of the National ID before they can enter the application
+  if (profile.idVerificationStatus === 'unsubmitted' && !isAdmin) {
+    return (
+      <IdUploadGate 
+        userId={userId}
+        profile={profile}
+        onUploadSuccess={fetchDashboardData}
+        onLogout={handleLogout}
+      />
+    );
+  }
+
+  // Calculate sum of active yielding capitals
+  const activeYCapSum = investments
+    .filter(i => i.status === 'active')
+    .reduce((sum, curr) => sum + curr.amount, 0);
+
+  // Sum of today's payout accruals
+  const todayEarningsVal = investments
+    .filter(i => i.status === 'active')
+    .reduce((sum, curr) => sum + curr.dailyReturn, 0);
+
+  // Dynamic calculation for overall combined earnings (investment yields + referral bonuses/rewards)
+  const totalInvestmentEarningsVal = investments.reduce((sum, curr) => sum + (curr.totalEarned ?? 0), 0);
+  const totalReferralRewardsVal = recentTransactions
+    .filter(t => t.type === 'referral_reward' || t.type === 'bonus')
+    .reduce((sum, curr) => sum + curr.amount, 0);
+
+  // Combine the dynamic sources and ensure it doesn't drop below backend profile records
+  const calculatedTotalEarnings = Math.max(
+    profile?.totalEarnings ?? 0,
+    totalInvestmentEarningsVal + totalReferralRewardsVal
+  );
+
+  const rawIncomeBalance = profile?.incomeBalance !== undefined ? profile.incomeBalance : 0;
+  const rawDepositBalance = profile?.depositBalance !== undefined ? profile.depositBalance : (profile?.walletBalance ?? 0);
+
+  let healedIncomeBalance = rawIncomeBalance;
+  let healedDepositBalance = rawDepositBalance;
+
+  if (calculatedTotalEarnings > 0) {
+    const maxPossibleIncome = Math.max(0, Math.min(profile?.walletBalance ?? 0, calculatedTotalEarnings - (profile?.totalWithdrawals ?? 0)));
+    if (healedIncomeBalance < maxPossibleIncome) {
+      healedIncomeBalance = maxPossibleIncome;
+      healedDepositBalance = Math.max(0, (profile?.walletBalance ?? 0) - healedIncomeBalance);
+    }
+  }
+
+  const totalInPools = healedDepositBalance + healedIncomeBalance;
+  if (profile && totalInPools !== profile.walletBalance) {
+    healedDepositBalance = profile.walletBalance - healedIncomeBalance;
+    if (healedDepositBalance < 0) {
+      healedDepositBalance = 0;
+      healedIncomeBalance = profile.walletBalance;
+    }
+  }
+
+  const enrichedProfile = profile ? {
+    ...profile,
+    totalEarnings: calculatedTotalEarnings,
+    incomeBalance: healedIncomeBalance,
+    depositBalance: healedDepositBalance
+  } : null;
+
+  const isWide = (activeTab === 'assistant' || showAdmin) && !showAgreements && !showAboutUs;
+
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-between font-sans selection:bg-[#0A3D91] selection:text-white">
+    <div className="min-h-screen bg-white text-[#0F172A] flex flex-col font-sans select-none">
+      
+      {/* Visual Ambient Blur Accent glow lines */}
+      <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#0A3D91]/5 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute bottom-20 left-10 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl -z-10"></div>
+
+      {/* Header bar view */}
       <HeaderBar 
-        profile={profile} 
-        language={language} 
-        setLanguage={setLanguage} 
-        onLogout={handleLogout} 
+        profile={enrichedProfile}
+        notifications={notifications}
+        onNotificationsRead={handleNotificationsRead}
+        isAdmin={isAdmin}
+        showAdmin={showAdmin}
+        onAdminClick={() => {
+          setShowAdmin(!showAdmin);
+          setShowAgreements(false);
+          setShowAboutUs(false);
+        }}
+        isWide={isWide}
       />
 
-      <main className="flex-1 overflow-y-auto px-4 py-6">
-        {currentTab === 'home' && (
-          <HomeTab 
-            profile={profile} 
-            language={language} 
-            onOpenDeposit={() => setCurrentTab('card')} 
-            onOpenWithdraw={() => setIsWithdrawOpen(true)} 
-          />
-        )}
-        
-        {currentTab === 'invest' && (
-          <InvestmentsTab 
-            profile={profile} 
-            language={language} 
-            plans={plans} 
-            onInvest={handleInvest} 
-            onNavigateToKyc={() => setCurrentTab('profile')}
-          />
-        )}
-
-        {currentTab === 'earnings' && (
-          <EarningsTab 
-            profile={profile} 
-            investments={investments} 
-            onClaimDaily={handleClaimDaily}
-          />
-        )}
-
-        {currentTab === 'card' && (
-          <CardTab 
-            language={language} 
-            onSubmitProof={handleDepositProof} 
-          />
-        )}
-
-        {currentTab === 'profile' && (
-          <ProfileTab 
-            profile={profile} 
-            language={language} 
-            onSubmitKyc={handleKycSubmit} 
-            transactions={transactions}
-            referrals={referrals}
-            onOpenWithdraw={() => setIsWithdrawOpen(true)}
-          />
-        )}
-
-        {currentTab === 'assistant' && (
-          <CustomerServiceTab 
-            language={language} 
-          />
-        )}
-
-        {currentTab === 'admin' && (
-          <AdminPanel 
-            profile={profile}
-            transactions={transactions}
-            onApproveDeposit={handleApproveDeposit}
-            onRejectDeposit={handleRejectDeposit}
-            onApproveWithdraw={handleApproveWithdraw}
-            onRejectWithdraw={handleRejectWithdraw}
-            onApproveKyc={handleApproveKyc}
-            onRejectKyc={handleRejectKyc}
-          />
-        )}
-      </main>
-
-      {/* Persistent Bottom navigation */}
-      <BottomNavBar 
-        currentTab={currentTab} 
-        setCurrentTab={setCurrentTab} 
-        language={language} 
-        isAdmin={true} 
-      />
-
-      {/* Withdrawal Secure Modal */}
-      {isWithdrawOpen && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-sm w-full p-6 border border-slate-100 shadow-2xl space-y-4">
-            <div className="flex justify-between items-start border-b border-slate-100 pb-2">
-              <h4 className="text-xs font-black uppercase text-[#0A3D91] tracking-wider">
-                {t.withdrawTitle}
-              </h4>
-              <button 
-                onClick={() => {
-                  setIsWithdrawOpen(false);
-                  setWithdrawError('');
-                  setWithdrawSuccess('');
-                }}
-                className="text-slate-400 hover:text-slate-700 font-extrabold text-sm cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            <p className="text-[10px] text-slate-500 font-medium leading-relaxed uppercase tracking-wide">
-              {t.withdrawLimitMsg}
-            </p>
-
-            <form onSubmit={handleWithdrawRequest} className="space-y-4">
-              {withdrawError && (
-                <div className="p-3 bg-rose-50 border border-rose-100 rounded-xl text-rose-800 text-[10px] font-bold flex items-start space-x-2">
-                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-                  <span>{withdrawError}</span>
-                </div>
-              )}
-
-              {withdrawSuccess && (
-                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-[10px] font-bold flex items-start space-x-2">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                  <span>{withdrawSuccess}</span>
-                </div>
-              )}
-
-              <div className="space-y-1.5">
-                <label className="text-[9px] font-black uppercase text-slate-500 tracking-wider block">
-                  {t.withdrawAmount}
-                </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    value={withdrawAmount}
-                    onChange={(e) => {
-                      setWithdrawAmount(e.target.value);
-                      setWithdrawError('');
-                    }}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-4 pr-12 py-3 text-sm font-bold font-mono text-[#00173D]"
-                    placeholder="Min 250"
-                  />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 font-mono text-xs font-black text-slate-400">
-                    ETB
-                  </span>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                className="w-full py-3.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-[10px] uppercase tracking-widest transition-all active:scale-[0.98] shadow-md shadow-rose-600/10 cursor-pointer"
-              >
-                {t.withdrawBtnAction}
-              </button>
-            </form>
-          </div>
+      {/* Offline Status Warning Banner */}
+      {isOffline && (
+        <div className="bg-amber-550 border-b border-amber-600/10 text-white text-[10px] sm:text-xs py-2.5 px-4 flex items-center justify-center font-mono font-black tracking-widest uppercase space-x-2.5 shrink-0 shadow-xs" id="offline-status-banner">
+          <span className="w-2 h-2 rounded-full bg-white shrink-0 animate-ping"></span>
+          <span>{offlineTranslations[language] || offlineTranslations['en']}</span>
         </div>
       )}
+
+      {/* Master Smartphone mock boundary and responsive container flow */}
+      <main className={`flex-1 w-full mx-auto px-4.5 pt-5 pb-32 relative transition-all duration-300 ${isWide ? 'max-w-5xl' : 'max-w-md'}`}>
+        <AnimatePresence mode="wait">
+          {showAgreements ? (
+            <motion.div
+              key="agreements"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.2 }}
+            >
+              <AgreementsPage onBack={() => setShowAgreements(false)} />
+            </motion.div>
+          ) : showAboutUs ? (
+            <motion.div
+              key="about_us"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.2 }}
+            >
+              <AboutUsPage onBack={() => setShowAboutUs(false)} />
+            </motion.div>
+          ) : showAdmin ? (
+            <motion.div
+              key="admin_panel"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.2 }}
+            >
+              <AdminPanel onBack={() => setShowAdmin(false)} />
+            </motion.div>
+          ) : (
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25 }}
+            >
+              {activeTab === 'home' && (
+                <HomeTab 
+                  profile={enrichedProfile}
+                  todayEarnings={todayEarningsVal}
+                  activeInvestmentsValue={activeYCapSum}
+                  recentTransactions={recentTransactions}
+                  setActiveTab={setActiveTab}
+                  onQuickDepositClick={() => setTransactionGate('deposit')}
+                  onQuickWithdrawClick={() => setTransactionGate('withdrawal')}
+                  onRefreshDashboard={fetchDashboardData}
+                  investments={investments}
+                />
+              )}
+
+              {activeTab === 'investments' && (
+                <InvestmentsTab 
+                  plans={plans}
+                  profile={enrichedProfile}
+                  onBuyPlan={handleBuyPlan}
+                />
+              )}
+
+              {activeTab === 'earnings' && (
+                <EarningsTab 
+                  investments={investments}
+                  profile={enrichedProfile!}
+                  onRefreshDashboard={fetchDashboardData}
+                />
+              )}
+
+              {activeTab === 'card' && (
+                <CardTab 
+                  profile={enrichedProfile!}
+                  onRefreshProfile={fetchDashboardData}
+                />
+              )}
+
+              {activeTab === 'assistant' && (
+                <CustomerServiceTab />
+              )}
+
+              {activeTab === 'profile' && (
+                <ProfileTab 
+                  profile={enrichedProfile}
+                  todayEarnings={todayEarningsVal}
+                  withdrawals={withdrawals}
+                  deposits={deposits}
+                  loans={loans}
+                  onSubmitLoan={handleSubmitLoan}
+                  onLogout={handleLogout}
+                  onSetPin={handleSetPin}
+                  onUploadAvatar={handleUploadAvatar}
+                  onViewAgreements={() => setShowAgreements(true)}
+                  onViewAboutUs={() => setShowAboutUs(true)}
+                  onRefresh={fetchDashboardData}
+                  onRelaunchWalkthrough={() => setShowWalkthrough(true)}
+                  isAdmin={isAdmin}
+                  showAdmin={showAdmin}
+                  onAdminClick={() => {
+                    setShowAdmin(!showAdmin);
+                    setShowAgreements(false);
+                    setShowAboutUs(false);
+                  }}
+                  investments={investments}
+                />
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </main>
+
+      {/* Persistent Bottom Fixed Navigator Menu */}
+      <BottomNavBar 
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        isAdmin={isAdmin}
+        setShowAdmin={setShowAdmin}
+        isWide={isWide}
+      />
+
+      {/* Dynamic Popups Gate overlay */}
+      {transactionGate && enrichedProfile && (
+        <TransactionsModals
+          type={transactionGate}
+          profile={enrichedProfile}
+          investments={investments}
+          onClose={() => setTransactionGate(null)}
+          onRefreshDashboard={fetchDashboardData}
+        />
+      )}
+
+      {/* Lightweight Walkthrough Modal Onboarding */}
+      <AnimatePresence>
+        {showWalkthrough && (
+          <WalkthroughModal 
+            userId={userId} 
+            onClose={() => setShowWalkthrough(false)} 
+          />
+        )}
+      </AnimatePresence>
+
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <LanguageProvider>
+      <MainAppContent />
+    </LanguageProvider>
   );
 }
