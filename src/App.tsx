@@ -361,16 +361,16 @@ function MainAppContent() {
 
   // Force registered user to submit both sides of the National ID before they can enter the application
   // ONLY if they have activated or are trying to use VIP levels (level >= 2)
-  if (profile.vipLevel >= 2 && profile.idVerificationStatus === 'unsubmitted' && !isAdmin) {
-    return (
-      <IdUploadGate 
-        userId={userId}
-        profile={profile}
-        onUploadSuccess={fetchDashboardData}
-        onLogout={handleLogout}
-      />
-    );
-  }
+  // if (profile.vipLevel >= 2 && profile.idVerificationStatus === 'unsubmitted' && !isAdmin) {
+  //   return (
+  //     <IdUploadGate 
+  //       userId={userId}
+  //       profile={profile}
+  //       onUploadSuccess={fetchDashboardData}
+  //       onLogout={handleLogout}
+  //     />
+  //   );
+  // }
 
   // Calculate sum of active yielding capitals
   const activeYCapSum = investments

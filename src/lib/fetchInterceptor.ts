@@ -18,6 +18,7 @@ import {
   initializeFirestore,
   collection, 
   doc, 
+  getDoc,
   setDoc, 
   deleteDoc, 
   onSnapshot,
@@ -80,21 +81,21 @@ const AGREEMENTS: Agreement[] = [
     title: "Terms and Conditions",
     category: "terms",
     uploadedAt: "2026-06-03T12:00:00Z",
-    content: "### Terms and Conditions\n\nWelcome to LUMORA. Please review our revised platform guidelines:\n\n1. **User Identity & Bank Registration**: To maintain compliance with financial frameworks in Ethiopia, user registration does not auto-populate default credentials. Users must designate their own legitimate Commercial Bank of Ethiopia (CBE) bank details and configure a secure 4-digit payment PIN to authorize active withdrawals.\n2. **Unified Financial Limits**: A minimum transaction threshold of 3,500 ETB for CBE deposit submissions and 200 ETB for cashouts is enforced to ensure efficient processing and settlement.\n3. **Real-Time Ledger Integration**: All balance adjustments, VIP level elevations, deposits, and cashouts synchronize in real-time under a 3-second secure consensus. All transfers are manually audited on the admin portal.\n4. **Security & Identity Validation**: To authorize active cashouts and access micro-loans, users must verify their profile by uploading clean photos of both sides of their National ID cards."
+    content: "### Terms and Conditions\n\nWelcome to LUMORA. Please review our revised platform guidelines:\n\n1. **User Identity & Bank Registration**: To maintain compliance with financial frameworks in Ethiopia, user registration does not auto-populate default credentials. Users must designate their own legitimate Commercial Bank of Ethiopia (CBE) bank details and configure a secure 4-digit payment PIN to authorize active withdrawals.\n2. **Unified Financial Limits**: A minimum transaction threshold of 1,000 ETB for CBE deposit submissions and 200 ETB for cashouts is enforced to ensure efficient processing and settlement.\n3. **Real-Time Ledger Integration**: All balance adjustments, VIP level elevations, deposits, and cashouts synchronize in real-time under a 3-second secure consensus. All transfers are manually audited on the admin portal.\n4. **Security & Identity Validation**: To authorize active cashouts and access micro-loans, users must verify their profile by uploading clean photos of both sides of their National ID cards."
   },
   {
     id: "investment-policies",
     title: "Investment Policies & Rules",
     category: "policies",
     uploadedAt: "2026-06-03T12:00:00Z",
-    content: "### Investment Policies & Rules\n\nPlatform micro-finance structural rules in detail:\n\n1. **High-Yield Plan Activation**: Investment plans are activated immediately upon balance confirmation (Min 3,500 ETB), automatically starting synced daily yields spanning VIP levels. Interest cycles schedule payouts every 24 hours.\n2. **CBE Transfer and Auditing**: Deposits are routed directly to the treasury audit desk via CBE app screenshots. Administrators evaluate submissions, and credits reflect live on user dashboards in under 2 hours.\n3. **Cashout Settlements**: Users cash out using secure designated accounts. Approved cashouts are dispersed within 0 to 42 hours to prevent settlement issues and ensure sustainable liquidity."
+    content: "### Investment Policies & Rules\n\nPlatform micro-finance structural rules in detail:\n\n1. **High-Yield Plan Activation**: Investment plans are activated immediately upon balance confirmation (Min 1,000 ETB), automatically starting synced daily yields spanning VIP levels. Interest cycles schedule payouts every 24 hours.\n2. **CBE Transfer and Auditing**: Deposits are routed directly to the treasury audit desk via CBE app screenshots. Administrators evaluate submissions, and credits reflect live on user dashboards in under 2 hours.\n3. **Cashout Settlements**: Users cash out using secure designated accounts. Approved cashouts are dispersed within 0 to 42 hours to prevent settlement issues and ensure sustainable liquidity."
   },
   {
     id: "risk-disclosure",
     title: "About Us",
     category: "about",
     uploadedAt: "2026-06-03T12:00:00Z",
-    content: "### About Us & How Lumora Works\n\n**Welcome to Lumora** – Ethiopia's premier peer-to-peer automated micro-finance and high-yield liquidity channel.\n\nWe connect local commerce and infrastructure project liquidity pools directly to user micro-investments, facilitating high-yield, stable growth with institutional accuracy.\n\n#### How It Works:\n\n1. **Deposit Micro-Capital**: Copy our official Commercial Bank of Ethiopia (CBE) account number from the Deposit Dialog. Transfer your starting capital (minimum 3,500 ETB) from your CBE Birr App, note down your reference code, and capture a clear screenshot of the receipt.\n2. **Submit Proof**: Enter your deposited amount, paste the CBE reference code, upload your receipt screenshot, and submit. The administrators will audit and credit your account within 2 hours.\n3. **Activate High-Yield Plans**: Invest your wallet balance into VIP tiers ranging from VIP 0 to VIP 15. Your plan activates immediately, compounding interest payouts every 24 hours.\n4. **Secure Dynamic Cashouts**: Navigate to the Cashout menu. First, configure your personal phone number, active Ethiopian bank card details, and a secret 4-digit transaction PIN. Authorize cashouts (minimum 200 ETB) safely using this PIN.\n5. **Identity Integrity**: Verify your account by uploading photos of both sides of your National ID. This unlocks access to VIP active withdrawals and institutional loan options."
+    content: "### About Us & How Lumora Works\n\n**Welcome to Lumora** – Ethiopia's premier peer-to-peer automated micro-finance and high-yield liquidity channel.\n\nWe connect local commerce and infrastructure project liquidity pools directly to user micro-investments, facilitating high-yield, stable growth with institutional accuracy.\n\n#### How It Works:\n\n1. **Deposit Micro-Capital**: Copy our official Commercial Bank of Ethiopia (CBE) account number from the Deposit Dialog. Transfer your starting capital (minimum 1,000 ETB) from your CBE Birr App, note down your reference code, and capture a clear screenshot of the receipt.\n2. **Submit Proof**: Enter your deposited amount, paste the CBE reference code, upload your receipt screenshot, and submit. The administrators will audit and credit your account within 2 hours.\n3. **Activate High-Yield Plans**: Invest your wallet balance into VIP tiers ranging from VIP 0 to VIP 15. Your plan activates immediately, compounding interest payouts every 24 hours.\n4. **Secure Dynamic Cashouts**: Navigate to the Cashout menu. First, configure your personal phone number, active Ethiopian bank card details, and a secret 4-digit transaction PIN. Authorize cashouts (minimum 200 ETB) safely using this PIN.\n5. **Identity Integrity**: Verify your account by uploading photos of both sides of your National ID. This unlocks access to VIP active withdrawals and institutional loan options."
   }
 ];
 
@@ -582,11 +583,44 @@ async function syncClientToFirestore(latestDb: LumoraDB) {
       }
     }    // 1. Identify updates & creations
     for (const [id, item] of localMap.entries()) {
-      const json = JSON.stringify(item);
+      let docToSave = { ...item };
+
+      // Safeguard: Prevent local storage quota pruning from overwriting valid remote Firestore data
+      if (spec.name === "profiles" && (!docToSave.idCardFront || !docToSave.idCardBack || !docToSave.idSelfie)) {
+        try {
+          const docSnap = await getDoc(doc(fDb, "profiles", id));
+          if (docSnap.exists()) {
+            const remoteData = docSnap.data();
+            if (remoteData) {
+              if (!docToSave.idCardFront && remoteData.idCardFront) docToSave.idCardFront = remoteData.idCardFront;
+              if (!docToSave.idCardBack && remoteData.idCardBack) docToSave.idCardBack = remoteData.idCardBack;
+              if (!docToSave.idSelfie && remoteData.idSelfie) docToSave.idSelfie = remoteData.idSelfie;
+            }
+          }
+        } catch (err) {
+          console.warn("[Client Sync Safeguard] Failed to check remote profile images:", err);
+        }
+      }
+
+      if (spec.name === "deposits" && (!docToSave.receiptImage || docToSave.receiptImage === "pruned_storage_limit")) {
+        try {
+          const docSnap = await getDoc(doc(fDb, "deposits", id));
+          if (docSnap.exists()) {
+            const remoteData = docSnap.data();
+            if (remoteData && remoteData.receiptImage && remoteData.receiptImage !== "pruned_storage_limit") {
+              docToSave.receiptImage = remoteData.receiptImage;
+            }
+          }
+        } catch (err) {
+          console.warn("[Client Sync Safeguard] Failed to check remote deposit receipt:", err);
+        }
+      }
+
+      const json = JSON.stringify(docToSave);
       if (lastSyncedClient[spec.name][id] !== json) {
         lastSyncedClient[spec.name][id] = json;
         try {
-          await setDoc(doc(fDb, spec.name, id), item);
+          await setDoc(doc(fDb, spec.name, id), docToSave);
         } catch (e) {
           if (!checkQuotaExceeded(e)) {
             console.error(`[Client Firestore] Error saving ${spec.name}/${id}:`, e);
@@ -1690,9 +1724,10 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     const plan = VIP_PLANS.find(p => p.level === Number(finalLevel));
     if (!plan) return respondJSON(400, { error: "Invalid VIP Level selected" });
 
-    if (plan.level >= 2 && profile.idVerificationStatus !== "verified") {
-      return respondJSON(403, { error: "Account verification is required before activating VIP levels. Please complete your identity verification to continue." });
-    }
+    // ID Verification is no longer required for any level activation/purchase
+    // if (plan.level >= 2 && profile.idVerificationStatus !== "verified") {
+    //   return respondJSON(403, { error: "Account verification is required before activating VIP levels. Please complete your identity verification to continue." });
+    // }
 
     if (profile.walletBalance < plan.requiredInvestment) {
       return respondJSON(400, { error: `Insufficient available funds. Required: ${plan.requiredInvestment} ETB.` });
@@ -1715,7 +1750,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
         return ref.isVerified || (ref.referredVipLevel >= 1) || (rp && rp.idVerificationStatus === 'verified');
       });
       const hasInvites = verifiedReferrals.length >= requiredInvites;
-      const isCompliant = profile.idVerificationStatus === 'verified';
+      const isCompliant = true; // ID Verification is bypassed for all levels
 
       if (!hasDuration || !hasInvites || !isCompliant) {
         let reqText = `VIP Level ${vipLevelNum} Requirements:\n`;
@@ -2988,7 +3023,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     } else if (txt.includes('plan') || txt.includes('vip') || txt.includes('rate') || txt.includes('return')) {
       reply = "Lumora offers 15 premium VIP Levels for investment:\n\n" +
               "• **VIP Level 0**: Newly registered users start as VIP 0 (Unactivated). No passive dynamic yields are earned, the earnings ledger is locked/unactivated, and the countdown timer is locked until an active investment plan is activated.\n" +
-              "• **Starter Level**: Invest 3,500 ETB, earn **3.40% daily** (total ~9,450 ETB, 50 days)\n" +
+              "• **Starter Level**: Invest from 1,000 ETB, earn **3.20% - 3.40% daily**\n" +
               "• **VIP 1**: Invest 5,000 ETB, earn **3.50% daily** (total ~13,750 ETB, 50 days)\n" +
               "• **VIP 2**: Invest 10,000 ETB, earn **3.75% daily** (total ~28,750 ETB, 50 days)\n" +
               "• **VIP 3**: Invest 25,000 ETB, earn **4.00% daily** (total ~75,000 ETB, 50 days)\n" +
@@ -3059,7 +3094,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     } else if (txt.includes('plan') || txt.includes('vip') || txt.includes('interest') || txt.includes('rate') || txt.includes('return') || txt.includes('yield') || txt.includes('profit')) {
       reply = "Lumora offers 15 premium VIP Levels for investment:\n\n" +
               "• **VIP Level 0**: Newly registered users start as VIP 0 (Unactivated). No passive dynamic yields are earned, the earnings ledger is locked/unactivated, and the countdown timer is locked until an active investment plan is activated.\n" +
-              "• **Starter Level**: Invest 3,500 ETB, earn **3.40% daily** (total ~9,450 ETB, 50 days)\n" +
+              "• **Starter Level**: Invest from 1,000 ETB, earn **3.20% - 3.40% daily**\n" +
               "• **VIP 1**: Invest 5,000 ETB, earn **3.50% daily** (total ~13,750 ETB, 50 days)\n" +
               "• **VIP 2**: Invest 10,000 ETB, earn **3.75% daily** (total ~28,750 ETB, 50 days)\n" +
               "• **VIP 3**: Invest 25,000 ETB, earn **4.00% daily** (total ~75,000 ETB, 50 days)\n" +

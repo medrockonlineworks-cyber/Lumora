@@ -24,6 +24,9 @@ const VIP_PRESETS = [
   { level: 4, amount: 25000, name: "VIP 3" },
   { level: 5, amount: 50000, name: "VIP 4" },
   { level: 6, amount: 100000, name: "VIP 5" },
+  { level: 7, amount: 250000, name: "VIP 6" },
+  { level: 8, amount: 500000, name: "VIP 7" },
+  { level: 9, amount: 1000000, name: "VIP 8" }
 ];
 
 function compressImage(base64Str: string, maxWidth = 500, maxHeight = 500, quality = 0.6): Promise<string> {
@@ -806,7 +809,7 @@ export default function TransactionsModals({ type, profile, investments, onClose
   // Deposit Form States
   const [cbeName, setCbeName] = useState('Leykun');
   const [cbeNum, setCbeNum] = useState('1000419524747');
-  const [depositAmount, setDepositAmount] = useState('3500');
+  const [depositAmount, setDepositAmount] = useState('1000');
   const [transactionRef, setTransactionRef] = useState('');
   const [screenshotBase64, setScreenshotBase64] = useState<string | null>(null);
   const [copyCodeStatus, setCopyCodeStatus] = useState(false);
