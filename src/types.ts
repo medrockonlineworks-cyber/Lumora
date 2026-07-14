@@ -171,6 +171,9 @@ export interface AppSettings {
   id: string;
   cbeAccountName: string;
   cbeAccountNumber: string;
+  qbirrAccountName?: string;
+  qbirrAccountNumber?: string;
+  qbirrPaymentUrl?: string;
   referralBonusPercentage: number; // e.g., 5 for 5%
   productionInviteUrl?: string;
   companyLicenseUrl?: string;

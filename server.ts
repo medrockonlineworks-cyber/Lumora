@@ -194,6 +194,9 @@ const DEFAULT_SETTINGS: AppSettings = {
   id: "global",
   cbeAccountName: "Leykun",
   cbeAccountNumber: "1000419524747",
+  qbirrAccountName: "Leykun",
+  qbirrAccountNumber: "0966419524",
+  qbirrPaymentUrl: "https://qbirr.com/pay/56",
   referralBonusPercentage: 10,
   productionInviteUrl: "",
 };
@@ -464,10 +467,22 @@ We connect local commerce and infrastructure project liquidity pools directly to
       if (!db.settings) {
         db.settings = { ...DEFAULT_SETTINGS };
         dbUpdated = true;
-      } else if (db.settings.cbeAccountNumber === "1000456123985" || db.settings.cbeAccountName === "LUMORA Financial Group") {
-        db.settings.cbeAccountNumber = "1000419524747";
-        db.settings.cbeAccountName = "Leykun";
-        dbUpdated = true;
+      } else {
+        let changed = false;
+        if (db.settings.cbeAccountNumber === "1000456123985" || db.settings.cbeAccountName === "LUMORA Financial Group") {
+          db.settings.cbeAccountNumber = "1000419524747";
+          db.settings.cbeAccountName = "Leykun";
+          changed = true;
+        }
+        if (!db.settings.qbirrAccountName || !db.settings.qbirrAccountNumber || !db.settings.qbirrPaymentUrl) {
+          db.settings.qbirrAccountName = db.settings.qbirrAccountName || "Leykun";
+          db.settings.qbirrAccountNumber = db.settings.qbirrAccountNumber || "0966419524";
+          db.settings.qbirrPaymentUrl = db.settings.qbirrPaymentUrl || "https://qbirr.com/pay/56";
+          changed = true;
+        }
+        if (changed) {
+          dbUpdated = true;
+        }
       }
 
       // Auto-migrate existing users on the old 3,500 ETB Starter plan (level 1) to Starter Level 3 (level 1.3)
@@ -2031,7 +2046,7 @@ async function startServer() {
 
   // Submit manual receipt deposit
   app.post("/api/deposits/submit", transactionLimiter, (req, res) => {
-    const { userId, amount, receiptImage, screenshot, bankReference } = req.body;
+    const { userId, amount, receiptImage, screenshot, bankReference, bankAccount } = req.body;
 
     if (!userId || !amount) {
       return res.status(400).json({ error: "User ID and amount are required" });
@@ -2071,7 +2086,7 @@ async function startServer() {
       userName: profile.fullName,
       userPhone: profile.phone,
       amount: value,
-      bankAccount: "Commercial Bank of Ethiopia (CBE)",
+      bankAccount: bankAccount || "Commercial Bank of Ethiopia (CBE)",
       receiptImage: receiptImage || screenshot || "receipt_base64_log_placeholder",
       bankReference: trimmedRef || undefined,
       submittedAt: new Date().toISOString(),
@@ -2806,9 +2821,12 @@ async function startServer() {
   });
 
   app.post("/api/admin/settings/edit", (req, res) => {
-    const { cbeAccountName, cbeAccountNumber, referralBonusPercentage, productionInviteUrl, companyLicenseUrl } = req.body;
+    const { cbeAccountName, cbeAccountNumber, qbirrAccountName, qbirrAccountNumber, qbirrPaymentUrl, referralBonusPercentage, productionInviteUrl, companyLicenseUrl } = req.body;
     if (cbeAccountName) db.settings.cbeAccountName = cbeAccountName;
     if (cbeAccountNumber) db.settings.cbeAccountNumber = cbeAccountNumber;
+    if (qbirrAccountName) db.settings.qbirrAccountName = qbirrAccountName;
+    if (qbirrAccountNumber) db.settings.qbirrAccountNumber = qbirrAccountNumber;
+    if (qbirrPaymentUrl !== undefined) db.settings.qbirrPaymentUrl = qbirrPaymentUrl;
     if (referralBonusPercentage) db.settings.referralBonusPercentage = parseFloat(referralBonusPercentage);
     if (productionInviteUrl !== undefined) db.settings.productionInviteUrl = productionInviteUrl;
     if (companyLicenseUrl !== undefined) db.settings.companyLicenseUrl = companyLicenseUrl;

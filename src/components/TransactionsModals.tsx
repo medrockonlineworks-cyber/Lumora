@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import html2canvas from 'html2canvas';
 import { 
   X, CreditCard, Copy, Info, Camera, ShieldAlert, CheckCircle, 
-  ChevronRight, Building, Key, Coins, Check, Clock 
+  ChevronRight, Building, Key, Coins, Check, Clock, Wallet 
 } from 'lucide-react';
 import { useLanguage } from '../locale';
 import { Profile } from '../types';
@@ -807,8 +807,12 @@ export default function TransactionsModals({ type, profile, investments, onClose
   const [showWithdrawCelebration, setShowWithdrawCelebration] = useState(false);
 
   // Deposit Form States
+  const [depositChannel, setDepositChannel] = useState<'CBE' | 'Q-Birr'>('CBE');
   const [cbeName, setCbeName] = useState('Leykun');
   const [cbeNum, setCbeNum] = useState('1000419524747');
+  const [qbirrName, setQbirrName] = useState('Leykun');
+  const [qbirrNum, setQbirrNum] = useState('0966419524');
+  const [qbirrPayUrl, setQbirrPayUrl] = useState('https://qbirr.com/pay/56');
   const [depositAmount, setDepositAmount] = useState('1000');
   const [transactionRef, setTransactionRef] = useState('');
   const [screenshotBase64, setScreenshotBase64] = useState<string | null>(null);
@@ -896,9 +900,18 @@ export default function TransactionsModals({ type, profile, investments, onClose
         fetch('/api/admin/settings')
           .then(r => r.json())
           .then(data => {
-            if (data && data.cbeAccountName && data.cbeAccountNumber) {
-              setCbeName(data.cbeAccountName);
-              setCbeNum(data.cbeAccountNumber);
+            if (data) {
+              if (data.cbeAccountName && data.cbeAccountNumber) {
+                setCbeName(data.cbeAccountName);
+                setCbeNum(data.cbeAccountNumber);
+              }
+              if (data.qbirrAccountName && data.qbirrAccountNumber) {
+                setQbirrName(data.qbirrAccountName);
+                setQbirrNum(data.qbirrAccountNumber);
+              }
+              if (data.qbirrPaymentUrl) {
+                setQbirrPayUrl(data.qbirrPaymentUrl);
+              }
             }
           })
           .catch(err => console.error(err));
@@ -911,7 +924,8 @@ export default function TransactionsModals({ type, profile, investments, onClose
   }, [type]);
 
   const handleCopyAccountNum = () => {
-    navigator.clipboard.writeText(cbeNum);
+    const numToCopy = depositChannel === 'CBE' ? cbeNum : qbirrNum;
+    navigator.clipboard.writeText(numToCopy);
     setCopyCodeStatus(true);
     setTimeout(() => setCopyCodeStatus(false), 2000);
   };
@@ -958,7 +972,7 @@ export default function TransactionsModals({ type, profile, investments, onClose
       return;
     }
     if (!screenshotBase64) {
-      setMessage({ text: 'Please upload deposit CBE screenshot receipt', isError: true });
+      setMessage({ text: 'Please upload deposit screenshot receipt', isError: true });
       return;
     }
 
@@ -973,7 +987,8 @@ export default function TransactionsModals({ type, profile, investments, onClose
           userId: profile?.userId,
           amount: parsedAmt,
           bankReference: transactionRef,
-          screenshot: screenshotBase64
+          screenshot: screenshotBase64,
+          bankAccount: depositChannel === 'CBE' ? 'Commercial Bank of Ethiopia (CBE)' : 'Q-Birr'
         })
       });
 
@@ -1131,28 +1146,41 @@ export default function TransactionsModals({ type, profile, investments, onClose
 
         {/* --- 1. CBE DEPOSIT DIALOG CONTENT --- */}
         {type === 'deposit' && (
-          (false && profile.idVerificationStatus !== 'verified') ? (
-            <div className="space-y-4 py-4 text-center animate-in fade-in duration-200">
-              <div className="mx-auto w-12 h-12 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 animate-pulse">
-                <ShieldAlert className="w-5 h-5 stroke-[2.2]" />
-              </div>
-              <h4 className="font-display font-black text-xs text-slate-900 uppercase">Verification Required</h4>
-              <p className="text-[11px] text-slate-500 leading-relaxed max-w-xs mx-auto font-sans font-medium">
-                To comply with regional financial regulations, we have disabled CBE depositing for non-verified members. Please complete your identity validation audit inside your profile workspace first.
-              </p>
-              <div className="pt-2">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="w-full py-3 bg-[#0A3D91] hover:bg-[#072a66] text-white rounded-2xl font-sans font-black text-xs uppercase tracking-wider transition-all shadow-md shadow-blue-500/10 cursor-pointer"
-                >
-                  Confirm & Go Back
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4 animate-in fade-in duration-200">
+          <div className="space-y-4 animate-in fade-in duration-200">
               
+              {/* Deposit Network/Channel Toggle Selector */}
+              <div className="space-y-1.5 text-left">
+                <span className="text-[10px] font-black text-[#0A3D91] uppercase tracking-wider block">
+                  Select Deposit Network
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setDepositChannel('CBE')}
+                    className={`py-2 px-3 rounded-2xl border text-xs font-bold transition-all flex items-center justify-center space-x-1.5 cursor-pointer ${
+                      depositChannel === 'CBE'
+                        ? 'bg-[#0A3D91] text-white border-transparent shadow-xs'
+                        : 'bg-white text-slate-700 border-blue-100 hover:bg-slate-50'
+                    }`}
+                  >
+                    <Building className="w-3.5 h-3.5" />
+                    <span>CBE Bank</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDepositChannel('Q-Birr')}
+                    className={`py-2 px-3 rounded-2xl border text-xs font-bold transition-all flex items-center justify-center space-x-1.5 cursor-pointer ${
+                      depositChannel === 'Q-Birr'
+                        ? 'bg-[#0A3D91] text-white border-transparent shadow-xs'
+                        : 'bg-white text-slate-700 border-blue-100 hover:bg-slate-50'
+                    }`}
+                  >
+                    <Wallet className="w-3.5 h-3.5" />
+                    <span>Q-Birr Wallet</span>
+                  </button>
+                </div>
+              </div>
+
               {/* Elegant Step-by-Step Deposit Guide */}
               <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-105 rounded-2xl space-y-2 text-left">
                 <div className="flex items-center space-x-2 text-[#0A3D91]">
@@ -1161,46 +1189,72 @@ export default function TransactionsModals({ type, profile, investments, onClose
                     How to Deposit & Submit Proof
                   </span>
                 </div>
-                <ol className="text-[10.5px] text-slate-600 leading-relaxed space-y-1.5 list-decimal pl-4.5 font-sans">
-                  <li>
-                    <strong>Transfer Funds:</strong> Copy our Commercial Bank of Ethiopia (CBE) Account Number below and transfer your desired investment amount (Min 1,000 ETB) from your CBE App.
-                  </li>
-                  <li>
-                    <strong>Reference & Receipt:</strong> Copy the CBE transaction reference code and take a clear screenshot of your transfer receipt confirmation page.
-                  </li>
-                  <li>
-                    <strong>Submit Proof Below:</strong> Enter your deposited amount, type your CBE transaction reference code, upload your receipt screenshot, and click <strong>"Submit CBE Deposit Proof"</strong> to process credit activation.
-                  </li>
-                </ol>
+                {depositChannel === 'CBE' ? (
+                  <ol className="text-[10.5px] text-slate-600 leading-relaxed space-y-1.5 list-decimal pl-4.5 font-sans">
+                    <li>
+                      <strong>Transfer Funds:</strong> Copy our Commercial Bank of Ethiopia (CBE) Account Number below and transfer your desired investment amount (Min 1,000 ETB) from your CBE App.
+                    </li>
+                    <li>
+                      <strong>Reference & Receipt:</strong> Copy the CBE transaction reference code and take a clear screenshot of your transfer receipt confirmation page.
+                    </li>
+                    <li>
+                      <strong>Submit Proof Below:</strong> Enter your deposited amount, type your CBE transaction reference code, upload your receipt screenshot, and click <strong>"Submit Deposit Proof"</strong> to process credit activation.
+                    </li>
+                  </ol>
+                ) : (
+                  <ol className="text-[10.5px] text-slate-600 leading-relaxed space-y-1.5 list-decimal pl-4.5 font-sans">
+                    <li>
+                      <strong>Transfer Funds:</strong> Copy our official Q-Birr Wallet Number below and transfer your desired investment amount (Min 1,000 ETB) from your Hibret Bank Q-Birr App.
+                    </li>
+                    <li>
+                      <strong>Reference & Receipt:</strong> Copy the Q-Birr transaction reference code and take a clear screenshot of your transfer confirmation page.
+                    </li>
+                    <li>
+                      <strong>Submit Proof Below:</strong> Enter your deposited amount, type your Q-Birr transaction reference code, upload your receipt screenshot, and click <strong>"Submit Deposit Proof"</strong> to process credit activation.
+                    </li>
+                  </ol>
+                )}
               </div>
             
-            {/* Bank details info card */}
-            <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-3xl space-y-2.5">
-              <span className="text-[9px] text-[#0A3D91] uppercase tracking-wider block font-bold">
-                {t.cbeAccountInfo}
-              </span>
-              <div className="flex items-center space-x-3 mt-1">
-                <div className="w-9 h-9 rounded-xl bg-[#0A3D91]/10 text-[#0A3D91] flex items-center justify-center border border-blue-100">
-                  <Building className="w-4.5 h-4.5" />
+              {/* Bank details info card */}
+              <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-3xl space-y-2.5">
+                <span className="text-[9px] text-[#0A3D91] uppercase tracking-wider block font-bold">
+                  {depositChannel === 'CBE' ? t.cbeAccountInfo : "Official Q-Birr Wallet Payout Account"}
+                </span>
+                <div className="flex items-center space-x-3 mt-1">
+                  <div className="w-9 h-9 rounded-xl bg-[#0A3D91]/10 text-[#0A3D91] flex items-center justify-center border border-blue-100">
+                    {depositChannel === 'CBE' ? <Building className="w-4.5 h-4.5" /> : <Wallet className="w-4.5 h-4.5" />}
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-slate-900">{depositChannel === 'CBE' ? cbeName : qbirrName}</p>
+                    <p className="text-[11px] font-mono font-bold text-slate-650">{depositChannel === 'CBE' ? cbeNum : qbirrNum}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs font-black text-slate-900">{cbeName}</p>
-                  <p className="text-[11px] font-mono font-bold text-slate-650">{cbeNum}</p>
-                </div>
-              </div>
 
-              <button
-                onClick={handleCopyAccountNum}
-                className={`w-full mt-2 py-2 text-xs font-bold rounded-xl flex items-center justify-center space-x-1.5 transition-all cursor-pointer ${
-                  copyCodeStatus 
-                    ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' 
-                    : 'bg-white border border-blue-200 hover:bg-slate-50 text-[#0A3D91]'
-                }`}
-              >
-                <Copy className="w-3.5 h-3.5" />
-                <span>{copyCodeStatus ? t.copied : t.copyAccount}</span>
-              </button>
-            </div>
+                <button
+                  onClick={handleCopyAccountNum}
+                  className={`w-full mt-2 py-2 text-xs font-bold rounded-xl flex items-center justify-center space-x-1.5 transition-all cursor-pointer ${
+                    copyCodeStatus 
+                      ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' 
+                      : 'bg-white border border-blue-200 hover:bg-slate-50 text-[#0A3D91]'
+                  }`}
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>{copyCodeStatus ? t.copied : (depositChannel === 'CBE' ? t.copyAccount : "Copy Wallet Number")}</span>
+                </button>
+
+                {depositChannel === 'Q-Birr' && qbirrPayUrl && (
+                  <a
+                    href={qbirrPayUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full mt-2.5 py-2.5 text-xs font-black uppercase tracking-wider rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white flex items-center justify-center space-x-2 transition-all cursor-pointer shadow-md shadow-orange-500/15"
+                  >
+                    <Coins className="w-4 h-4" />
+                    <span>Pay Instantly via Q-Birr Portal</span>
+                  </a>
+                )}
+              </div>
 
             {/* Preset level picker and Manual variables input */}
             <div className="space-y-4">
@@ -1335,8 +1389,7 @@ export default function TransactionsModals({ type, profile, investments, onClose
             </button>
 
           </div>
-        )
-      )}
+        )}
 
         {/* --- 2. CBE WITHDRAWAL DIALOG CONTENT --- */}
         {type === 'withdrawal' && (
@@ -1471,6 +1524,7 @@ export default function TransactionsModals({ type, profile, investments, onClose
                       <option value="Bank of Abyssinia">Bank of Abyssinia</option>
                       <option value="CBE Birr">CBE Birr Wallet</option>
                       <option value="Telebirr">Telebirr Wallet</option>
+                      <option value="Q-Birr">Q-Birr Wallet</option>
                     </select>
                   </div>
 

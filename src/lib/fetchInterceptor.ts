@@ -50,6 +50,9 @@ const DEFAULT_SETTINGS: AppSettings = {
   id: "global",
   cbeAccountName: "Leykun",
   cbeAccountNumber: "1000419524747",
+  qbirrAccountName: "Leykun",
+  qbirrAccountNumber: "0966419524",
+  qbirrPaymentUrl: "https://qbirr.com/pay/56",
   referralBonusPercentage: 10,
   productionInviteUrl: "",
 };
@@ -234,6 +237,12 @@ function loadLocalDB(): LumoraDB {
     if (db.settings.cbeAccountNumber === "1000456123985" || db.settings.cbeAccountName === "LUMORA Financial Group") {
       db.settings.cbeAccountNumber = "1000419524747";
       db.settings.cbeAccountName = "Leykun";
+      changed = true;
+    }
+    if (!db.settings.qbirrAccountName || !db.settings.qbirrAccountNumber || !db.settings.qbirrPaymentUrl) {
+      db.settings.qbirrAccountName = db.settings.qbirrAccountName || "Leykun";
+      db.settings.qbirrAccountNumber = db.settings.qbirrAccountNumber || "0966419524";
+      db.settings.qbirrPaymentUrl = db.settings.qbirrPaymentUrl || "https://qbirr.com/pay/56";
       changed = true;
     }
     if (db.settings.productionInviteUrl === "https://www.lumorainvest.company") {

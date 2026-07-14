@@ -200,6 +200,9 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   // System Settings state inputs
   const [cbeAccountName, setCbeAccountName] = useState('');
   const [cbeAccountNumber, setCbeAccountNumber] = useState('');
+  const [qbirrAccountName, setQbirrAccountName] = useState('');
+  const [qbirrAccountNumber, setQbirrAccountNumber] = useState('');
+  const [qbirrPaymentUrl, setQbirrPaymentUrl] = useState('');
   const [referralBonusPercentage, setReferralBonusPercentage] = useState(10);
   const [productionInviteUrl, setProductionInviteUrl] = useState('');
   const [companyLicenseUrl, setCompanyLicenseUrl] = useState('');
@@ -246,6 +249,9 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
         setSettings(sett);
         setCbeAccountName(sett.cbeAccountName || '');
         setCbeAccountNumber(sett.cbeAccountNumber || '');
+        setQbirrAccountName(sett.qbirrAccountName || '');
+        setQbirrAccountNumber(sett.qbirrAccountNumber || '');
+        setQbirrPaymentUrl(sett.qbirrPaymentUrl || '');
         setReferralBonusPercentage(sett.referralBonusPercentage || 10);
         setProductionInviteUrl(sett.productionInviteUrl || '');
         setCompanyLicenseUrl(sett.companyLicenseUrl || '');
@@ -642,6 +648,9 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
         body: JSON.stringify({
           cbeAccountName,
           cbeAccountNumber,
+          qbirrAccountName,
+          qbirrAccountNumber,
+          qbirrPaymentUrl,
           referralBonusPercentage,
           productionInviteUrl,
           companyLicenseUrl
@@ -1874,6 +1883,38 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-black tracking-widest focus:outline-none focus:ring-1 focus:ring-[#0A3D91]"
                   />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] uppercase font-black tracking-wider text-slate-500 mb-1.5">Official Q-Birr Account Name</label>
+                  <input
+                    type="text"
+                    value={qbirrAccountName}
+                    onChange={(e) => setQbirrAccountName(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#0A3D91]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase font-black tracking-wider text-slate-500 mb-1.5">Official Q-Birr Wallet Number</label>
+                  <input
+                    type="text"
+                    value={qbirrAccountNumber}
+                    onChange={(e) => setQbirrAccountNumber(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-black tracking-widest focus:outline-none focus:ring-1 focus:ring-[#0A3D91]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] uppercase font-black tracking-wider text-slate-500 mb-1.5">Direct Q-Birr Instant Pay Link</label>
+                <input
+                  type="text"
+                  placeholder="e.g. https://qbirr.com/pay/56"
+                  value={qbirrPaymentUrl}
+                  onChange={(e) => setQbirrPaymentUrl(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#0A3D91]"
+                />
               </div>
 
               <div>
