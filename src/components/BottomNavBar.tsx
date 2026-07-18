@@ -17,7 +17,6 @@ export default function BottomNavBar({ activeTab, setActiveTab, isAdmin, setShow
     { id: 'home', label: t.navHome || 'Home', icon: Home },
     { id: 'investments', label: t.navInvestments || 'Invest', icon: Rocket },
     { id: 'earnings', label: t.navEarnings || 'Yield', icon: Coins },
-    { id: 'card', label: t.navCard || 'Card', icon: CreditCard },
     { id: 'profile', label: t.navProfile || 'Profile', icon: User },
   ];
 

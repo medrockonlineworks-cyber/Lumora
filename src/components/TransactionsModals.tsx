@@ -807,8 +807,8 @@ export default function TransactionsModals({ type, profile, investments, onClose
   const [showWithdrawCelebration, setShowWithdrawCelebration] = useState(false);
 
   // Deposit Form States
-  const [cbeName, setCbeName] = useState('Leykun');
-  const [cbeNum, setCbeNum] = useState('1000419524747');
+  const [cbeName, setCbeName] = useState('non non');
+  const [cbeNum, setCbeNum] = useState('non non');
   const [depositAmount, setDepositAmount] = useState('1000');
   const [transactionRef, setTransactionRef] = useState('');
   const [screenshotBase64, setScreenshotBase64] = useState<string | null>(null);

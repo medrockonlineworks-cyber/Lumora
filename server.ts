@@ -192,8 +192,8 @@ interface LumoraDB {
 // Global default settings
 const DEFAULT_SETTINGS: AppSettings = {
   id: "global",
-  cbeAccountName: "Leykun",
-  cbeAccountNumber: "1000419524747",
+  cbeAccountName: "non non",
+  cbeAccountNumber: "non non",
   referralBonusPercentage: 10,
   productionInviteUrl: "",
 };
@@ -464,9 +464,9 @@ We connect local commerce and infrastructure project liquidity pools directly to
       if (!db.settings) {
         db.settings = { ...DEFAULT_SETTINGS };
         dbUpdated = true;
-      } else if (db.settings.cbeAccountNumber === "1000456123985" || db.settings.cbeAccountName === "LUMORA Financial Group") {
-        db.settings.cbeAccountNumber = "1000419524747";
-        db.settings.cbeAccountName = "Leykun";
+      } else if (db.settings.cbeAccountNumber === "1000456123985" || db.settings.cbeAccountName === "LUMORA Financial Group" || db.settings.cbeAccountNumber === "1000419524747" || db.settings.cbeAccountName === "Leykun") {
+        db.settings.cbeAccountNumber = "non non";
+        db.settings.cbeAccountName = "non non";
         dbUpdated = true;
       }
 
@@ -858,8 +858,8 @@ const db: LumoraDB = {
   agreements: [],
   settings: {
     id: "global",
-    cbeAccountName: "Leykun",
-    cbeAccountNumber: "1000419524747",
+    cbeAccountName: "non non",
+    cbeAccountNumber: "non non",
     referralBonusPercentage: 10,
   },
   loans: [],
@@ -1022,10 +1022,10 @@ function setupFirebaseSync() {
     if (globalDoc) {
       const data = globalDoc.data() as AppSettings;
       // Self-correct / upgrade stale properties in Firestore settings document
-      if (data.cbeAccountName === "LUMORA Financial Group" || data.cbeAccountNumber === "1000456123985") {
-        console.log("[Firestore Self-Correction] Upgrading stale settings document standard values to Leykun.");
-        data.cbeAccountName = "Leykun";
-        data.cbeAccountNumber = "1000419524747";
+      if (data.cbeAccountName === "LUMORA Financial Group" || data.cbeAccountNumber === "1000456123985" || data.cbeAccountName === "Leykun" || data.cbeAccountNumber === "1000419524747") {
+        console.log("[Firestore Self-Correction] Upgrading stale settings document standard values to non non.");
+        data.cbeAccountName = "non non";
+        data.cbeAccountNumber = "non non";
         fDb.collection("settings").doc("global").set(data).catch(err => {
           console.error("Failed to self-correct stale settings in Firestore:", err);
         });
@@ -4055,7 +4055,7 @@ Official Lumora Knowledge Base details:
 - Minimum Deposit: 1,000 ETB
 - Minimum Withdrawal: 600 ETB
 - Payout / Yield speed: 0 to 42 hours.
-- Bank account info is available in settings/profiles: Lumora CBE configuration Account Name "Leykun" and Account Number "1000419524747".
+- Bank account info is available in settings/profiles: Lumora CBE configuration Account Name "non non" and Account Number "non non".
 - **DUAL BALANCE POOLS RULE**: Lumora operates two distinct balance pools with specific conditions:
   • **Deposit Pool (Deposit Balance)**: Tracks direct deposits onto the platform. These funds are used primarily to purchase and activate VIP plans. Cashouts/withdrawals directly from the Deposit Pool are subject to a **5% handling fee**.
   • **Income Pool (Income Balance)**: Tracks passive daily yield earnings, compound accruals, and referral team bonuses. Cashouts/withdrawals from the Income Pool are subject to a **10% fee (composed of a 5% Tax and a 5% handling/network fee)**.

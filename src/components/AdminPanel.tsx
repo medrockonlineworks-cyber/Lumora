@@ -14,7 +14,7 @@ interface AdminPanelProps {
 }
 
 export default function AdminPanel({ onBack }: AdminPanelProps) {
-  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'deposits' | 'withdrawals' | 'id-verify' | 'users' | 'loans' | 'settings' | 'cards' | 'audit-logs'>('overview');
+  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'deposits' | 'withdrawals' | 'id-verify' | 'users' | 'loans' | 'settings' | 'audit-logs'>('overview');
   const [stats, setStats] = useState<any>(null);
   const [users, setUsers] = useState<any[]>([]);
   const [deposits, setDeposits] = useState<Deposit[]>([]);
@@ -28,11 +28,6 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   const [purgeConfirmWord, setPurgeConfirmWord] = useState('');
   const [userToDelete, setUserToDelete] = useState<any | null>(null);
   
-  // Card admin states
-  const [allCards, setAllCards] = useState<any[]>([]);
-  const [allCardTransactions, setAllCardTransactions] = useState<any[]>([]);
-  const [cardFilter, setCardFilter] = useState<'pending' | 'active' | 'frozen' | 'all'>('pending');
-
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [lastSynced, setLastSynced] = useState<Date | null>(null);
@@ -251,17 +246,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
         setCompanyLicenseUrl(sett.companyLicenseUrl || '');
       }
 
-      // Fetch cards
-      const resCards = await fetch('/api/admin/cards');
-      if (resCards.ok) {
-        const cData = await resCards.json();
-        setAllCards(cData.cards || []);
-        // Sort newest first
-        const sortedTrans = (cData.transactions || []).sort(
-          (a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime()
-        );
-        setAllCardTransactions(sortedTrans);
-      }
+
 
       setLastSynced(new Date());
     } catch (err) {
@@ -841,7 +826,6 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
           { id: 'withdrawals', label: 'Withdrawals', icon: CreditCard, count: withdrawals.filter(w => w.status === 'pending').length },
           { id: 'id-verify', label: 'ID Verify', icon: ShieldAlert, count: users.filter(u => { const s = u.profile?.idVerificationStatus; return s === 'pending' || s === 'skipped'; }).length },
           { id: 'users', label: 'Users Manager', icon: Users },
-          { id: 'cards', label: 'LUMORA Cards', icon: CreditCard, count: allCards.filter(c => c.status === 'pending').length },
           { id: 'loans', label: 'Loans Board', icon: FileText, count: loans.filter(l => l.status === 'pending').length },
           { id: 'settings', label: 'Settings', icon: Settings },
           { id: 'audit-logs', label: 'Audit Logs', icon: ShieldCheck }
@@ -2066,223 +2050,6 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
           </div>
         )}
 
-          {/* TAB 8: LUMORA CARD MANAGEMENT DESK */}
-          {activeSubTab === 'cards' && (
-            <div className="space-y-6">
-              {/* Filter controls */}
-              <div className="flex items-center space-x-2 border-b border-slate-200/60 pb-3">
-                {(['pending', 'active', 'frozen', 'all'] as const).map((fil) => (
-                  <button
-                    key={fil}
-                    onClick={() => setCardFilter(fil)}
-                    className={`px-3 py-1 rounded-lg text-[9.5px] font-black uppercase tracking-wider transition-all cursor-pointer ${
-                      cardFilter === fil 
-                        ? 'bg-[#0A3D91] text-white shadow-sm' 
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    }`}
-                  >
-                    {fil} ({
-                      fil === 'all' 
-                        ? allCards.length 
-                        : allCards.filter(c => c.status === fil).length
-                    })
-                  </button>
-                ))}
-              </div>
-
-              {/* Card audit list table */}
-              {(() => {
-                const filtered = allCards.filter((card) => {
-                  const matchesFilter = cardFilter === 'all' || card.status === cardFilter;
-                  const uName = card.user?.fullName || '';
-                  const uPhone = card.user?.phone || '';
-                  const uId = card.userId || '';
-                  const cNo = card.cardNumber || '';
-                  const matchesSearch = 
-                    searchTerm === '' ||
-                    uName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    uPhone.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    uId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    cNo.replace(/\s/g, '').includes(searchTerm.replace(/\s/g, ''));
-                  return matchesFilter && matchesSearch;
-                });
-
-                const handleCardAction = async (cardId: string, action: 'approve' | 'reject' | 'freeze' | 'unfreeze') => {
-                  setActionLoading(`card-${cardId}-${action}`);
-                  try {
-                    const res = await fetch('/api/admin/cards/action', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ cardId, action })
-                    });
-                    if (res.ok) {
-                      showToast(`Card action [${action.toUpperCase()}] applied successfully!`);
-                      fetchAllAdminData();
-                    } else {
-                      const data = await res.json();
-                      showToast(data.error || "Failed to trigger card status update.", 'error');
-                    }
-                  } catch (err) {
-                    showToast("Network exception authorized.", 'error');
-                  } finally {
-                    setActionLoading(null);
-                  }
-                };
-
-                return (
-                  <div className="space-y-6">
-                    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-3xs">
-                      {filtered.length === 0 ? (
-                        <div className="p-8 text-center text-slate-400 font-black text-xs uppercase tracking-widest">
-                          No virtual cards found under selection parameters
-                        </div>
-                      ) : (
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-left border-collapse text-xs">
-                            <thead>
-                              <tr className="bg-slate-50 border-b border-slate-250 select-none text-[9px] font-black uppercase text-slate-450 tracking-wider">
-                                <th className="p-3.5">User / Holder</th>
-                                <th className="p-3.5">VIP / KYC Status</th>
-                                <th className="p-3.5">Card Information</th>
-                                <th className="p-3.5">Funding Balance</th>
-                                <th className="p-3.5">Status</th>
-                                <th className="p-3.5 text-right">Administrative Actions</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {filtered.map((card) => (
-                                <tr key={card.id} className="border-b border-slate-150/80 hover:bg-slate-50/50 transition duration-150">
-                                  <td className="p-3.5">
-                                    <div className="leading-tight font-sans">
-                                      <p className="font-extrabold text-slate-900 uppercase">{card.user?.fullName || 'UNKNOWN USER'}</p>
-                                      <p className="font-semibold text-slate-500 font-mono text-[10px] mt-0.5">{card.user?.phone}</p>
-                                      <p className="text-[8px] font-mono font-bold text-slate-400 mt-0.5 uppercase">ID: {card.userId}</p>
-                                    </div>
-                                  </td>
-
-                                  <td className="p-3.5 font-sans">
-                                    <div className="leading-snug">
-                                      <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-black border border-blue-100 text-[8.5px]">
-                                        VIP {card.profile?.vipLevel || 0}
-                                      </span>
-                                      <span className="ml-1 px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-100 text-[8.5px] uppercase font-black">
-                                        {card.profile?.idVerificationStatus || 'UNVERIFIED'}
-                                      </span>
-                                    </div>
-                                  </td>
-
-                                  <td className="p-3.5 font-sans">
-                                    <div className="leading-tight">
-                                      <p className="font-bold text-slate-800 font-mono tracking-wider">{card.cardNumber}</p>
-                                      <p className="text-[9px] text-[#0A3D91] font-bold mt-1">CVV: <span className="font-mono font-black">{card.cvv}</span> | EXP: <span className="font-mono font-black">{card.expiryDate}</span></p>
-                                    </div>
-                                  </td>
-
-                                  <td className="p-3.5 leading-snug">
-                                    <p className="font-black text-emerald-600 font-mono text-[13px]">${card.balance?.toFixed(2)} USD</p>
-                                    <p className="text-[8.5px] font-semibold text-slate-400 font-mono uppercase">Applied: {new Date(card.applicationDate).toLocaleDateString()}</p>
-                                  </td>
-
-                                  <td className="p-3.5">
-                                    <span className={`px-2.5 py-0.5 text-[8.5px] font-black uppercase tracking-wider rounded-full border ${
-                                      card.status === 'active' 
-                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-150'
-                                        : card.status === 'frozen'
-                                        ? 'bg-rose-50 text-rose-700 border-rose-150'
-                                        : 'bg-amber-50 text-amber-700 border-amber-150 animate-pulse'
-                                    }`}>
-                                      {card.status}
-                                    </span>
-                                  </td>
-
-                                  <td className="p-3.5 text-right space-x-1.5 whitespace-nowrap">
-                                    {card.status === 'pending' ? (
-                                      <>
-                                        <button
-                                          disabled={!!actionLoading}
-                                          onClick={() => handleCardAction(card.id, 'approve')}
-                                          className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 font-black text-[9px] text-white uppercase rounded-md shadow-3xs cursor-pointer active:scale-95 transition"
-                                        >
-                                          {actionLoading === `card-${card.id}-approve` ? 'Approve...' : 'APPROVE'}
-                                        </button>
-                                        <button
-                                          disabled={!!actionLoading}
-                                          onClick={() => handleCardAction(card.id, 'reject')}
-                                          className="px-2.5 py-1.5 bg-rose-600 hover:bg-rose-700 font-black text-[9px] text-white uppercase rounded-md shadow-3xs cursor-pointer active:scale-95 transition"
-                                        >
-                                          {actionLoading === `card-${card.id}-reject` ? 'Reject...' : 'REJECT & REFUND'}
-                                        </button>
-                                      </>
-                                    ) : (
-                                      <>
-                                        {card.status === 'frozen' ? (
-                                          <button
-                                            disabled={!!actionLoading}
-                                            onClick={() => handleCardAction(card.id, 'unfreeze')}
-                                            className="px-2.5 py-1.5 bg-emerald-100 hover:bg-emerald-200 border border-emerald-250 font-black text-[9px] text-emerald-850 uppercase rounded-md cursor-pointer active:scale-95 transition"
-                                          >
-                                            UNFREEZE
-                                          </button>
-                                        ) : (
-                                          <button
-                                            disabled={!!actionLoading}
-                                            onClick={() => handleCardAction(card.id, 'freeze')}
-                                            className="px-2.5 py-1.5 bg-rose-100 hover:bg-rose-200 border border-rose-250 font-black text-[9px] text-rose-850 uppercase rounded-md cursor-pointer active:scale-95 transition"
-                                          >
-                                            FREEZE
-                                          </button>
-                                        )}
-                                      </>
-                                    )}
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Virtual Card Transaction History Grid */}
-                    <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 shadow-3xs">
-                      <div className="flex items-center space-x-2 border-b border-slate-50 pb-2">
-                        <CreditCard className="w-4 h-4 text-[#0A3D91]" />
-                        <h4 className="text-[10px] font-black uppercase text-[#0A3D91] tracking-wider">
-                          Consolidated Card Ledger Logs
-                        </h4>
-                      </div>
-
-                      {allCardTransactions.length === 0 ? (
-                        <p className="text-slate-400 text-xs font-black uppercase tracking-widest text-center py-4">No cards ledger history logged yet</p>
-                      ) : (
-                        <div className="max-h-64 overflow-y-auto space-y-2.5 pr-1">
-                          {allCardTransactions.map((tx) => (
-                            <div key={tx.id} className="p-3 bg-slate-50 border border-slate-150 rounded-xl flex items-center justify-between font-sans">
-                              <div className="text-left font-sans text-xs">
-                                <span className="text-[8px] font-mono text-slate-400 block">ID: {tx.id}</span>
-                                <span className="font-extrabold text-slate-900 block mt-0.5">{tx.description}</span>
-                                <span className="text-[8.5px] font-semibold text-slate-400 block pt-0.5 font-mono">
-                                  {new Date(tx.date).toLocaleString()}
-                                </span>
-                              </div>
-
-                              <div className="text-right shrink-0">
-                                <span className={`text-[12px] font-black ${tx.amount < 0 || tx.type === 'card_issued' ? 'text-rose-600' : 'text-emerald-600'}`}>
-                                  {tx.amount < 0 || tx.type === 'card_issued' ? '-' : '+'}${Math.abs(tx.amount).toFixed(2)} USD
-                                </span>
-                                <span className="block text-[8px] font-mono text-slate-400 font-extrabold uppercase mt-0.5">{tx.status}</span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                    </div>
-                  </div>
-                );
-              })()}
-            </div>
-          )}
 
           {/* TAB 9: SYSTEM AUDIT LOGS DESK */}
           {activeSubTab === 'audit-logs' && (

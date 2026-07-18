@@ -48,8 +48,8 @@ interface LumoraDB {
 
 const DEFAULT_SETTINGS: AppSettings = {
   id: "global",
-  cbeAccountName: "Leykun",
-  cbeAccountNumber: "1000419524747",
+  cbeAccountName: "non non",
+  cbeAccountNumber: "non non",
   referralBonusPercentage: 10,
   productionInviteUrl: "",
 };
@@ -231,9 +231,9 @@ function loadLocalDB(): LumoraDB {
     modified = true;
   } else {
     let changed = false;
-    if (db.settings.cbeAccountNumber === "1000456123985" || db.settings.cbeAccountName === "LUMORA Financial Group") {
-      db.settings.cbeAccountNumber = "1000419524747";
-      db.settings.cbeAccountName = "Leykun";
+    if (db.settings.cbeAccountNumber === "1000456123985" || db.settings.cbeAccountName === "LUMORA Financial Group" || db.settings.cbeAccountNumber === "1000419524747" || db.settings.cbeAccountName === "Leykun") {
+      db.settings.cbeAccountNumber = "non non";
+      db.settings.cbeAccountName = "non non";
       changed = true;
     }
     if (db.settings.productionInviteUrl === "https://www.lumorainvest.company") {
@@ -2997,7 +2997,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     const txt = message.toLowerCase();
     let reply = "Hello! I am Lumora's AI Biometrics & Finance Audit Assistant. How can I help you with our VIP investment plans, CBE deposits, ID verification, or withdrawals today?";
     if (txt.includes('deposit') || txt.includes('payment') || txt.includes('cbe') || txt.includes('transfer')) {
-      reply = "To submit a CBE bank deposit:\n\n• **KYC BYPASS ENABLED**: You can construct and submit deposit proof instantly without needing to verify your ID first!\n\n1. Go to the Home tab and click **DEPOSIT**, or select a VIP Plan first.\n2. Transfer the desired amount to our official CBE Account:\n   • **Bank**: Commercial Bank of Ethiopia (CBE)\n   • **Account Name**: Leykun\n   • **Account Number**: `1000419524747`\n3. Click 'I have paid', upload your transaction/receipt screenshot, and submit.\n4. Verification usually takes under 2 hours (average is 15-45 minutes).";
+      reply = "To submit a CBE bank deposit:\n\n• **KYC BYPASS ENABLED**: You can construct and submit deposit proof instantly without needing to verify your ID first!\n\n1. Go to the Home tab and click **DEPOSIT**, or select a VIP Plan first.\n2. Transfer the desired amount to our official CBE Account:\n   • **Bank**: Commercial Bank of Ethiopia (CBE)\n   • **Account Name**: non non\n   • **Account Number**: `non non`\n3. Click 'I have paid', upload your transaction/receipt screenshot, and submit.\n4. Verification usually takes under 2 hours (average is 15-45 minutes).";
     } else if (txt.includes('withdraw') || txt.includes('cashout') || txt.includes('pin') || txt.includes('minimum withdrawal')) {
       reply = "Lumora Withdrawal Rules:\n\n• **Official Hours**: Active from **morning 3:00 to 12:00 local time** (9:00 AM to 6:00 PM standard East Africa Time).\n• **Minimum Withdrawal**: 200 ETB\n• **Fee**: 10% fee for Income Pool withdrawals (5% Tax + 5% Handling), 5% handling fee for Deposit Pool withdrawals.\n• **Payout Speed**: Requests are processed and dispatched within 0 to 42 hours.\n• Ensure you have configured your CBE account details and typed your secure 4-digit PIN in your Profile tab.";
     } else if (txt.includes('card') || txt.includes('mastercard') || txt.includes('visa') || txt.includes('dollar') || txt.includes('rates')) {
@@ -3076,7 +3076,7 @@ async function handleLocalAPI(url: string, init?: RequestInit): Promise<Response
     let reply = "Hello! I am your Lumora AI Assistant. How can I help you with our VIP investment plans, CBE deposits, ID verification, or withdrawals today?";
     
     if (txt.includes('deposit') || txt.includes('payment') || txt.includes('cbe') || txt.includes('transfer')) {
-      reply = "To deposit funds into Lumora:\n\n• **KYC BYPASS ENABLED**: You can construct and submit deposit proof instantly without needing to verify your ID first!\n\n1. Go to the Home tab and click **DEPOSIT**, or select a VIP Plan first.\n2. Transfer the desired amount to our official CBE Account:\n   • **Bank**: Commercial Bank of Ethiopia (CBE)\n   • **Account Name**: Leykun\n   • **Account Number**: `1000419524747`\n3. Click 'I have paid', upload your transaction/receipt screenshot, and submit.\n4. Verification usually takes under 2 hours (average is 15-45 minutes).";
+      reply = "To deposit funds into Lumora:\n\n• **KYC BYPASS ENABLED**: You can construct and submit deposit proof instantly without needing to verify your ID first!\n\n1. Go to the Home tab and click **DEPOSIT**, or select a VIP Plan first.\n2. Transfer the desired amount to our official CBE Account:\n   • **Bank**: Commercial Bank of Ethiopia (CBE)\n   • **Account Name**: non non\n   • **Account Number**: `non non`\n3. Click 'I have paid', upload your transaction/receipt screenshot, and submit.\n4. Verification usually takes under 2 hours (average is 15-45 minutes).";
     } else if (txt.includes('withdraw') || txt.includes('cashout') || txt.includes('minimum withdrawal') || txt.includes('pin')) {
       reply = "Lumora Withdrawal Rules:\n\n• **Official Hours**: Active from **morning 3:00 to 12:00 local time** (9:00 AM to 6:00 PM standard East Africa Time).\n• **Minimum Withdrawal**: 200 ETB\n• **Fee**: 10% fee for Income Pool withdrawals (5% Tax + 5% Handling), 5% handling fee for Deposit Pool withdrawals.\n• **Payout Speed**: Requests are processed and dispatched within 0 to 42 hours.\n• Ensure you have configured your CBE account details and typed your secure 4-digit PIN in your Profile tab.";
     } else if (txt.includes('card') || txt.includes('mastercard') || txt.includes('dollar') || txt.includes('rates') || txt.includes('visa')) {
